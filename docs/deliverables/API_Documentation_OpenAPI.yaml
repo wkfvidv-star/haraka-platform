@@ -1,0 +1,1772 @@
+openapi: 3.0.3
+info:
+  title: منصة تتبع اللياقة البدنية - API
+  description: |
+    واجهة برمجة التطبيقات الشاملة لمنصة تتبع اللياقة البدنية في المدارس الجزائرية.
+    
+    تدعم هذه الواجهة جميع العمليات المطلوبة لإدارة المستخدمين، الأجهزة، البيانات الصحية، 
+    الحجوزات، المسابقات، والرسائل.
+    
+    ## المصادقة
+    تستخدم الواجهة نظام JWT للمصادقة. يجب إرسال التوكن في رأس Authorization:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+    
+    ## معدلات الاستخدام
+    - المستوى المجاني: 1,000 طلب/ساعة
+    - المستوى المدفوع: 10,000 طلب/ساعة
+    - المستوى المؤسسي: غير محدود
+    
+    ## رموز الخطأ
+    - 400: طلب غير صحيح
+    - 401: غير مصرح
+    - 403: ممنوع
+    - 404: غير موجود
+    - 429: تجاوز معدل الاستخدام
+    - 500: خطأ في الخادم
+  version: 1.0.0
+  contact:
+    name: فريق التطوير
+    email: api@fitness-platform.dz
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.fitness-platform.dz/v1
+    description: خادم الإنتاج
+  - url: https://staging-api.fitness-platform.dz/v1
+    description: خادم الاختبار
+  - url: http://localhost:3000/api/v1
+    description: خادم التطوير المحلي
+
+tags:
+  - name: Authentication
+    description: عمليات المصادقة وإدارة الجلسات
+  - name: Users
+    description: إدارة المستخدمين والملفات الشخصية
+  - name: Devices
+    description: إدارة الأجهزة الذكية والمزامنة
+  - name: Health Data
+    description: البيانات الصحية والنشاط البدني
+  - name: Bookings
+    description: نظام الحجوزات والجلسات التدريبية
+  - name: Competitions
+    description: إدارة المسابقات والتحديات
+  - name: Messages
+    description: نظام الرسائل والإشعارات
+  - name: Reports
+    description: التقارير والإحصائيات
+  - name: Admin
+    description: العمليات الإدارية
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: تسجيل الدخول
+      description: تسجيل دخول المستخدم والحصول على JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "student@school.dz"
+                password:
+                  type: string
+                  format: password
+                  example: "SecurePassword123!"
+                remember_me:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: تسجيل دخول ناجح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      expires_at:
+                        type: string
+                        format: date-time
+                        example: "2024-10-03T14:30:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: تسجيل الخروج
+      description: إنهاء جلسة المستخدم وإلغاء صلاحية التوكن
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: تسجيل خروج ناجح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم تسجيل الخروج بنجاح"
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: تجديد التوكن
+      description: تجديد JWT token قبل انتهاء صلاحيته
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: تجديد ناجح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      expires_at:
+                        type: string
+                        format: date-time
+
+  # Users Endpoints
+  /users:
+    get:
+      tags: [Users]
+      summary: قائمة المستخدمين
+      description: الحصول على قائمة المستخدمين مع إمكانية الفلترة والبحث
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [student, parent, teacher, coach, principal, directorate_admin, ministry_admin]
+        - name: school_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: البحث في الاسم والبريد الإلكتروني
+      responses:
+        '200':
+          description: قائمة المستخدمين
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [Users]
+      summary: إنشاء مستخدم جديد
+      description: إنشاء حساب مستخدم جديد
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: تم إنشاء المستخدم بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: تفاصيل المستخدم
+      description: الحصول على تفاصيل مستخدم محدد
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: تفاصيل المستخدم
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Users]
+      summary: تحديث المستخدم
+      description: تحديث بيانات مستخدم
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: تم التحديث بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    delete:
+      tags: [Users]
+      summary: حذف المستخدم
+      description: حذف مستخدم من النظام
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: تم الحذف بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم حذف المستخدم بنجاح"
+
+  # Devices Endpoints
+  /devices:
+    get:
+      tags: [Devices]
+      summary: قائمة الأجهزة
+      description: الحصول على قائمة الأجهزة المقترنة
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: brand
+          in: query
+          schema:
+            type: string
+            enum: [xiaomi, apple, samsung, fitbit, garmin, huawei, other]
+      responses:
+        '200':
+          description: قائمة الأجهزة
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Device'
+
+    post:
+      tags: [Devices]
+      summary: اقتران جهاز جديد
+      description: اقتران جهاز لياقة بدنية جديد مع المستخدم
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PairDeviceRequest'
+      responses:
+        '201':
+          description: تم اقتران الجهاز بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Device'
+
+  /devices/{id}/sync:
+    post:
+      tags: [Devices]
+      summary: مزامنة الجهاز
+      description: بدء عملية مزامنة البيانات من الجهاز
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: بدأت المزامنة بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/SyncStatus'
+
+  # Health Data Endpoints
+  /health/activity/{user_id}:
+    get:
+      tags: [Health Data]
+      summary: بيانات النشاط البدني
+      description: الحصول على بيانات النشاط البدني للمستخدم
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2024-10-01"
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2024-10-07"
+        - name: aggregation
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+            default: daily
+      responses:
+        '200':
+          description: بيانات النشاط البدني
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ActivityData'
+
+  /health/sleep/{user_id}:
+    get:
+      tags: [Health Data]
+      summary: بيانات النوم
+      description: الحصول على بيانات النوم والراحة
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: بيانات النوم
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/SleepData'
+
+  /health/bia/{user_id}:
+    get:
+      tags: [Health Data]
+      summary: بيانات تحليل الجسم
+      description: الحصول على بيانات تحليل تركيب الجسم (BIA)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: بيانات تحليل الجسم
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/BIAData'
+
+  # Bookings Endpoints
+  /bookings:
+    get:
+      tags: [Bookings]
+      summary: قائمة الحجوزات
+      description: الحصول على قائمة الحجوزات والمواعيد
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: coach_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, cancelled, completed]
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: قائمة الحجوزات
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Booking'
+
+    post:
+      tags: [Bookings]
+      summary: حجز جلسة جديدة
+      description: حجز جلسة تدريبية مع مدرب
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+      responses:
+        '201':
+          description: تم الحجز بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Booking'
+
+  # Competitions Endpoints
+  /competitions:
+    get:
+      tags: [Competitions]
+      summary: قائمة المسابقات
+      description: الحصول على المسابقات المتاحة
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, active, completed, cancelled]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [fitness_challenge, sports_tournament, endurance_test, strength_test]
+        - name: school_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: province_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: قائمة المسابقات
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Competition'
+
+    post:
+      tags: [Competitions]
+      summary: إنشاء مسابقة جديدة
+      description: إنشاء مسابقة أو تحدي جديد
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompetitionRequest'
+      responses:
+        '201':
+          description: تم إنشاء المسابقة بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Competition'
+
+  /competitions/{id}:
+    get:
+      tags: [Competitions]
+      summary: تفاصيل المسابقة
+      description: الحصول على تفاصيل مسابقة محددة
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: تفاصيل المسابقة
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Competition'
+
+    put:
+      tags: [Competitions]
+      summary: تحديث المسابقة
+      description: تحديث تفاصيل المسابقة
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompetitionRequest'
+      responses:
+        '200':
+          description: تم التحديث بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Competition'
+
+    delete:
+      tags: [Competitions]
+      summary: حذف المسابقة
+      description: حذف مسابقة من النظام
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: تم الحذف بنجاح
+
+  /competitions/{id}/publish:
+    post:
+      tags: [Competitions]
+      summary: نشر المسابقة
+      description: نشر المسابقة للطلاب
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: تم النشر بنجاح
+
+  /competitions/{id}/cancel:
+    post:
+      tags: [Competitions]
+      summary: إلغاء المسابقة
+      description: إلغاء المسابقة مع إشعار المشاركين
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: سبب الإلغاء
+      responses:
+        '200':
+          description: تم الإلغاء بنجاح
+
+  /competitions/{id}/export:
+    get:
+      tags: [Competitions]
+      summary: تصدير بيانات المسابقة
+      description: تصدير بيانات المسابقة بصيغة Excel أو PDF
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [excel, pdf]
+      responses:
+        '200':
+          description: ملف التصدير
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  # Messages Endpoints
+  /messages:
+    get:
+      tags: [Messages]
+      summary: قائمة الرسائل
+      description: الحصول على رسائل المستخدم
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: folder
+          in: query
+          schema:
+            type: string
+            enum: [inbox, sent, drafts, trash]
+            default: inbox
+        - name: unread_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: sender_role
+          in: query
+          schema:
+            type: string
+            enum: [teacher, principal, coach, directorate_admin]
+      responses:
+        '200':
+          description: قائمة الرسائل
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+
+    post:
+      tags: [Messages]
+      summary: إرسال رسالة جديدة
+      description: إرسال رسالة إلى مستخدم آخر
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '201':
+          description: تم إرسال الرسالة بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Message'
+
+  # Reports Endpoints
+  /reports/generate:
+    post:
+      tags: [Reports]
+      summary: توليد تقرير
+      description: توليد تقرير مخصص
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateReportRequest'
+      responses:
+        '202':
+          description: بدأ توليد التقرير
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ReportJob'
+
+  /reports/{id}/download:
+    get:
+      tags: [Reports]
+      summary: تحميل التقرير
+      description: تحميل تقرير مكتمل
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ملف التقرير
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /reports/{id}/email:
+    post:
+      tags: [Reports]
+      summary: إرسال التقرير بالبريد الإلكتروني
+      description: إرسال التقرير إلى عناوين بريد إلكتروني محددة
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipients:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                subject:
+                  type: string
+                message:
+                  type: string
+      responses:
+        '200':
+          description: تم الإرسال بنجاح
+
+  # Admin Endpoints
+  /admin/provinces:
+    get:
+      tags: [Admin]
+      summary: قائمة الولايات
+      description: الحصول على قائمة جميع الولايات الجزائرية (58 ولاية)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: قائمة الولايات
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Province'
+
+  /admin/provinces/{id}/overview:
+    get:
+      tags: [Admin]
+      summary: نظرة عامة على الولاية
+      description: الحصول على نظرة عامة مفصلة عن ولاية محددة
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: نظرة عامة على الولاية
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ProvinceOverview'
+
+# Webhook Endpoints
+webhooks:
+  booking_confirmed:
+    post:
+      summary: تأكيد الحجز
+      description: يتم إرسال هذا الحدث عند تأكيد حجز جلسة تدريبية
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "booking.confirmed"
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  type: object
+                  properties:
+                    booking_id:
+                      type: string
+                      format: uuid
+                    user_id:
+                      type: string
+                      format: uuid
+                    coach_id:
+                      type: string
+                      format: uuid
+                    session_date:
+                      type: string
+                      format: date-time
+                    status:
+                      type: string
+      responses:
+        '200':
+          description: تم استلام الحدث بنجاح
+
+  device_sync_completed:
+    post:
+      summary: اكتمال مزامنة الجهاز
+      description: يتم إرسال هذا الحدث عند اكتمال مزامنة بيانات الجهاز
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "device.sync_completed"
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  type: object
+                  properties:
+                    device_id:
+                      type: string
+                      format: uuid
+                    user_id:
+                      type: string
+                      format: uuid
+                    sync_status:
+                      type: string
+                    data_points:
+                      type: integer
+      responses:
+        '200':
+          description: تم استلام الحدث بنجاح
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: غير مصرح - يجب تسجيل الدخول
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "غير مصرح"
+              code:
+                type: string
+                example: "UNAUTHORIZED"
+
+    NotFound:
+      description: غير موجود
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "المورد غير موجود"
+              code:
+                type: string
+                example: "NOT_FOUND"
+
+    ValidationError:
+      description: خطأ في التحقق من البيانات
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "بيانات غير صحيحة"
+              code:
+                type: string
+                example: "VALIDATION_ERROR"
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                    message:
+                      type: string
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          type: string
+          enum: [student, parent, teacher, coach, principal, directorate_admin, ministry_admin]
+        school_id:
+          type: string
+          format: uuid
+        province_id:
+          type: string
+          format: uuid
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female]
+        phone:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required: [email, password, first_name, last_name, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        first_name:
+          type: string
+          minLength: 2
+        last_name:
+          type: string
+          minLength: 2
+        role:
+          type: string
+          enum: [student, parent, teacher, coach, principal]
+        school_id:
+          type: string
+          format: uuid
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female]
+        phone:
+          type: string
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+          enum: [xiaomi, apple, samsung, fitbit, garmin, huawei, other]
+        model:
+          type: string
+        type:
+          type: string
+          enum: [fitness_tracker, smartwatch, smart_scale, heart_rate_monitor]
+        battery_level:
+          type: integer
+          minimum: 0
+          maximum: 100
+        is_active:
+          type: boolean
+        supports_bia:
+          type: boolean
+        supports_heart_rate:
+          type: boolean
+        supports_sleep:
+          type: boolean
+        last_sync:
+          type: string
+          format: date-time
+        paired_at:
+          type: string
+          format: date-time
+
+    PairDeviceRequest:
+      type: object
+      required: [device_id, name, brand, type]
+      properties:
+        device_id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+          enum: [xiaomi, apple, samsung, fitbit, garmin, huawei, other]
+        model:
+          type: string
+        type:
+          type: string
+          enum: [fitness_tracker, smartwatch, smart_scale, heart_rate_monitor]
+
+    SyncStatus:
+      type: object
+      properties:
+        sync_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, in_progress, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        started_at:
+          type: string
+          format: date-time
+        estimated_completion:
+          type: string
+          format: date-time
+
+    ActivityData:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+            to:
+              type: string
+              format: date
+        activities:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              steps:
+                type: integer
+              calories:
+                type: integer
+              distance:
+                type: number
+              active_minutes:
+                type: integer
+              avg_heart_rate:
+                type: integer
+        summary:
+          type: object
+          properties:
+            total_steps:
+              type: integer
+            avg_steps:
+              type: integer
+            total_calories:
+              type: integer
+            total_distance:
+              type: number
+
+    SleepData:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        sleep_records:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              bedtime:
+                type: string
+                format: time
+              wake_time:
+                type: string
+                format: time
+              total_sleep:
+                type: integer
+              deep_sleep:
+                type: integer
+              light_sleep:
+                type: integer
+              rem_sleep:
+                type: integer
+              sleep_quality:
+                type: integer
+                minimum: 0
+                maximum: 100
+
+    BIAData:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        measurements:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              weight:
+                type: number
+              body_fat_percentage:
+                type: number
+              muscle_mass:
+                type: number
+              bone_mass:
+                type: number
+              water_percentage:
+                type: number
+              bmr:
+                type: integer
+              visceral_fat:
+                type: integer
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        coach_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        booking_date:
+          type: string
+          format: date
+        booking_time:
+          type: string
+          format: time
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreateBookingRequest:
+      type: object
+      required: [coach_id, session_id, booking_date, booking_time]
+      properties:
+        coach_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        booking_date:
+          type: string
+          format: date
+        booking_time:
+          type: string
+          format: time
+        notes:
+          type: string
+
+    Competition:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [fitness_challenge, sports_tournament, endurance_test, strength_test]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        max_participants:
+          type: integer
+        current_participants:
+          type: integer
+        status:
+          type: string
+          enum: [draft, published, active, completed, cancelled]
+        created_by:
+          type: string
+          format: uuid
+        school_id:
+          type: string
+          format: uuid
+        province_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    CreateCompetitionRequest:
+      type: object
+      required: [name, type, start_date, end_date]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [fitness_challenge, sports_tournament, endurance_test, strength_test]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        max_participants:
+          type: integer
+        prize_description:
+          type: string
+        rules:
+          type: string
+
+    UpdateCompetitionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        max_participants:
+          type: integer
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sender_id:
+          type: string
+          format: uuid
+        recipient_id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+        content:
+          type: string
+        message_type:
+          type: string
+          enum: [personal, announcement, report, alert, reminder]
+        priority:
+          type: string
+          enum: [low, normal, high, urgent]
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        sender:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            role:
+              type: string
+
+    SendMessageRequest:
+      type: object
+      required: [recipient_id, subject, content]
+      properties:
+        recipient_id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+        content:
+          type: string
+        message_type:
+          type: string
+          enum: [personal, announcement, report, alert, reminder]
+        priority:
+          type: string
+          enum: [low, normal, high, urgent]
+
+    GenerateReportRequest:
+      type: object
+      required: [type, format]
+      properties:
+        type:
+          type: string
+          enum: [fitness_progress, attendance, competition_results, device_usage]
+        format:
+          type: string
+          enum: [pdf, excel]
+        date_range:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+            to:
+              type: string
+              format: date
+        filters:
+          type: object
+          properties:
+            user_ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+            school_id:
+              type: string
+              format: uuid
+            province_id:
+              type: string
+              format: uuid
+
+    ReportJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, generating, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        created_at:
+          type: string
+          format: date-time
+        estimated_completion:
+          type: string
+          format: date-time
+        download_url:
+          type: string
+          format: uri
+
+    Province:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        region:
+          type: string
+          enum: [north, south, east, west, center]
+        capital:
+          type: string
+        population:
+          type: integer
+        area_km2:
+          type: number
+
+    ProvinceOverview:
+      type: object
+      properties:
+        province:
+          $ref: '#/components/schemas/Province'
+        statistics:
+          type: object
+          properties:
+            total_schools:
+              type: integer
+            total_students:
+              type: integer
+            total_teachers:
+              type: integer
+            active_competitions:
+              type: integer
+            avg_fitness_score:
+              type: number
+        recent_activities:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              description:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+
+security:
+  - bearerAuth: []

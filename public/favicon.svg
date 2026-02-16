@@ -1,0 +1,91 @@
+<!-- Logo "Haraka" - symbolic mark (no text) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="320" height="320" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">رمز حركة - شعار تجريدي</title>
+  <desc id="logoDesc">ثلاث موجات زرقاء متدرجة باتجاه الأعلى، دائرة أصفر برتقالي كقمة، وحلقة محيطة بخامة ناعمة</desc>
+
+  <defs>
+    <!-- gradient for the waves -->
+    <linearGradient id="waveGrad" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0ea5ff"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+
+    <!-- gradient for the small sun / dot -->
+    <radialGradient id="sunGrad" cx="35%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#ffd54a"/>
+      <stop offset="100%" stop-color="#ff9f1c"/>
+    </radialGradient>
+
+    <!-- subtle grain / texture filter for the outer orbit -->
+    <filter id="grain" x="-50%" y="-50%" width="200%" height="200%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+      <feComponentTransfer in="mono" result="alpha">
+        <feFuncA type="table" tableValues="0 0.12"/>
+      </feComponentTransfer>
+      <feGaussianBlur stdDeviation="1.2" result="blur"/>
+      <feBlend in="SourceGraphic" in2="blur" mode="overlay"/>
+    </filter>
+
+    <!-- soft blur for glow -->
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- outer orbit (textured, broken circle) -->
+  <g opacity="0.92">
+    <path d="M 80 280
+             A 150 150 0 1 1 432 220"
+          fill="none"
+          stroke="#74b3e6"
+          stroke-width="14"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-opacity="0.95"
+          style="filter:url(#grain); stroke-dasharray: 16 18;"/>
+  </g>
+
+  <!-- three waves (from back to front) -->
+  <!-- back wave (thick) -->
+  <path d="M60 360 C140 420, 210 320, 310 260 C360 230, 400 210, 440 190"
+        fill="none"
+        stroke="url(#waveGrad)"
+        stroke-width="36"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        opacity="0.98"/>
+
+  <!-- middle wave -->
+  <path d="M80 320 C160 380, 230 300, 320 250 C365 222, 405 205, 442 190"
+        fill="none"
+        stroke="url(#waveGrad)"
+        stroke-width="28"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        opacity="0.98"/>
+
+  <!-- front wave (thin) -->
+  <path d="M100 280 C170 340, 240 280, 330 240 C370 218, 405 202, 442 190"
+        fill="none"
+        stroke="url(#waveGrad)"
+        stroke-width="20"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        opacity="0.98"/>
+
+  <!-- the "sun" / glowing dot -->
+  <g filter="url(#softGlow)">
+    <circle cx="472" cy="176" r="24" fill="url(#sunGrad)" />
+  </g>
+
+  <!-- small accent strokes near the wave tips to suggest motion -->
+  <path d="M400 202 C412 198, 426 190, 442 186" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+  <path d="M380 220 C392 216, 408 206, 424 198" fill="none" stroke="#60a5fa" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+
+</svg>
+

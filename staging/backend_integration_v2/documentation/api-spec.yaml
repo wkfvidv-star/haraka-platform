@@ -1,0 +1,1494 @@
+openapi: 3.0.3
+info:
+  title: منصة حركة - Haraka Platform API
+  description: |
+    واجهة برمجة التطبيقات لمنصة حركة لتحليل الأداء الحركي للطلاب
+    
+    ## المميزات الرئيسية
+    - تحليل الفيديو بالذكاء الاصطناعي
+    - إدارة ملفات الطلاب والتحليلات
+    - نظام تقارير شامل
+    - إشعارات ذكية في الوقت الفعلي
+    
+    ## المصادقة
+    تستخدم المنصة JWT tokens للمصادقة. أرسل التوكن في header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## معدل الطلبات
+    - 1000 طلب لكل 15 دقيقة للمستخدمين العاديين
+    - 5000 طلب لكل 15 دقيقة للمديرين
+    
+  version: 1.0.0
+  contact:
+    name: فريق تطوير منصة حركة
+    email: support@haraka.edu.sa
+    url: https://docs.haraka.edu.sa
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.haraka.edu.sa/v1
+    description: خادم الإنتاج
+  - url: https://staging-api.haraka.edu.sa/v1
+    description: خادم الاختبار
+  - url: http://localhost:3000/api/v1
+    description: خادم التطوير المحلي
+
+security:
+  - bearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: تسجيل الدخول
+      description: تسجيل دخول المستخدم والحصول على JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "teacher@school.edu.sa"
+                password:
+                  type: string
+                  format: password
+                  example: "SecurePassword123!"
+                remember_me:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: تم تسجيل الدخول بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم تسجيل الدخول بنجاح"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      expires_at:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: تسجيل الخروج
+      description: تسجيل خروج المستخدم وإلغاء JWT token
+      responses:
+        '200':
+          description: تم تسجيل الخروج بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم تسجيل الخروج بنجاح"
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: معلومات المستخدم الحالي
+      description: الحصول على معلومات المستخدم المسجل حالياً
+      responses:
+        '200':
+          description: معلومات المستخدم
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+
+  # Students Endpoints
+  /students:
+    get:
+      tags:
+        - Students
+      summary: قائمة الطلاب
+      description: الحصول على قائمة الطلاب مع إمكانية الفلترة والبحث
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: البحث في اسم الطالب أو الرقم
+        - name: class_name
+          in: query
+          schema:
+            type: string
+          description: فلترة حسب اسم الصف
+        - name: grade_level
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [نشط, معلق, محول, متخرج, منسحب]
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [student_name, student_code, grade_level, created_at, average_performance]
+            default: student_name
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        '200':
+          description: قائمة الطلاب
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      students:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Student'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+                      stats:
+                        type: object
+                        properties:
+                          total_students:
+                            type: integer
+                          active_students:
+                            type: integer
+                          average_performance:
+                            type: number
+                            format: float
+
+    post:
+      tags:
+        - Students
+      summary: إضافة طالب جديد
+      description: إنشاء ملف طالب جديد في النظام
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudentRequest'
+      responses:
+        '201':
+          description: تم إنشاء الطالب بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم إضافة الطالب بنجاح"
+                  data:
+                    $ref: '#/components/schemas/Student'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /students/{id}:
+    get:
+      tags:
+        - Students
+      summary: معلومات طالب محدد
+      description: الحصول على معلومات تفصيلية لطالب محدد
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: include_analyses
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: تضمين التحليلات الأخيرة
+        - name: include_performance
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: تضمين إحصائيات الأداء
+      responses:
+        '200':
+          description: معلومات الطالب
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StudentDetailed'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      tags:
+        - Students
+      summary: تحديث معلومات طالب
+      description: تحديث معلومات طالب موجود
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudentRequest'
+      responses:
+        '200':
+          description: تم تحديث الطالب بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم تحديث معلومات الطالب بنجاح"
+                  data:
+                    $ref: '#/components/schemas/Student'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    delete:
+      tags:
+        - Students
+      summary: حذف طالب
+      description: حذف طالب من النظام (soft delete)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: تم حذف الطالب بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم حذف الطالب بنجاح"
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # Analyses Endpoints
+  /analyses:
+    get:
+      tags:
+        - Analyses
+      summary: قائمة التحليلات
+      description: الحصول على قائمة التحليلات مع إمكانية الفلترة
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: student_id
+          in: query
+          schema:
+            type: integer
+        - name: class_name
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: min_score
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 100
+        - name: max_score
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 100
+        - name: needs_followup
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: قائمة التحليلات
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      analyses:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Analysis'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+                      stats:
+                        type: object
+                        properties:
+                          total_analyses:
+                            type: integer
+                          average_score:
+                            type: number
+                          students_need_followup:
+                            type: integer
+
+    post:
+      tags:
+        - Analyses
+      summary: إنشاء تحليل جديد
+      description: إنشاء تحليل جديد لطالب مع رفع الفيديو
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - student_id
+                - video_file
+              properties:
+                student_id:
+                  type: integer
+                video_file:
+                  type: string
+                  format: binary
+                  description: ملف الفيديو (MP4, MOV, AVI)
+                teacher_notes:
+                  type: string
+                session_duration:
+                  type: integer
+                  description: مدة الجلسة بالثواني
+                exercises_completed:
+                  type: integer
+      responses:
+        '201':
+          description: تم إنشاء التحليل بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم رفع الفيديو وبدء التحليل"
+                  data:
+                    type: object
+                    properties:
+                      analysis_id:
+                        type: integer
+                      status:
+                        type: string
+                        example: "processing"
+                      estimated_completion:
+                        type: string
+                        format: date-time
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /analyses/{id}:
+    get:
+      tags:
+        - Analyses
+      summary: تحليل محدد
+      description: الحصول على تفاصيل تحليل محدد
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: include_comparison
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: تضمين مقارنة مع متوسط الصف
+        - name: include_history
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: تضمين تاريخ التحليلات السابقة
+      responses:
+        '200':
+          description: تفاصيل التحليل
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AnalysisDetailed'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      tags:
+        - Analyses
+      summary: تحديث تحليل
+      description: تحديث ملاحظات المعلم أو معلومات التحليل
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teacher_notes:
+                  type: string
+                improvement_suggestions:
+                  type: array
+                  items:
+                    type: string
+                risk_factors:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: تم تحديث التحليل بنجاح
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم تحديث التحليل بنجاح"
+                  data:
+                    $ref: '#/components/schemas/Analysis'
+
+  # Reports Endpoints
+  /reports/student/{student_id}:
+    get:
+      tags:
+        - Reports
+      summary: تقرير طالب
+      description: إنشاء تقرير شامل لأداء طالب محدد
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, semester, year]
+            default: month
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, pdf, excel]
+            default: json
+      responses:
+        '200':
+          description: تقرير الطالب
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentReport'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /reports/class/{class_name}:
+    get:
+      tags:
+        - Reports
+      summary: تقرير صف
+      description: إنشاء تقرير شامل لأداء صف دراسي
+      parameters:
+        - name: class_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, semester, year]
+            default: month
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, pdf, excel]
+            default: json
+      responses:
+        '200':
+          description: تقرير الصف
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassReport'
+
+  /reports/school:
+    get:
+      tags:
+        - Reports
+      summary: تقرير المدرسة
+      description: إنشاء تقرير شامل لأداء المدرسة
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, semester, year]
+            default: month
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, pdf, excel]
+            default: json
+      responses:
+        '200':
+          description: تقرير المدرسة
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolReport'
+
+  # Notifications Endpoints
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: قائمة الإشعارات
+      description: الحصول على إشعارات المستخدم الحالي
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: is_read
+          in: query
+          schema:
+            type: boolean
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [منخفض, متوسط, عالي, عاجل, حرج]
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [عام, أداء, تنبيه, تحديث, تذكير, طارئ]
+      responses:
+        '200':
+          description: قائمة الإشعارات
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      notifications:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+                      stats:
+                        type: object
+                        properties:
+                          total_count:
+                            type: integer
+                          unread_count:
+                            type: integer
+
+  /notifications/{id}/read:
+    put:
+      tags:
+        - Notifications
+      summary: تعليم إشعار كمقروء
+      description: تعليم إشعار محدد كمقروء
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: تم تعليم الإشعار كمقروء
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "تم تعليم الإشعار كمقروء"
+
+  # Health Check
+  /health:
+    get:
+      tags:
+        - System
+      summary: فحص صحة النظام
+      description: فحص حالة النظام وقاعدة البيانات
+      security: []
+      responses:
+        '200':
+          description: النظام يعمل بشكل طبيعي
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  database:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "connected"
+                      response_time:
+                        type: number
+                        example: 15.2
+                  storage:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "available"
+                      free_space:
+                        type: string
+                        example: "85%"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: "teacher@school.edu.sa"
+        name:
+          type: string
+          example: "أحمد محمد"
+        role:
+          type: string
+          enum: [admin, principal, teacher, student]
+          example: "teacher"
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        last_login:
+          type: string
+          format: date-time
+
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        student_id:
+          type: integer
+          example: 12345
+        student_name:
+          type: string
+          example: "محمد علي أحمد"
+        student_code:
+          type: string
+          example: "STU001"
+        class_name:
+          type: string
+          example: "الصف الخامس أ"
+        grade_level:
+          type: integer
+          minimum: 1
+          maximum: 12
+          example: 5
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          type: string
+          enum: [ذكر, أنثى]
+          example: "ذكر"
+        status:
+          type: string
+          enum: [نشط, معلق, محول, متخرج, منسحب]
+          example: "نشط"
+        total_analyses:
+          type: integer
+          example: 15
+        average_performance:
+          type: number
+          format: float
+          example: 78.5
+        last_analysis_date:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    StudentDetailed:
+      allOf:
+        - $ref: '#/components/schemas/Student'
+        - type: object
+          properties:
+            height_cm:
+              type: integer
+              nullable: true
+              example: 140
+            weight_kg:
+              type: number
+              format: float
+              nullable: true
+              example: 35.5
+            bmi:
+              type: number
+              format: float
+              nullable: true
+              example: 18.1
+            medical_conditions:
+              type: array
+              items:
+                type: string
+              example: []
+            emergency_contact:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                relationship:
+                  type: string
+            recent_analyses:
+              type: array
+              items:
+                $ref: '#/components/schemas/Analysis'
+            performance_trend:
+              type: string
+              enum: [متحسن, مستقر, متراجع, غير محدد]
+
+    Analysis:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        student_id:
+          type: integer
+          example: 1
+        student_name:
+          type: string
+          example: "محمد علي أحمد"
+        balance_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 85.5
+        speed_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 78.2
+        accuracy_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 92.1
+        coordination_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 80.0
+        flexibility_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 75.5
+        endurance_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 88.3
+        overall_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 83.3
+        performance_category:
+          type: string
+          enum: [متفوق, ممتاز, جيد جداً, جيد, متوسط, يحتاج تحسين, ضعيف]
+          example: "جيد جداً"
+        needs_followup:
+          type: boolean
+          example: false
+        is_high_performer:
+          type: boolean
+          example: true
+        session_duration:
+          type: integer
+          example: 1800
+        exercises_completed:
+          type: integer
+          example: 8
+        teacher_notes:
+          type: string
+          nullable: true
+          example: "أداء ممتاز، يحتاج تحسين في التوازن"
+        improvement_suggestions:
+          type: array
+          items:
+            type: string
+          example: ["تمارين التوازن اليومية", "زيادة وقت الإحماء"]
+        analysis_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    AnalysisDetailed:
+      allOf:
+        - $ref: '#/components/schemas/Analysis'
+        - type: object
+          properties:
+            video_file_path:
+              type: string
+              format: uri
+              nullable: true
+            analysis_metadata:
+              type: object
+              properties:
+                processing_time:
+                  type: number
+                ai_confidence:
+                  type: number
+                detected_exercises:
+                  type: array
+                  items:
+                    type: string
+            comparison:
+              type: object
+              properties:
+                class_average:
+                  type: number
+                performance_vs_class:
+                  type: number
+            history:
+              type: array
+              items:
+                $ref: '#/components/schemas/Analysis'
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "تنبيه: أداء منخفض"
+        message:
+          type: string
+          example: "الطالب محمد علي حصل على نتيجة 55% وهي أقل من المطلوب"
+        category:
+          type: string
+          enum: [عام, أداء, تنبيه, تحديث, تذكير, طارئ]
+          example: "تنبيه"
+        priority:
+          type: string
+          enum: [منخفض, متوسط, عالي, عاجل, حرج]
+          example: "عالي"
+        is_read:
+          type: boolean
+          example: false
+        action_required:
+          type: boolean
+          example: true
+        related_student_id:
+          type: integer
+          nullable: true
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+
+    StudentReport:
+      type: object
+      properties:
+        student:
+          $ref: '#/components/schemas/Student'
+        period:
+          type: object
+          properties:
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+        summary:
+          type: object
+          properties:
+            total_analyses:
+              type: integer
+            average_score:
+              type: number
+            improvement_rate:
+              type: number
+            rank_in_class:
+              type: integer
+        performance_breakdown:
+          type: object
+          properties:
+            balance:
+              type: number
+            speed:
+              type: number
+            accuracy:
+              type: number
+            coordination:
+              type: number
+            flexibility:
+              type: number
+            endurance:
+              type: number
+        trend_analysis:
+          type: object
+          properties:
+            direction:
+              type: string
+              enum: [متحسن, مستقر, متراجع]
+            change_percentage:
+              type: number
+        recommendations:
+          type: array
+          items:
+            type: string
+        generated_at:
+          type: string
+          format: date-time
+
+    ClassReport:
+      type: object
+      properties:
+        class_name:
+          type: string
+        period:
+          type: object
+          properties:
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+        summary:
+          type: object
+          properties:
+            total_students:
+              type: integer
+            total_analyses:
+              type: integer
+            class_average:
+              type: number
+            students_need_followup:
+              type: integer
+        performance_distribution:
+          type: object
+          properties:
+            excellent:
+              type: integer
+            good:
+              type: integer
+            average:
+              type: integer
+            needs_improvement:
+              type: integer
+        top_performers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Student'
+        improvement_areas:
+          type: array
+          items:
+            type: string
+        generated_at:
+          type: string
+          format: date-time
+
+    SchoolReport:
+      type: object
+      properties:
+        school_name:
+          type: string
+        period:
+          type: object
+          properties:
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+        summary:
+          type: object
+          properties:
+            total_students:
+              type: integer
+            total_classes:
+              type: integer
+            total_analyses:
+              type: integer
+            school_average:
+              type: number
+        class_rankings:
+          type: array
+          items:
+            type: object
+            properties:
+              class_name:
+                type: string
+              average_score:
+                type: number
+              rank:
+                type: integer
+        trends:
+          type: object
+          properties:
+            monthly_improvement:
+              type: number
+            yearly_growth:
+              type: number
+        generated_at:
+          type: string
+          format: date-time
+
+    CreateStudentRequest:
+      type: object
+      required:
+        - student_id
+        - student_name
+        - student_code
+        - class_name
+        - grade_level
+      properties:
+        student_id:
+          type: integer
+          example: 12345
+        student_name:
+          type: string
+          example: "محمد علي أحمد"
+        student_code:
+          type: string
+          example: "STU001"
+        class_name:
+          type: string
+          example: "الصف الخامس أ"
+        grade_level:
+          type: integer
+          minimum: 1
+          maximum: 12
+          example: 5
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          type: string
+          enum: [ذكر, أنثى]
+        height_cm:
+          type: integer
+          nullable: true
+        weight_kg:
+          type: number
+          format: float
+          nullable: true
+        medical_conditions:
+          type: array
+          items:
+            type: string
+        emergency_contact:
+          type: object
+          properties:
+            name:
+              type: string
+            phone:
+              type: string
+            relationship:
+              type: string
+
+    UpdateStudentRequest:
+      type: object
+      properties:
+        student_name:
+          type: string
+        class_name:
+          type: string
+        grade_level:
+          type: integer
+          minimum: 1
+          maximum: 12
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        gender:
+          type: string
+          enum: [ذكر, أنثى]
+        height_cm:
+          type: integer
+          nullable: true
+        weight_kg:
+          type: number
+          format: float
+          nullable: true
+        medical_conditions:
+          type: array
+          items:
+            type: string
+        emergency_contact:
+          type: object
+          properties:
+            name:
+              type: string
+            phone:
+              type: string
+            relationship:
+              type: string
+        status:
+          type: string
+          enum: [نشط, معلق, محول, متخرج, منسحب]
+
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total_pages:
+          type: integer
+          example: 5
+        total_count:
+          type: integer
+          example: 95
+        has_next:
+          type: boolean
+          example: true
+        has_previous:
+          type: boolean
+          example: false
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "رسالة الخطأ"
+        error_code:
+          type: string
+          example: "VALIDATION_ERROR"
+        timestamp:
+          type: string
+          format: date-time
+
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            validation_errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+                  code:
+                    type: string
+
+  responses:
+    UnauthorizedError:
+      description: غير مصرح - مطلوب تسجيل الدخول
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "مطلوب تسجيل الدخول"
+            error_code: "UNAUTHORIZED"
+
+    ForbiddenError:
+      description: ممنوع - ليس لديك صلاحية
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "ليس لديك صلاحية للوصول لهذا المورد"
+            error_code: "FORBIDDEN"
+
+    NotFoundError:
+      description: غير موجود
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "المورد المطلوب غير موجود"
+            error_code: "NOT_FOUND"
+
+    ValidationError:
+      description: خطأ في التحقق من صحة البيانات
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            success: false
+            error: "بيانات غير صحيحة"
+            error_code: "VALIDATION_ERROR"
+            validation_errors:
+              - field: "student_name"
+                message: "اسم الطالب مطلوب"
+                code: "REQUIRED"
+              - field: "grade_level"
+                message: "المستوى الدراسي يجب أن يكون بين 1 و 12"
+                code: "OUT_OF_RANGE"
+
+    RateLimitError:
+      description: تم تجاوز الحد المسموح من الطلبات
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: "تم تجاوز الحد المسموح من الطلبات"
+            error_code: "RATE_LIMIT_EXCEEDED"
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: الحد الأقصى للطلبات
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: عدد الطلبات المتبقية
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: وقت إعادة التعيين (ثواني)
+
+tags:
+  - name: Authentication
+    description: عمليات المصادقة وتسجيل الدخول
+  - name: Students
+    description: إدارة ملفات الطلاب
+  - name: Analyses
+    description: تحليل الأداء الحركي
+  - name: Reports
+    description: التقارير والإحصائيات
+  - name: Notifications
+    description: نظام الإشعارات
+  - name: System
+    description: عمليات النظام والصحة

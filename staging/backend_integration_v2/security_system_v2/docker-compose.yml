@@ -1,0 +1,161 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: haraka_postgres
+    environment:
+      POSTGRES_DB: haraka_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: haraka_secure_2024
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # - ./database:/docker-entrypoint-initdb.d:ro  <-- تم تعطيل هذا السطر لحل مشكلة الصلاحيات
+    networks:
+      - haraka_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d haraka_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Supabase Local (Alternative to cloud)
+  supabase-db:
+    image: supabase/postgres:15.1.0.147
+    container_name: haraka_supabase_db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: supabase_admin
+      POSTGRES_PASSWORD: supabase_secure_2024
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "54322:5432"
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+      # - ./database:/docker-entrypoint-initdb.d:ro  <-- تم تعطيل هذا السطر لحل مشكلة الصلاحيات
+    networks:
+      - haraka_network
+    profiles:
+      - supabase
+
+  # Supabase Auth
+  supabase-auth:
+    image: supabase/gotrue:v2.99.0
+    container_name: haraka_supabase_auth
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_admin:supabase_secure_2024@supabase-db:5432/postgres?search_path=auth
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_URI_ALLOW_LIST: http://localhost:3000,http://localhost:8080
+      GOTRUE_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_MAILER_AUTOCONFIRM: true
+      GOTRUE_SMTP_HOST: localhost
+      GOTRUE_SMTP_PORT: 587
+      GOTRUE_SMTP_USER: ""
+      GOTRUE_SMTP_PASS: ""
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@haraka.edu.sa
+    ports:
+      - "9999:9999"
+    networks:
+      - haraka_network
+    profiles:
+      - supabase
+
+  # Supabase REST API
+  supabase-rest:
+    image: postgrest/postgrest:v11.2.0
+    container_name: haraka_supabase_rest
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://supabase_admin:supabase_secure_2024@supabase-db:5432/postgres
+      PGRST_DB_SCHEMAS: public,auth
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters
+      PGRST_DB_USE_LEGACY_GUCS: false
+    ports:
+      - "3001:3000"
+    networks:
+      - haraka_network
+    profiles:
+      - supabase
+
+  # pgAdmin for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:7.8
+    container_name: haraka_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@haraka.edu.sa
+      PGADMIN_DEFAULT_PASSWORD: admin_secure_2024
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./config/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - haraka_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Redis for Caching and Sessions
+  redis:
+    image: redis:7-alpine
+    container_name: haraka_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - haraka_network
+    command: redis-server --appendonly yes --requirepass redis_secure_2024
+
+  # Security Monitoring Dashboard (Optional)
+  security-monitor:
+    image: grafana/grafana:10.2.0
+    container_name: haraka_security_monitor
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: monitor_secure_2024
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,grafana-worldmap-panel
+    ports:
+      - "3002:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - haraka_network
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+    driver: local
+  supabase_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  redis_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  haraka_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

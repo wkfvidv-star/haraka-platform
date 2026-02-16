@@ -1,0 +1,299 @@
+# جدول الربط بين قاعدة البيانات والواجهات الأمامية
+# Database-Frontend Mapping Table
+
+## نظرة عامة
+
+هذا الجدول يوضح الربط بين جداول قاعدة البيانات والواجهات الأمامية المقابلة لها، مع تحديد المسؤول عن كل عملية CRUD.
+
+## 📊 جدول الربط الشامل
+
+| الجدول في قاعدة البيانات | الواجهة الأمامية | نوع العملية | المسؤول | الصلاحيات المطلوبة | ملاحظات |
+|---------------------------|-------------------|-------------|---------|-------------------|---------|
+| **haraka_analysis_reports** | `/dashboard/analyses` | CREATE | معلم، مدير | teacher, admin | رفع فيديو وإنشاء تحليل |
+| haraka_analysis_reports | `/dashboard/analyses` | READ | معلم، مدير، طالب | teacher, admin, student | عرض قائمة التحليلات |
+| haraka_analysis_reports | `/dashboard/analyses/{id}` | READ | معلم، مدير، طالب | teacher, admin, student | عرض تفاصيل تحليل محدد |
+| haraka_analysis_reports | `/dashboard/analyses/{id}/edit` | UPDATE | معلم، مدير | teacher, admin | تحديث ملاحظات وتوصيات |
+| haraka_analysis_reports | `/dashboard/analyses/{id}` | DELETE | مدير | admin | حذف تحليل (soft delete) |
+| **haraka_student_profiles** | `/dashboard/students` | CREATE | مدير | admin | إضافة طالب جديد |
+| haraka_student_profiles | `/dashboard/students` | READ | معلم، مدير | teacher, admin | عرض قائمة الطلاب |
+| haraka_student_profiles | `/dashboard/students/{id}` | READ | معلم، مدير، طالب | teacher, admin, student | عرض ملف طالب |
+| haraka_student_profiles | `/dashboard/students/{id}/edit` | UPDATE | مدير | admin | تحديث معلومات طالب |
+| haraka_student_profiles | `/dashboard/students/{id}` | DELETE | مدير | admin | حذف طالب |
+| **haraka_school_analytics** | `/dashboard/analytics` | CREATE | نظام | system | إنشاء تقارير تلقائية |
+| haraka_school_analytics | `/dashboard/analytics` | READ | معلم، مدير | teacher, admin | عرض إحصائيات المدرسة |
+| haraka_school_analytics | `/dashboard/reports/school` | READ | مدير | admin | تقارير شاملة للمدرسة |
+| **haraka_notifications** | `/dashboard/notifications` | CREATE | نظام، مدير | system, admin | إنشاء إشعارات |
+| haraka_notifications | `/dashboard/notifications` | READ | جميع المستخدمين | authenticated | عرض الإشعارات الشخصية |
+| haraka_notifications | `/dashboard/notifications/{id}` | UPDATE | مستلم الإشعار | owner | تعليم كمقروء |
+| haraka_notifications | `/dashboard/notifications/{id}` | DELETE | مدير | admin | حذف إشعار |
+| **haraka_activity_log** | `/dashboard/admin/logs` | CREATE | نظام | system | تسجيل تلقائي للأنشطة |
+| haraka_activity_log | `/dashboard/admin/logs` | READ | مدير | admin | مراجعة سجل الأنشطة |
+| **haraka_system_settings** | `/dashboard/admin/settings` | CREATE | مدير | admin | إضافة إعدادات جديدة |
+| haraka_system_settings | `/dashboard/admin/settings` | READ | مدير | admin | عرض الإعدادات |
+| haraka_system_settings | `/dashboard/admin/settings` | UPDATE | مدير | admin | تحديث الإعدادات |
+| haraka_system_settings | `/dashboard/admin/settings/{key}` | DELETE | مدير | admin | حذف إعداد |
+
+## 🎯 تفصيل الواجهات الأمامية
+
+### 1. لوحة التحكم الرئيسية
+**المسار:** `/dashboard`
+**المكونات:**
+- `DashboardOverview.tsx` - نظرة عامة على الإحصائيات
+- `QuickActions.tsx` - إجراءات سريعة
+- `RecentAnalyses.tsx` - آخر التحليلات
+- `PerformanceChart.tsx` - رسم بياني للأداء
+
+**الجداول المرتبطة:**
+- `haraka_school_analytics` (READ)
+- `haraka_analysis_reports` (READ - آخر 10 تحليلات)
+- `haraka_student_profiles` (READ - إحصائيات سريعة)
+
+### 2. إدارة الطلاب
+**المسار:** `/dashboard/students`
+**المكونات:**
+- `StudentsList.tsx` - قائمة الطلاب مع البحث والفلترة
+- `StudentCard.tsx` - بطاقة طالب مختصرة
+- `StudentProfile.tsx` - ملف طالب مفصل
+- `AddStudentForm.tsx` - نموذج إضافة طالب
+- `EditStudentForm.tsx` - نموذج تحديث طالب
+
+**الجداول المرتبطة:**
+- `haraka_student_profiles` (CRUD)
+- `haraka_analysis_reports` (READ - تحليلات الطالب)
+
+### 3. التحليلات والتقييم
+**المسار:** `/dashboard/analyses`
+**المكونات:**
+- `AnalysesList.tsx` - قائمة التحليلات
+- `AnalysisCard.tsx` - بطاقة تحليل
+- `AnalysisDetails.tsx` - تفاصيل التحليل
+- `VideoUpload.tsx` - رفع فيديو للتحليل
+- `AnalysisResults.tsx` - عرض نتائج التحليل
+- `PerformanceChart.tsx` - رسم بياني للأداء
+
+**الجداول المرتبطة:**
+- `haraka_analysis_reports` (CRUD)
+- `haraka_student_profiles` (READ - معلومات الطالب)
+
+### 4. التقارير والإحصائيات
+**المسار:** `/dashboard/reports`
+**المكونات:**
+- `ReportsOverview.tsx` - نظرة عامة على التقارير
+- `StudentReport.tsx` - تقرير طالب محدد
+- `ClassReport.tsx` - تقرير صف دراسي
+- `SchoolReport.tsx` - تقرير المدرسة
+- `ExportOptions.tsx` - خيارات التصدير
+- `ReportFilters.tsx` - فلاتر التقارير
+
+**الجداول المرتبطة:**
+- `haraka_school_analytics` (READ)
+- `haraka_analysis_reports` (READ)
+- `haraka_student_profiles` (READ)
+
+### 5. الإشعارات
+**المسار:** `/dashboard/notifications`
+**المكونات:**
+- `NotificationsList.tsx` - قائمة الإشعارات
+- `NotificationCard.tsx` - بطاقة إشعار
+- `NotificationSettings.tsx` - إعدادات الإشعارات
+- `CreateNotification.tsx` - إنشاء إشعار جديد
+
+**الجداول المرتبطة:**
+- `haraka_notifications` (CRUD)
+
+### 6. إعدادات النظام (للمديرين فقط)
+**المسار:** `/dashboard/admin`
+**المكونات:**
+- `AdminDashboard.tsx` - لوحة تحكم المدير
+- `UserManagement.tsx` - إدارة المستخدمين
+- `SystemSettings.tsx` - إعدادات النظام
+- `ActivityLogs.tsx` - سجل الأنشطة
+- `DatabaseBackup.tsx` - النسخ الاحتياطية
+
+**الجداول المرتبطة:**
+- `haraka_system_settings` (CRUD)
+- `haraka_activity_log` (READ)
+- جميع الجداول (إحصائيات عامة)
+
+## 🔐 نظام الصلاحيات (RLS)
+
+### قواعد الأمان المطبقة:
+
+#### 1. جدول التحليلات (haraka_analysis_reports)
+```sql
+-- المعلمون: قراءة تحليلات صفوفهم فقط
+CREATE POLICY "teachers_read_own_class_analyses" ON haraka_analysis_reports
+  FOR SELECT TO authenticated
+  USING (teacher_id = auth.uid()::integer);
+
+-- المديرون: قراءة جميع التحليلات
+CREATE POLICY "admins_read_all_analyses" ON haraka_analysis_reports
+  FOR SELECT TO authenticated
+  USING (auth.jwt() ->> 'role' IN ('admin', 'principal'));
+```
+
+#### 2. جدول الطلاب (haraka_student_profiles)
+```sql
+-- المعلمون: قراءة طلاب صفوفهم فقط
+CREATE POLICY "teachers_read_own_students" ON haraka_student_profiles
+  FOR SELECT TO authenticated
+  USING (class_name IN (SELECT class_name FROM teacher_classes WHERE teacher_id = auth.uid()::integer));
+
+-- المديرون: إدارة كاملة
+CREATE POLICY "admins_manage_students" ON haraka_student_profiles
+  FOR ALL TO authenticated
+  USING (auth.jwt() ->> 'role' IN ('admin', 'principal'));
+```
+
+## 🔄 تدفق البيانات (Data Flow)
+
+### 1. إنشاء تحليل جديد:
+```
+Frontend (VideoUpload) → API (/analyses POST) → 
+Supabase Storage (حفظ فيديو) → 
+haraka_analysis_reports (إنشاء سجل) → 
+AI Processing (تحليل الفيديو) → 
+haraka_analysis_reports (تحديث النتائج) → 
+haraka_notifications (إشعار تلقائي) → 
+Frontend (تحديث فوري عبر Realtime)
+```
+
+### 2. عرض تقرير طالب:
+```
+Frontend (StudentReport) → API (/reports/student/{id}) → 
+haraka_student_profiles + haraka_analysis_reports (استعلام مدمج) → 
+حساب الإحصائيات والاتجاهات → 
+Frontend (عرض التقرير)
+```
+
+### 3. إضافة طالب جديد:
+```
+Frontend (AddStudentForm) → API (/students POST) → 
+haraka_student_profiles (إنشاء سجل) → 
+haraka_activity_log (تسجيل النشاط) → 
+haraka_notifications (إشعار للمعلمين) → 
+Frontend (تحديث القائمة)
+```
+
+## 📱 مكونات React المقابلة لكل جدول
+
+### haraka_analysis_reports
+```typescript
+// مكونات القراءة
+- AnalysesList.tsx
+- AnalysisCard.tsx  
+- AnalysisDetails.tsx
+- PerformanceChart.tsx
+
+// مكونات الكتابة
+- VideoUploadForm.tsx
+- AnalysisNotesEditor.tsx
+- BulkAnalysisUpload.tsx
+
+// Hooks مخصصة
+- useAnalyses()
+- useAnalysisById()
+- useCreateAnalysis()
+- useUpdateAnalysis()
+```
+
+### haraka_student_profiles
+```typescript
+// مكونات القراءة
+- StudentsList.tsx
+- StudentCard.tsx
+- StudentProfile.tsx
+- StudentSearch.tsx
+
+// مكونات الكتابة
+- AddStudentForm.tsx
+- EditStudentForm.tsx
+- StudentImport.tsx
+
+// Hooks مخصصة
+- useStudents()
+- useStudentById()
+- useCreateStudent()
+- useUpdateStudent()
+```
+
+### haraka_notifications
+```typescript
+// مكونات القراءة
+- NotificationsList.tsx
+- NotificationCard.tsx
+- NotificationBell.tsx
+
+// مكونات الكتابة
+- CreateNotificationForm.tsx
+- NotificationSettings.tsx
+
+// Hooks مخصصة
+- useNotifications()
+- useMarkAsRead()
+- useCreateNotification()
+```
+
+## 🎨 حالات واجهة المستخدم (UI States)
+
+### حالات التحميل والأخطاء:
+```typescript
+// Loading States
+- AnalysesListSkeleton.tsx
+- StudentCardSkeleton.tsx
+- ReportLoadingSpinner.tsx
+
+// Error States  
+- AnalysisErrorCard.tsx
+- StudentNotFound.tsx
+- DatabaseConnectionError.tsx
+
+// Empty States
+- NoAnalysesFound.tsx
+- NoStudentsInClass.tsx
+- EmptyNotifications.tsx
+```
+
+## 🔧 أدوات التطوير والاختبار
+
+### اختبار المكونات:
+```typescript
+// Unit Tests
+- AnalysisList.test.tsx
+- StudentForm.test.tsx
+- NotificationCard.test.tsx
+
+// Integration Tests
+- StudentAnalysisFlow.test.tsx
+- ReportGeneration.test.tsx
+
+// E2E Tests
+- CreateStudentJourney.spec.ts
+- AnalysisWorkflow.spec.ts
+```
+
+### أدوات المراقبة:
+```typescript
+// Performance Monitoring
+- useAnalyticsTracking()
+- usePerformanceMonitor()
+- useErrorBoundary()
+
+// Debug Tools
+- DatabaseQueryInspector.tsx
+- RealTimeEventLogger.tsx
+- StateDebugger.tsx
+```
+
+---
+
+## 📝 ملاحظات مهمة
+
+1. **الأمان**: جميع العمليات محمية بـ RLS وتتطلب مصادقة
+2. **الأداء**: استخدام React Query للكاش والتحديثات التلقائية
+3. **الوقت الفعلي**: Supabase Realtime للتحديثات الفورية
+4. **التوافق**: جميع المكونات متوافقة مع الأجهزة المحمولة
+5. **إمكانية الوصول**: دعم كامل لـ ARIA وقارئات الشاشة
+
+**📅 آخر تحديث**: 8 أكتوبر 2024  
+**📝 الإصدار**: 1.0.0

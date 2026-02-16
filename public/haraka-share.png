@@ -1,0 +1,28 @@
+<svg width="200" height="200" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="blueGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0055D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#007BFF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <path d="M 130 250 A 140 140 0 0 1 380 190" 
+        stroke="#64B5F6" 
+        stroke-width="12" 
+        fill="none" 
+        stroke-dasharray="30, 20" 
+        stroke-linecap="round" />
+
+  <path d="M 100 330 Q 250 350 400 200 
+           L 380 200 Q 250 300 120 280 
+           L 100 330 Z" fill="url(#blueGradient)" />
+           
+  <path d="M 120 290 Q 250 310 390 200 
+           L 370 200 Q 240 260 140 240 
+           L 120 290 Z" fill="url(#blueGradient)" />
+  
+  <path d="M 90 350 C 180 400, 300 300, 410 210
+           L 410 200 C 300 280, 200 330, 100 320 Z" fill="#0055D4" />
+
+  <circle cx="410" cy="190" r="30" fill="#FFA000" />
+</svg>

@@ -1,0 +1,267 @@
+{
+  "admin_security_api": {
+    "base_url": "/api/admin",
+    "authentication": "Bearer token required",
+    "endpoints": {
+      "users": {
+        "get_users": {
+          "method": "GET",
+          "path": "/users",
+          "description": "Fetch all users with security status",
+          "headers": {
+            "Authorization": "Bearer {admin_token}",
+            "Content-Type": "application/json"
+          },
+          "query_params": {
+            "search": "string (optional)",
+            "status": "active|disabled|suspended|all",
+            "limit": "integer (default: 50)",
+            "offset": "integer (default: 0)"
+          },
+          "response": {
+            "success": true,
+            "data": {
+              "users": [
+                {
+                  "id": "user-001",
+                  "name": "أحمد محمد الأدمن",
+                  "email": "admin@haraka.sa",
+                  "role": "admin",
+                  "status": "active",
+                  "lastLogin": "2025-01-08T10:30:00Z",
+                  "createdAt": "2024-12-01T00:00:00Z",
+                  "permissions": ["user_management", "security_dashboard"],
+                  "failedAttempts": 0
+                }
+              ],
+              "total": 3,
+              "active": 2,
+              "disabled": 1
+            }
+          }
+        },
+        "emergency_revoke": {
+          "method": "POST",
+          "path": "/emergency-revoke",
+          "description": "Emergency user access revocation",
+          "headers": {
+            "Authorization": "Bearer {admin_token}",
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "user_id": "string (required)",
+            "reason": "string (required)",
+            "revocation_type": "emergency|temporary|permanent"
+          },
+          "response": {
+            "success": true,
+            "data": {
+              "revocation_id": "revoke-1704735900000",
+              "user_id": "user-003",
+              "status": "disabled",
+              "rls_test_results": [
+                {"table": "student_profiles", "blocked": true, "row_count": 0},
+                {"table": "video_sessions", "blocked": true, "row_count": 0},
+                {"table": "reports", "blocked": true, "row_count": 0}
+              ],
+              "audit_log_id": "audit-1704735900000"
+            }
+          }
+        }
+      },
+      "audit": {
+        "get_audit_logs": {
+          "method": "GET",
+          "path": "/audit-logs",
+          "description": "Fetch audit logs with filtering",
+          "query_params": {
+            "user_id": "string (optional)",
+            "action": "string (optional)",
+            "status": "success|failed|blocked|all",
+            "date_from": "ISO date string",
+            "date_to": "ISO date string",
+            "limit": "integer (default: 50)",
+            "offset": "integer (default: 0)"
+          },
+          "response": {
+            "success": true,
+            "data": {
+              "logs": [
+                {
+                  "id": "audit-001",
+                  "userId": "user-002",
+                  "userName": "فاطمة علي المدرسة",
+                  "action": "LOGIN_SUCCESS",
+                  "resource": "/teacher/dashboard",
+                  "status": "success",
+                  "ipAddress": "192.168.1.100",
+                  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                  "timestamp": "2025-01-08T09:15:00Z",
+                  "details": "Successful login from teacher dashboard"
+                }
+              ],
+              "total": 156,
+              "failed_attempts_24h": 15,
+              "blocked_attempts_24h": 3
+            }
+          }
+        },
+        "export_audit_logs": {
+          "method": "GET",
+          "path": "/audit-logs/export",
+          "description": "Export audit logs as CSV",
+          "query_params": {
+            "format": "csv|json",
+            "date_from": "ISO date string",
+            "date_to": "ISO date string"
+          },
+          "response": {
+            "content_type": "text/csv",
+            "headers": {
+              "Content-Disposition": "attachment; filename=audit-logs-2025-01-08.csv"
+            },
+            "body": "CSV content with Arabic headers"
+          }
+        }
+      },
+      "security": {
+        "key_rotation": {
+          "method": "POST",
+          "path": "/key-rotation",
+          "description": "Trigger key rotation process",
+          "body": {
+            "key_type": "encryption|signing|api",
+            "reason": "string (required)",
+            "rotation_type": "manual|emergency|scheduled"
+          },
+          "response": {
+            "success": true,
+            "data": {
+              "rotation_id": "rotation-1704735900000",
+              "key_id": "enc-key-2025-003",
+              "status": "initiated",
+              "progress_url": "/api/admin/key-rotation/rotation-1704735900000/status"
+            }
+          }
+        },
+        "key_rotation_status": {
+          "method": "GET",
+          "path": "/key-rotation/{rotation_id}/status",
+          "description": "Check key rotation progress",
+          "response": {
+            "success": true,
+            "data": {
+              "rotation_id": "rotation-1704735900000",
+              "status": "completed",
+              "progress_percentage": 100,
+              "affected_files": 4,
+              "decrypt_test_results": [
+                "✅ demo/video-001.mp4.enc - Decryption successful",
+                "✅ demo/report-001.pdf.enc - Decryption successful",
+                "✅ demo/analysis-001.json.enc - Decryption successful"
+              ],
+              "completed_at": "2025-01-08T18:45:04Z"
+            }
+          }
+        },
+        "decrypt_test": {
+          "method": "POST",
+          "path": "/decrypt-test",
+          "description": "Test file decryption with current keys",
+          "body": {
+            "files": ["demo/video-001.mp4.enc", "demo/report-001.pdf.enc"]
+          },
+          "response": {
+            "success": true,
+            "data": {
+              "test_id": "decrypt-test-1704735900000",
+              "results": [
+                {
+                  "file": "demo/video-001.mp4.enc",
+                  "status": "success",
+                  "decryption_time_ms": 150
+                },
+                {
+                  "file": "demo/report-001.pdf.enc", 
+                  "status": "success",
+                  "decryption_time_ms": 89
+                }
+              ],
+              "success_rate": "100%",
+              "total_files": 2,
+              "successful": 2,
+              "failed": 0
+            }
+          }
+        }
+      },
+      "dashboard": {
+        "security_metrics": {
+          "method": "GET",
+          "path": "/security-metrics",
+          "description": "Get security dashboard metrics",
+          "response": {
+            "success": true,
+            "data": {
+              "users": {
+                "total": 3,
+                "active": 2,
+                "disabled": 1,
+                "suspended": 0
+              },
+              "security": {
+                "failed_logins_24h": 15,
+                "successful_logins_24h": 342,
+                "blocked_attempts_24h": 3,
+                "key_rotations_30d": 2,
+                "consent_revocations_30d": 1,
+                "security_alerts": 3
+              },
+              "activity": {
+                "audit_logs_24h": 89,
+                "api_calls_1h": 156,
+                "active_sessions": 12
+              },
+              "generated_at": "2025-01-08T18:45:00Z"
+            }
+          }
+        }
+      }
+    },
+    "error_responses": {
+      "401": {
+        "description": "Unauthorized - Invalid or missing admin token",
+        "response": {
+          "success": false,
+          "error": "UNAUTHORIZED",
+          "message": "Admin authentication required"
+        }
+      },
+      "403": {
+        "description": "Forbidden - Insufficient permissions",
+        "response": {
+          "success": false,
+          "error": "FORBIDDEN", 
+          "message": "Admin role required for this operation"
+        }
+      },
+      "404": {
+        "description": "Not Found - Resource not found",
+        "response": {
+          "success": false,
+          "error": "NOT_FOUND",
+          "message": "User or resource not found"
+        }
+      },
+      "500": {
+        "description": "Internal Server Error",
+        "response": {
+          "success": false,
+          "error": "INTERNAL_ERROR",
+          "message": "An internal error occurred",
+          "details": "Error details for debugging"
+        }
+      }
+    }
+  }
+}
