@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { coachService } from '@/services/coachService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,16 +61,37 @@ export default function CoachDashboard() {
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
 
-  const [quickStats] = useState<QuickStats>({
-    todayClients: 8,
-    todaySessions: 12,
-    completedSessions: 9,
-    pendingNotifications: 5,
-    weeklyRevenue: 2400,
-    clientSatisfaction: 96,
-    activePrograms: 6,
-    newBookings: 3
+  const [quickStats, setQuickStats] = useState<QuickStats>({
+    todayClients: 0,
+    todaySessions: 0,
+    completedSessions: 0,
+    pendingNotifications: 0,
+    weeklyRevenue: 0,
+    clientSatisfaction: 0,
+    activePrograms: 0,
+    newBookings: 0
   });
+
+  useEffect(() => {
+    const fetchCoachStats = async () => {
+      if (user?.id) {
+        try {
+          const groups = await coachService.getGroups(user.id);
+          const totalStudents = groups.reduce((acc, g) => acc + g.memberCount, 0);
+
+          setQuickStats(prev => ({
+            ...prev,
+            todayClients: totalStudents, // For now, using total students as today's clients
+            activePrograms: groups.length,
+            clientSatisfaction: 98 // Placeholder
+          }));
+        } catch (error) {
+          console.error("Error fetching coach stats:", error);
+        }
+      }
+    };
+    fetchCoachStats();
+  }, [user]);
 
   const [performanceMetrics] = useState<PerformanceMetric[]>([
     {

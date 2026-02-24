@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 // V2 Components
 import { ParentIdentityCard } from '@/components/parent-dashboard/v2/ParentIdentityCard';
 import { FamilyActivityHub } from '@/components/parent-dashboard/v2/FamilyActivityHub';
-import { ChildrenOverview } from '@/components/parent-dashboard/v2/ChildrenOverview';
+import { ChildrenOverview, ChildSummary } from '@/components/parent-dashboard/v2/ChildrenOverview';
 import { NotificationCenter } from '@/components/parent-dashboard/v2/NotificationCenter';
 import { DinnerDiscussionCard } from '@/components/parent-dashboard/v2/DinnerDiscussionCard';
 import { ParentAIAssistant } from '@/components/parent-dashboard/v2/ParentAIAssistant';
@@ -19,13 +19,34 @@ import { ChildrenList } from '@/components/parent/ChildrenList';
 import { SchedulingSystem } from '@/components/parent/SchedulingSystem';
 import { MessagingSystem } from '@/components/parent/MessagingSystem';
 import StudentAnalysisCard from '@/components/parent/StudentAnalysisCard'; // Keeping this for reports tab
+import { familyService } from '@/services/familyService';
+import { useEffect } from 'react';
 
 export default function ParentDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedChildId, setSelectedChildId] = useState<string | undefined>();
+  const [children, setChildren] = useState<ChildSummary[]>([]);
+  const [loadingChildren, setLoadingChildren] = useState(false);
   const { t, language } = useTranslation();
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
+
+  useEffect(() => {
+    const fetchFamily = async () => {
+      if (user?.id) {
+        setLoadingChildren(true);
+        try {
+          const data = await familyService.getChildren(user.id);
+          setChildren(data);
+        } catch (error) {
+          console.error("Failed to fetch family data", error);
+        } finally {
+          setLoadingChildren(false);
+        }
+      }
+    };
+    fetchFamily();
+  }, [user]);
 
   const navigationTabs = [
     { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard },
@@ -52,7 +73,10 @@ export default function ParentDashboard() {
           <FamilyActivityHub />
         </div>
         <div className="lg:col-span-1">
-          <ChildrenOverview onViewChild={(id) => { setSelectedChildId(id); setActiveTab('children'); }} />
+          <ChildrenOverview
+            children={children}
+            onViewChild={(id) => { setSelectedChildId(id); setActiveTab('children'); }}
+          />
         </div>
       </section>
 

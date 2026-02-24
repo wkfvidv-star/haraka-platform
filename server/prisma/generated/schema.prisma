@@ -1,0 +1,191 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  STUDENT
+  PARENT
+  TEACHER
+  COACH
+  YOUTH
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  PENDING
+  SUSPENDED
+}
+
+model User {
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  password           String // Hashed
+  role               UserRole           @default(STUDENT)
+  isActive           Boolean            @default(true)
+  digitalId          String?            @unique @default(uuid())
+  qrToken            String?            @unique
+  subscriptionStatus SubscriptionStatus @default(ACTIVE)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  profile             Profile?
+  student             Student?
+  parent              Parent?
+  coach               Coach?
+  auditLogs           AuditLog[]
+  dailyActivities     DailyActivity[]
+  exerciseSubmissions ExerciseSubmission[]
+  accessLogs          AccessLog[]
+
+  @@map("users")
+}
+
+model Profile {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  firstName String
+  lastName  String
+  avatarUrl String?
+  bio       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Student {
+  id         String  @id @default(uuid())
+  userId     String  @unique
+  gradeLevel String
+  parentId   String?
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent Parent? @relation(fields: [parentId], references: [id])
+
+  attendance Attendance[]
+  grades     Grade[]
+
+  @@map("students")
+}
+
+model Parent {
+  id          String  @id @default(uuid())
+  userId      String  @unique
+  phoneNumber String?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  students Student[]
+
+  @@map("parents")
+}
+
+model Coach {
+  id             String @id @default(uuid())
+  userId         String @unique
+  specialization String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("coaches")
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  studentId String
+  date      DateTime
+  status    String // PRESENT, ABSENT, LATE
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("attendance")
+}
+
+model Grade {
+  id        String   @id @default(uuid())
+  studentId String
+  subject   String
+  score     Float
+  date      DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("grades")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  resource  String
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model AccessLog {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String // ENTRY, EXIT
+  location  String?
+  status    String // GRANTED, DENIED
+  reason    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("access_logs")
+}
+
+model DailyActivity {
+  id            String   @id @default(uuid())
+  userId        String
+  date          DateTime @default(now()) @db.Date
+  steps         Int      @default(0)
+  calories      Int      @default(0)
+  activeMinutes Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("daily_activities")
+}
+
+enum SubmissionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model ExerciseSubmission {
+  id              String           @id @default(uuid())
+  userId          String
+  exerciseId      String // Could be a relation if Exercise model existed
+  videoUrl        String
+  durationSeconds Int
+  status          SubmissionStatus @default(PENDING)
+  aiFeedback      Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("exercise_submissions")
+}

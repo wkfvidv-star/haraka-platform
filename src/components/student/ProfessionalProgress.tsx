@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import { analyticsService, PerformanceMetric, WeeklyData, Achievement } from '@/services/analyticsService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -25,114 +27,40 @@ import {
   Download
 } from 'lucide-react';
 
-interface PerformanceMetric {
-  id: string;
-  name: string;
-  value: number;
-  unit: string;
-  change: number;
-  changeType: 'increase' | 'decrease' | 'stable';
-  target: number;
-  category: string;
-  color: string;
-}
+// Types moved to analyticsService
 
-interface WeeklyData {
-  week: string;
-  exercises: number;
-  points: number;
-  duration: number;
-  calories: number;
-}
-
-const performanceMetrics: PerformanceMetric[] = [
-  {
-    id: 'strength',
-    name: 'مؤشر القوة العضلية',
-    value: 78,
-    unit: '%',
-    change: 12,
-    changeType: 'increase',
-    target: 85,
-    category: 'القوة',
-    color: 'blue'
-  },
-  {
-    id: 'endurance',
-    name: 'مؤشر التحمل القلبي',
-    value: 82,
-    unit: '%',
-    change: 8,
-    changeType: 'increase',
-    target: 90,
-    category: 'التحمل',
-    color: 'green'
-  },
-  {
-    id: 'flexibility',
-    name: 'مؤشر المرونة',
-    value: 65,
-    unit: '%',
-    change: -2,
-    changeType: 'decrease',
-    target: 75,
-    category: 'المرونة',
-    color: 'purple'
-  },
-  {
-    id: 'balance',
-    name: 'مؤشر التوازن',
-    value: 71,
-    unit: '%',
-    change: 5,
-    changeType: 'increase',
-    target: 80,
-    category: 'التوازن',
-    color: 'orange'
-  },
-  {
-    id: 'coordination',
-    name: 'مؤشر التناسق الحركي',
-    value: 73,
-    unit: '%',
-    change: 0,
-    changeType: 'stable',
-    target: 85,
-    category: 'التناسق',
-    color: 'pink'
-  },
-  {
-    id: 'speed',
-    name: 'مؤشر السرعة',
-    value: 69,
-    unit: '%',
-    change: 15,
-    changeType: 'increase',
-    target: 80,
-    category: 'السرعة',
-    color: 'red'
-  }
-];
-
-const weeklyData: WeeklyData[] = [
-  { week: 'الأسبوع 1', exercises: 12, points: 180, duration: 240, calories: 1200 },
-  { week: 'الأسبوع 2', exercises: 15, points: 225, duration: 300, calories: 1500 },
-  { week: 'الأسبوع 3', exercises: 18, points: 270, duration: 360, calories: 1800 },
-  { week: 'الأسبوع 4', exercises: 22, points: 330, duration: 440, calories: 2200 },
-  { week: 'الأسبوع 5', exercises: 25, points: 375, duration: 500, calories: 2500 },
-  { week: 'الأسبوع 6', exercises: 28, points: 420, duration: 560, calories: 2800 }
-];
-
-const achievements = [
-  { id: 1, name: 'محارب اللياقة', description: 'أكمل 100 تمرين', progress: 85, total: 100, icon: '⚔️' },
-  { id: 2, name: 'عداء الماراثون', description: 'اجر مسافة 50 كم', progress: 32, total: 50, icon: '🏃‍♂️' },
-  { id: 3, name: 'خبير التوازن', description: 'أتقن 20 تمرين توازن', progress: 15, total: 20, icon: '⚖️' },
-  { id: 4, name: 'نجم الأسبوع', description: 'تمرن 7 أيام متتالية', progress: 5, total: 7, icon: '⭐' }
-];
+// Initial state will be loaded from service
 
 export function ProfessionalProgress() {
   const [selectedPeriod, setSelectedPeriod] = useState('شهر');
   const [selectedCategory, setSelectedCategory] = useState('الكل');
+  const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyData[]>([]);
+  const [userAchievements, setUserAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const [perf, weekly, achs] = await Promise.all([
+            analyticsService.getStudentPerformance(user.id),
+            analyticsService.getWeeklyData(user.id),
+            analyticsService.getAchievements(user.id)
+          ]);
+          setMetrics(perf);
+          setWeeklyStats(weekly);
+          setUserAchievements(achs);
+        }
+      } catch (error) {
+        console.error("Error loading analytics:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const periods = ['أسبوع', 'شهر', '3 أشهر', '6 أشهر', 'سنة'];
   const categories = ['الكل', 'القوة', 'التحمل', 'المرونة', 'التوازن', 'التناسق', 'السرعة'];
@@ -168,8 +96,16 @@ export function ProfessionalProgress() {
   };
 
   const filteredMetrics = selectedCategory === 'الكل'
-    ? performanceMetrics
-    : performanceMetrics.filter(metric => metric.category === selectedCategory);
+    ? metrics
+    : metrics.filter(metric => metric.category === selectedCategory);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -310,7 +246,7 @@ export function ProfessionalProgress() {
           <div className="space-y-10">
             <div className="h-72 bg-white/[0.02] border border-white/5 rounded-3xl p-8 flex items-end justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 to-transparent pointer-events-none" />
-              {weeklyData.map((week, index) => (
+              {weeklyStats.map((week, index) => (
                 <div key={week.week} className="flex flex-col items-center gap-4 group/bar relative z-10 w-full">
                   <div className="absolute -top-10 opacity-0 group-hover/bar:opacity-100 transition-opacity bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-xl whitespace-nowrap">
                     {week.exercises} تمرين
@@ -318,7 +254,7 @@ export function ProfessionalProgress() {
                   <div
                     className="bg-blue-500/80 rounded-t-xl w-10 md:w-16 transition-all duration-500 hover:bg-blue-400 hover:scale-x-105 shadow-[0_0_20px_rgba(59,130,246,0.2)]"
                     style={{
-                      height: `${(week.exercises / Math.max(...weeklyData.map(w => w.exercises))) * 180}px`,
+                      height: `${(week.exercises / Math.max(...weeklyStats.map(w => w.exercises), 1)) * 180}px`,
                       minHeight: '30px'
                     }}
                   ></div>
@@ -341,7 +277,7 @@ export function ProfessionalProgress() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {weeklyData.map((week, index) => (
+                  {weeklyStats.map((week, index) => (
                     <tr key={week.week} className="hover:bg-white/[0.03] transition-colors">
                       <td className="p-4 font-black text-white">{week.week}</td>
                       <td className="text-center p-4 text-blue-300 font-bold">{week.exercises}</td>
@@ -371,7 +307,7 @@ export function ProfessionalProgress() {
         </CardHeader>
         <CardContent className="pt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {achievements.map((achievement) => (
+            {userAchievements.map((achievement) => (
               <Card key={achievement.id} className="p-6 bg-white/5 border border-white/5 rounded-3xl group/ach hover:bg-white/10 transition-all shadow-xl">
                 <div className="flex flex-col items-center text-center gap-4 mb-6">
                   <div className="text-5xl group-hover/ach:scale-110 transition-transform drop-shadow-xl">{achievement.icon}</div>

@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Play, TrendingUp, Trophy, Star, Activity } from 'lucide-react';
+import { Play, TrendingUp, Trophy, Star, Activity, Coins, Zap, QrCode } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface StudentIdentityCardProps {
     studentName?: string;
@@ -13,18 +15,47 @@ interface StudentIdentityCardProps {
     streak?: number;
     totalPoints?: number;
     latestBadge?: string;
+    digitalId?: string;
+    qrToken?: string;
+    loading?: boolean;
     onStartSession?: () => void;
+    onOpenAccess?: () => void;
 }
 
 export const StudentIdentityCard: React.FC<StudentIdentityCardProps> = ({
     studentName = "الطالب المجتهد",
     studentLevel = "Intermediate",
-    levelProgress = 65,
-    streak = 5,
-    totalPoints = 1250,
+    levelProgress = 0,
+    streak = 0,
+    totalPoints = 0,
     latestBadge = "بطل التوازن",
-    onStartSession
+    digitalId,
+    qrToken,
+    loading = false,
+    onStartSession,
+    onOpenAccess
 }) => {
+    const navigate = useNavigate();
+
+    if (loading) {
+        return (
+            <Card className="w-full glass-card border-white/10 shadow-2xl p-8">
+                <div className="flex flex-col md:flex-row items-center gap-10">
+                    <Skeleton className="w-28 h-28 rounded-full bg-white/10" />
+                    <div className="flex-1 space-y-4 w-full">
+                        <Skeleton className="h-10 w-2/3 bg-white/10" />
+                        <div className="flex gap-2">
+                            <Skeleton className="h-6 w-20 bg-white/10" />
+                            <Skeleton className="h-6 w-32 bg-white/10" />
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 bg-white/10 rounded-xl" />)}
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        );
+    }
     return (
         <Card className="w-full glass-card text-white overflow-hidden relative selection:bg-blue-500 selection:text-white border-white/10 shadow-2xl">
             {/* Brand Tint Overlay - Subtler for clarity */}
@@ -67,28 +98,32 @@ export const StudentIdentityCard: React.FC<StudentIdentityCardProps> = ({
                             </div>
                         </div>
 
-                        {/* Stats Row */}
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2">
-                            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">نقاط الخبرة</div>
-                                <div className="text-lg font-black flex items-center gap-1.5 text-white">
-                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                    {totalPoints}
-                                </div>
+                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">نقاط الخبرة</div>
+                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
+                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                {totalPoints}
                             </div>
-                            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-1">التتابع اليومي</div>
-                                <div className="text-lg font-black flex items-center gap-1.5 text-white">
-                                    <Activity className="w-4 h-4 text-green-500" />
-                                    {streak} أيام
-                                </div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-yellow-400 mb-1">عملات الحركة</div>
+                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
+                                <Coins className="w-4 h-4 text-yellow-500" />
+                                {Math.floor(totalPoints / 10)}
                             </div>
-                            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">أحدث شارة</div>
-                                <div className="text-lg font-black flex items-center gap-1.5 text-white">
-                                    <Trophy className="w-4 h-4 text-orange-500 fill-orange-500" />
-                                    {latestBadge}
-                                </div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-1">التتابع اليومي</div>
+                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
+                                <Zap className="w-4 h-4 text-orange-500 fill-orange-500" />
+                                {streak} أيام
+                            </div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">أحدث شارة</div>
+                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
+                                <Trophy className="w-4 h-4 text-orange-500 fill-orange-500" />
+                                {latestBadge}
                             </div>
                         </div>
                     </div>
@@ -103,7 +138,16 @@ export const StudentIdentityCard: React.FC<StudentIdentityCardProps> = ({
                             <Play className="w-6 h-6 ml-3 fill-current" />
                             ابدأ تمرين اليوم
                         </Button>
-                        <div className="space-y-2">
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            className="w-full bg-blue-500/10 border-blue-400/30 text-blue-100 hover:bg-blue-500/20 font-bold transition-all duration-300 h-14 text-lg gap-3"
+                            onClick={onOpenAccess}
+                        >
+                            <QrCode className="w-6 h-6" />
+                            دخول سريع (QR)
+                        </Button>
+                        <div className="space-y-2 pt-2">
                             <div className="flex justify-between text-xs font-black text-blue-200 px-1 uppercase tracking-wider">
                                 <span>التقدم للمستوى التالي</span>
                                 <span className="bg-blue-500/20 px-2 py-0.5 rounded text-blue-100">{levelProgress}%</span>

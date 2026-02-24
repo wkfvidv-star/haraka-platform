@@ -3,15 +3,52 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, Mic, MicOff } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { AIService } from '@/services/AIService';
 
 export const AIAssistant: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
-
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
     const [messages, setMessages] = useState([
-        { role: 'assistant', text: 'مرحباً! أنا مدربك الذكي. كيف يمكنني مساعدتك اليوم؟' }
+        { role: 'assistant', text: 'مرحباً! أنا مدربك الذكي المدعوم بـ Llama 2. كيف يمكنني مساعدتك اليوم؟' }
     ]);
+
+    const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
+        e?.preventDefault();
+        const userMessage = customText || input.trim();
+        if (!userMessage || isLoading) return;
+
+        setInput('');
+        setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+        setIsLoading(true);
+
+        try {
+            // Using enhanced AI Service (Llama 2 + LangChain architecture)
+            const reply = await AIService.getAICoachResponse(userMessage);
+            setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
+        } catch (error) {
+            setMessages(prev => [...prev, { role: 'assistant', text: 'عذراً، حدث خطأ أثناء الاتصال بالمدرب الذكي.' }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const toggleRecording = async () => {
+        if (!isRecording) {
+            setIsRecording(true);
+            // Simulate Whisper API call
+            setTimeout(async () => {
+                setIsRecording(false);
+                const transcript = await AIService.transcribeSpeech(new Blob());
+                handleSendMessage(undefined, transcript);
+            }, 3000);
+        } else {
+            setIsRecording(false);
+        }
+    };
 
     return (
         <>
@@ -53,25 +90,37 @@ export const AIAssistant: React.FC = () => {
                                         </div>
                                     </div>
                                 ))}
-
-                                {/* Contextual Suggestions */}
-                                <div className="flex flex-wrap gap-2 mt-8 py-4 border-t border-white/5">
-                                    {['لماذا أدائي منخفض؟', 'ما هو تمرين اليوم؟', 'أشعر بالتعب'].map((suggestion, i) => (
-                                        <button
-                                            key={i}
-                                            className="text-xs font-black bg-white/5 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-full hover:bg-indigo-500/20 hover:text-white transition-all shadow-sm"
-                                        >
-                                            {suggestion}
-                                        </button>
-                                    ))}
-                                </div>
+                                {isLoading && (
+                                    <div className="flex gap-4">
+                                        <Avatar className="w-10 h-10 border-2 border-white/10">
+                                            <AvatarFallback className="bg-indigo-500 text-white"><Bot className="w-5 h-5" /></AvatarFallback>
+                                        </Avatar>
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                                            <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </ScrollArea>
                     </CardContent>
                     <CardFooter className="p-6 border-t border-white/5 bg-black/20 backdrop-blur-xl relative z-10">
-                        <form className="flex w-full gap-3" onSubmit={(e) => e.preventDefault()}>
-                            <Input placeholder="اسأل مدربك..." className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 font-bold h-12 focus:ring-indigo-500" />
-                            <Button size="icon" className="bg-indigo-600 hover:bg-indigo-500 h-12 w-12 shadow-xl">
+                        <form className="flex w-full gap-3" onSubmit={handleSendMessage}>
+                            <Input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="اسأل مدربك..."
+                                className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 font-bold h-12 focus:ring-indigo-500"
+                            />
+                            <Button
+                                type="button"
+                                size="icon"
+                                variant={isRecording ? "destructive" : "secondary"}
+                                onClick={toggleRecording}
+                                className={`h-12 w-12 rounded-xl transition-all ${isRecording ? 'animate-pulse ring-4 ring-red-500/30' : ''}`}
+                            >
+                                {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                            </Button>
+                            <Button type="submit" size="icon" disabled={isLoading || isRecording} className="bg-indigo-600 hover:bg-indigo-500 h-12 w-12 shadow-xl rounded-xl">
                                 <Send className="w-5 h-5" />
                             </Button>
                         </form>

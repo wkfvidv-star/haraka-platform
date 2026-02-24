@@ -6,6 +6,11 @@ import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 import chatRoutes from './routes/chat.js';
 import authRoutes from './routes/auth.js';
+import hceRoutes from './routes/hce.js';
+import accessRoutes from './routes/access.js';
+import activityRoutes from './routes/activity.js';
+import profileRoutes from './routes/profile.js';
+import analysisRoutes from './routes/analysis.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logger } from './utils/logger.js';
 
@@ -59,6 +64,11 @@ app.use((req, res, next) => {
 // --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/hce', hceRoutes);
+app.use('/api/access', accessRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/analysis', analysisRoutes);
 
 // Health Check (Demo Mode)
 app.get('/api/health', (req, res) => {

@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Activity, Heart, Calendar, Users } from 'lucide-react';
 
-interface ChildSummary {
+export interface ChildSummary {
     id: string;
     name: string;
     avatarUrl?: string;

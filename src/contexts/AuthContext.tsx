@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService } from '@/services/authService';
+import { supabase } from '@/lib/supabaseClient';
 
 export type UserRole = 'student' | 'youth' | 'parent' | 'teacher' | 'principal' | 'coach' | 'directorate' | 'ministry' | 'competition' | 'admin';
 export type Environment = 'school' | 'community';
@@ -13,6 +15,8 @@ export interface ProvinceContext {
 export interface User {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   role: UserRole;
   environment: Environment;
@@ -22,17 +26,22 @@ export interface User {
   badges?: string[];
   playCoins?: number;
   provinceId?: string; // Track province in user profile
+  digitalId?: string;
+  qrToken?: string;
+  subscriptionStatus?: 'ACTIVE' | 'EXPIRED' | 'PENDING' | 'SUSPENDED';
 }
 
 interface AuthContextType {
   user: User | null;
   environment: Environment | null;
   province: ProvinceContext | null; // Added province
-  login: (email: string, password: string, environment: Environment) => Promise<boolean>;
+  login: (email: string, password: string, environment: Environment) => Promise<{ success: boolean; error?: string }>;
+  register: (data: any) => Promise<{ success: boolean; userId?: string; error?: string }>;
   logout: () => void;
   setEnvironment: (env: Environment | null) => void;
-  setProvince: (province: ProvinceContext | null) => void; // Added setProvince
+  setProvince: (province: ProvinceContext | null) => void;
   updateUserStats: (stats: Partial<Pick<User, 'xp' | 'level' | 'badges' | 'playCoins'>>) => void;
+  refreshProfiles: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -57,99 +66,148 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
     const savedEnvironment = localStorage.getItem('environment') as Environment;
     const savedProvince = localStorage.getItem('province');
 
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
     if (savedEnvironment) {
       setEnvironmentState(savedEnvironment);
     }
     if (savedProvince) {
       setProvinceState(JSON.parse(savedProvince));
     }
+
+    // Initialize session from Supabase
+    const initSession = async () => {
+      setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Fetch profile and progress for the initial load
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        const { data: stats } = await supabase
+          .from('students_progress')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (profile) {
+          const mappedUser: User = {
+            id: session.user.id,
+            email: session.user.email!,
+            name: profile.name || '',
+            firstName: profile.name?.split(' ')[0] || '',
+            lastName: profile.name?.split(' ').slice(1).join(' ') || '',
+            role: profile.role || 'student',
+            environment: savedEnvironment || 'school',
+            xp: stats?.xp || 0,
+            level: stats?.level || 1,
+            badges: [], // Placeholder
+            playCoins: 0,
+            avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`
+          };
+          setUser(mappedUser);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string, selectedEnvironment: Environment): Promise<boolean> => {
+  const login = async (email: string, password: string, selectedEnvironment: Environment): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { success, user: backendUser, error } = await authService.login(email, password, selectedEnvironment);
 
-      // School Environment Accounts
-      const schoolAccounts: Record<string, { name: string; role: UserRole }> = {
-        'student@demo.com': { name: 'أحمد محمد', role: 'student' },
-        'parent@demo.com': { name: 'محمد الأحمد', role: 'parent' },
-        'teacher@demo.com': { name: 'فاطمة الزهراء', role: 'teacher' },
-        'principal@demo.com': { name: 'عبد الله الصالح', role: 'principal' },
-        'directorate@demo.com': { name: 'مديرية التعليم', role: 'directorate' },
-        'ministry@demo.com': { name: 'وزارة التربية', role: 'ministry' },
-      };
-
-      // Community Environment Accounts
-      const communityAccounts: Record<string, { name: string; role: UserRole }> = {
-        'youth@demo.com': { name: 'سارة علي', role: 'youth' },
-        'coach@demo.com': { name: 'خالد الرياضي', role: 'coach' },
-        'competition@demo.com': { name: 'إدارة المسابقات', role: 'competition' },
-      };
-
-      // Admin can access both environments
-      const adminAccounts: Record<string, { name: string; role: UserRole }> = {
-        'admin@demo.com': { name: 'مدير النظام', role: 'admin' },
-      };
-
-      const allAccounts = {
-        ...schoolAccounts,
-        ...communityAccounts,
-        ...adminAccounts
-      };
-
-      if (password === 'demo123' && allAccounts[email]) {
-        const account = allAccounts[email];
-
-        // Validate environment access
-        if (selectedEnvironment === 'school' && !schoolAccounts[email] && !adminAccounts[email]) {
-          setIsLoading(false);
-          return false;
-        }
-
-        if (selectedEnvironment === 'community' && !communityAccounts[email] && !adminAccounts[email]) {
-          setIsLoading(false);
-          return false;
-        }
-
-        const newUser: User = {
-          id: Math.random().toString(36).substr(2, 9),
-          name: account.name,
-          email,
-          role: account.role,
+      if (success && backendUser) {
+        const mappedUser: User = {
+          ...backendUser,
+          name: `${backendUser.firstName} ${backendUser.lastName}`,
           environment: selectedEnvironment,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${account.name}`,
-          xp: Math.floor(Math.random() * 5000) + 1000, // Random XP between 1000-6000
-          level: Math.floor(Math.random() * 20) + 1, // Random level 1-20
-          badges: ['🏆', '⭐', '🎯'].slice(0, Math.floor(Math.random() * 3) + 1), // Random badges
-          playCoins: Math.floor(Math.random() * 1000) + 100, // Random coins 100-1100
-          provinceId: province?.id // Save province ID
+          avatar: backendUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${backendUser.firstName}`,
+          badges: [],
+          subscriptionStatus: 'ACTIVE'
         };
 
-        setUser(newUser);
+        setUser(mappedUser);
         setEnvironmentState(selectedEnvironment);
-        localStorage.setItem('user', JSON.stringify(newUser));
         localStorage.setItem('environment', selectedEnvironment);
-
-        // We do NOT clear province here, as it might be needed for context
         setIsLoading(false);
-        return true;
+        return { success: true };
       }
 
       setIsLoading(false);
-      return false;
-    } catch (error) {
+      return { success: false, error: error || 'بيانات الدخول غير صحيحة' };
+    } catch (error: any) {
       console.error('Login error:', error);
       setIsLoading(false);
-      return false;
+      return {
+        success: false,
+        error: error.message || 'فشل الاتصال بخادم المصادقة'
+      };
+    }
+  };
+
+  const refreshProfiles = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      const { data: stats } = await supabase
+        .from('students_progress')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (profile) {
+        setUser(prev => prev ? ({
+          ...prev,
+          xp: stats?.xp || 0,
+          level: stats?.level || 1,
+          name: profile.name || prev.name,
+          avatar: profile.avatar_url || prev.avatar
+        }) : null);
+      }
+    }
+  };
+
+  const register = async (data: any): Promise<{ success: boolean; userId?: string; error?: string }> => {
+    setIsLoading(true);
+    try {
+      const response = await authService.register(data);
+      setIsLoading(false);
+      return response;
+    } catch (error: any) {
+      console.error('Register error details:', error);
+      setIsLoading(false);
+
+      let errorMessage = 'Registration failed';
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.error_description) {
+        errorMessage = error.error_description;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -200,10 +258,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     environment,
     province,
     login,
+    register,
     logout,
     setEnvironment,
     setProvince,
     updateUserStats,
+    refreshProfiles,
     isLoading
   };
 

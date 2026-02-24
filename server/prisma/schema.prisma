@@ -3,10 +3,12 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -15,24 +17,39 @@ enum UserRole {
   PARENT
   TEACHER
   COACH
+  YOUTH
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  PENDING
+  SUSPENDED
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String   // Hashed
-  role      UserRole @default(STUDENT)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  password           String             // Hashed
+  role               UserRole           @default(STUDENT)
+  isActive           Boolean            @default(true)
+  digitalId          String?            @unique @default(uuid())
+  qrToken            String?            @unique
+  subscriptionStatus SubscriptionStatus @default(ACTIVE)
+  xp                 Int                @default(0)
+  level              Int                @default(1)
+  playCoins          Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
-  profile   Profile?
-  student   Student?
-  parent    Parent?
-  coach     Coach?
-  auditLogs AuditLog[]
-  dailyActivities  DailyActivity[]
+  profile            Profile?
+  student            Student?
+  parent             Parent?
+  coach              Coach?
+  auditLogs          AuditLog[]
+  dailyActivities    DailyActivity[]
   exerciseSubmissions ExerciseSubmission[]
+  accessLogs         AccessLog[]
 
   @@map("users")
 }
@@ -42,8 +59,12 @@ model Profile {
   userId    String   @unique
   firstName String
   lastName  String
-  avatarUrl String?
-  bio       String?
+  avatarUrl    String?
+  bio          String?
+  height       Float?   // in cm
+  weight       Float?   // in kg
+  bloodType    String?
+  athleticGoal String?
   
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -124,6 +145,20 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+model AccessLog {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // ENTRY, EXIT
+  location  String?
+  status    String   // GRANTED, DENIED
+  reason    String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("access_logs")
+}
+
 model DailyActivity {
   id            String   @id @default(uuid())
   userId        String
@@ -162,3 +197,4 @@ model ExerciseSubmission {
 
   @@map("exercise_submissions")
 }
+

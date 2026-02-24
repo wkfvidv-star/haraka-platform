@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,9 +27,11 @@ import { AcademicSection } from '@/components/dashboard/AcademicSection';
 import { MentalWellBeingSection } from '@/components/dashboard/MentalWellBeingSection';
 import { useTranslation } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { hceService, HCEInsights } from '@/services/hceService';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { SportsClubsWidget } from '@/components/common/SportsClubsWidget';
 import { PartnersSection } from '@/components/common/PartnersSection';
+import { AGIInsightFlow } from '@/components/student-dashboard/v2/AGIInsightFlow';
 import {
   Play,
   Star,
@@ -79,9 +81,18 @@ export default function YouthDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLowDataMode, setIsLowDataMode] = useState(false);
   const [isSimplifiedMode, setIsSimplifiedMode] = useState(false);
+  const [hceInsights, setHceInsights] = useState<HCEInsights | null>(null);
   const { t, language } = useTranslation();
   const { user, logout, environment } = useAuth();
   const isRTL = language === 'ar';
+
+  useEffect(() => {
+    if (user?.id) {
+      hceService.getPersonalInsights(user.id)
+        .then(setHceInsights)
+        .catch(err => console.error("HCE Connection Error:", err));
+    }
+  }, [user]);
 
   // بيانات وهمية للنشاط اليومي
   const activityData = {
@@ -214,7 +225,23 @@ export default function YouthDashboard() {
       />
 
       {/* AI Personalization Banner */}
-      <AIPersonalizationBanner isSimplified={isSimplifiedMode} />
+      <AIPersonalizationBanner
+        isSimplified={isSimplifiedMode}
+        className="mb-4"
+      />
+
+      {/* New: AGI Insights Flow */}
+      <AGIInsightFlow insights={hceInsights} />
+
+      {hceInsights?.vision_forecast && (
+        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl mb-6 backdrop-blur-md relative overflow-hidden group">
+          <div className="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <p className="text-white text-sm font-bold flex items-center gap-2">
+            <Brain className="w-4 h-4 text-orange-400 animate-pulse" />
+            <span className="text-orange-400">تنبؤ العقل الرقمي (Forecast):</span> {hceInsights.vision_forecast}
+          </p>
+        </div>
+      )}
 
       {/* Daily Mission - Instant Action */}
       <DailyMissionCard />

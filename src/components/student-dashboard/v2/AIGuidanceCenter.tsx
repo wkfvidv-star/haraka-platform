@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Video, MessageCircle, PlayCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Video, MessageCircle, PlayCircle, ArrowRight, Trophy } from 'lucide-react';
 
 interface AIGuidanceCenterProps {
     dailyRecommendation?: string;
@@ -11,7 +11,7 @@ interface AIGuidanceCenterProps {
 }
 
 export const AIGuidanceCenter: React.FC<AIGuidanceCenterProps> = ({
-    dailyRecommendation = "اليوم سنركز على سرعة رد الفعل لأن أداءك انخفض بنسبة 8% الأسبوع الماضي.",
+    dailyRecommendation = "أحمد، بناءً على تحليلك الأخير، نلاحظ تحسناً في توازنك. جرب تمرين القرفصاء (Squats) في مختبر الحركة اليوم لتحقيق هدفك في بناء القوة.",
     onStartTraining,
     onAnalyzeVideo,
     onTalkToAI
@@ -24,10 +24,13 @@ export const AIGuidanceCenter: React.FC<AIGuidanceCenterProps> = ({
 
             <CardHeader className="pb-4 relative z-10">
                 <CardTitle className="flex items-center gap-3 text-xl font-black text-white">
-                    <div className="p-2 rounded-lg bg-purple-500/20 ring-1 ring-purple-500/30">
-                        <Sparkles className="w-5 h-5 text-purple-400" />
+                    <div className="p-2 rounded-lg bg-orange-500/20 ring-1 ring-orange-500/30 group-hover:scale-110 transition-transform duration-500">
+                        <Trophy className="w-5 h-5 text-orange-400" />
                     </div>
-                    <span>مركز التوجيه الذكي</span>
+                    <div className="flex flex-col">
+                        <span className="text-xl font-black text-white">مهمتك اليومية (My Daily Mission)</span>
+                        <span className="text-[10px] text-orange-400/80 font-black uppercase tracking-[2px]">AGI-REASONING ACTIVE</span>
+                    </div>
                 </CardTitle>
             </CardHeader>
             <CardContent className="relative z-10">

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { coachService, Group } from '@/services/coachService';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -52,19 +53,19 @@ export default function TeacherDashboard() {
     }, 1500);
   };
 
-  // Mock data for dashboard overview
-  const dashboardStats = {
-    totalClasses: 3,
-    totalStudents: 78,
-    activeStudents: 72,
-    averageProgress: 82,
-    completedExercises: 245,
-    activeChallenges: 5,
-    pendingReports: 8,
-    unreadMessages: 12
-  };
+  const [dashboardStats, setDashboardStats] = useState({
+    totalClasses: 0,
+    totalStudents: 0,
+    activeStudents: 0,
+    averageProgress: 0,
+    completedExercises: 0,
+    activeChallenges: 0,
+    pendingReports: 0,
+    unreadMessages: 0
+  });
 
-  const recentActivities = [
+  const [classOverview, setClassOverview] = useState<any[]>([]);
+  const [recentActivities, setRecentActivities] = useState<any[]>([
     {
       id: '1',
       type: 'exercise_completed',
@@ -82,47 +83,41 @@ export default function TeacherDashboard() {
       class: 'الثالثة متوسط أ',
       time: 'منذ ساعة',
       score: 92
-    },
-    {
-      id: '3',
-      type: 'report_requested',
-      student: 'محمد الأمين',
-      activity: 'طلب تقرير من ولي الأمر',
-      class: 'الثالثة متوسط ب',
-      time: 'منذ ساعتين',
-      score: null
     }
-  ];
+  ]);
 
-  const classOverview = [
-    {
-      id: 'class_1',
-      name: 'الثالثة متوسط أ',
-      students: 28,
-      activeStudents: 25,
-      averageProgress: 85,
-      recentActivity: 'تمرين جماعي',
-      status: 'نشط'
-    },
-    {
-      id: 'class_2',
-      name: 'الثالثة متوسط ب',
-      students: 26,
-      activeStudents: 24,
-      averageProgress: 78,
-      recentActivity: 'تحدي أسبوعي',
-      status: 'نشط'
-    },
-    {
-      id: 'class_3',
-      name: 'الثانية متوسط أ',
-      students: 24,
-      activeStudents: 23,
-      averageProgress: 80,
-      recentActivity: 'تقييم شهري',
-      status: 'نشط'
-    }
-  ];
+  useEffect(() => {
+    const fetchTeacherData = async () => {
+      if (user?.id) {
+        try {
+          const groups = await coachService.getGroups(user.id);
+          const totalStudents = groups.reduce((acc, g) => acc + g.memberCount, 0);
+
+          setDashboardStats(prev => ({
+            ...prev,
+            totalClasses: groups.length,
+            totalStudents: totalStudents,
+            activeStudents: totalStudents, // Simple assumption
+            averageProgress: 75, // Placeholder
+            completedExercises: 120 // Placeholder
+          }));
+
+          setClassOverview(groups.map(g => ({
+            id: g.id,
+            name: g.name,
+            students: g.memberCount,
+            activeStudents: g.memberCount,
+            averageProgress: 80,
+            recentActivity: 'نشط حديثاً',
+            status: 'نشط'
+          })));
+        } catch (error) {
+          console.error("Error fetching teacher data:", error);
+        }
+      }
+    };
+    fetchTeacherData();
+  }, [user]);
 
   const upcomingTasks = [
     {

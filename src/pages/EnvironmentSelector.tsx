@@ -61,11 +61,11 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
             </h1>
           </div>
           <p className="text-2xl sm:text-3xl font-black text-blue-100 tracking-tight drop-shadow-md">
-            منصة ذكية مزدوجة للتعليم والشباب
+            الوصول إلى البوابات الذكية
           </p>
           <div className="mt-8 flex items-center justify-center gap-6">
             <div className="h-px w-20 bg-blue-400/30" />
-            <span className="text-sm font-bold text-blue-400 uppercase tracking-[0.4em]">اختر البيئة المناسبة لك</span>
+            <span className="text-sm font-bold text-blue-400 uppercase tracking-[0.4em]">اختر بوابتك للدخول</span>
             <div className="h-px w-20 bg-blue-400/30" />
           </div>
         </motion.div>
@@ -143,7 +143,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
                   className="w-full bg-blue-600 hover:bg-blue-500 h-16 rounded-2xl text-xl font-black shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 transition-all duration-300 group/btn text-white"
                 >
                   <motion.span className="flex items-center gap-3">
-                    دخول البيئة المدرسية
+                    دخول بوابة المدرسة
                     <ArrowRight className="w-7 h-7 group-hover/btn:translate-x-2 transition-transform" />
                   </motion.span>
                 </Button>
@@ -221,7 +221,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
                   className="w-full bg-gradient-to-r from-orange-500 to-emerald-500 hover:from-orange-600 hover:to-emerald-600 h-16 rounded-2xl text-xl font-black shadow-xl shadow-orange-600/20 hover:shadow-orange-600/40 transition-all duration-300 group/btn text-white"
                 >
                   <motion.span className="flex items-center gap-3">
-                    دخول بيئة المجتمع
+                    دخول بوابة المجتمع
                     <ArrowRight className="w-7 h-7 group-hover/btn:translate-x-2 transition-transform" />
                   </motion.span>
                 </Button>

@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, Environment } from '@/contexts/AuthContext';
 import { EnvironmentSelector } from './EnvironmentSelector';
+import { InterfaceSelector } from '@/components/auth/InterfaceSelector';
 import { ProvinceSelector } from '@/components/directorate/ProvinceSelector';
 import {
   LogIn,
@@ -20,19 +21,21 @@ import {
 } from 'lucide-react';
 
 export const AuthPage: React.FC = () => {
-  const { login, isLoading, environment, setEnvironment, province, setProvince } = useAuth();
+  const { login, register, isLoading, environment, setEnvironment, province, setProvince } = useAuth();
 
-  // Local state for form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('');
-  const [isSelectingProvince, setIsSelectingProvince] = useState(false); // New state
+  const [isSelectingProvince, setIsSelectingProvince] = useState(false);
 
-  // Clear errors when environment changes
+  // Clear errors when environment or mode changes
   useEffect(() => {
     setError('');
-  }, [environment, province]);
+  }, [environment, province, isRegistering]);
 
   const handleEnvironmentSelect = (env: Environment) => {
     setEnvironment(env);
@@ -61,7 +64,7 @@ export const AuthPage: React.FC = () => {
     setIsSelectingProvince(true);
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -70,14 +73,28 @@ export const AuthPage: React.FC = () => {
       return;
     }
 
-    if (!email || !password) {
-      setError('يرجى إدخال البريد الإلكتروني وكلمة المرور');
-      return;
-    }
-
-    const success = await login(email, password, environment);
-    if (!success) {
-      setError('بيانات الدخول غير صحيحة أو غير مخولة للبيئة المختارة');
+    if (isRegistering) {
+      if (!email || !password || !firstName || !lastName || !selectedRole) {
+        setError('يرجى ملء جميع الحقول واختيار الدور');
+        return;
+      }
+      const result = await register({ email, password, firstName, lastName, role: selectedRole, environment });
+      if (result.success) {
+        // Automatically switch to login or show success
+        setIsRegistering(false);
+        setError('');
+      } else {
+        setError(result.error || 'فشل إنشاء الحساب');
+      }
+    } else {
+      if (!email || !password) {
+        setError('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+        return;
+      }
+      const result = await login(email, password, environment);
+      if (!result.success) {
+        setError(result.error || 'بيانات الدخول غير صحيحة أو غير مخولة للبيئة المختارة');
+      }
     }
   };
 
@@ -112,6 +129,11 @@ export const AuthPage: React.FC = () => {
     }
   };
 
+  const getRoleLabel = (roleKey: string) => {
+    const roles = [...getEnvironmentAccounts('school'), ...getEnvironmentAccounts('community')];
+    return roles.find(r => r.key === roleKey)?.label || roleKey;
+  };
+
   const getTheme = () => {
     if (environment === 'school') {
       return {
@@ -138,7 +160,28 @@ export const AuthPage: React.FC = () => {
     return <EnvironmentSelector onSelectEnvironment={handleEnvironmentSelect} />;
   }
 
-  // 2. Province Selection Mode -> Show Province Selector
+  // 2. Interface Selection -> Show roles available in the chosen environment
+  if (environment && !selectedRole && !isSelectingProvince) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden font-cairo" dir="rtl">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/auth_bg_kids_sports.png"
+            className="w-full h-full object-cover"
+            alt="bg"
+          />
+          <div className={`absolute inset-0 bg-blue-900/80 mix-blend-multiply`}></div>
+        </div>
+        <InterfaceSelector
+          environment={environment}
+          onSelectRole={(role) => setSelectedRole(role)}
+          onBack={handleBackToEnvironmentSelection}
+        />
+      </div>
+    );
+  }
+
+  // 3. Province Selection Mode -> Show Province Selector (for specialized school roles if needed)
   if (isSelectingProvince) {
     return (
       <ProvinceSelector
@@ -148,7 +191,7 @@ export const AuthPage: React.FC = () => {
     );
   }
 
-  // 3. Environment Selected (and Province if School) -> Show Login Form
+  // 4. Environment & Role Selected -> Show Login/Register Form
   const theme = getTheme();
 
   return (
@@ -172,7 +215,15 @@ export const AuthPage: React.FC = () => {
       <div className="w-full max-w-[480px] relative z-10 animate-in fade-in zoom-in-95 duration-500">
 
         {/* Back Button */}
-        <div className="absolute -top-16 right-0">
+        <div className="absolute -top-16 right-0 flex gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedRole('')}
+            className="text-white hover:bg-white/10 gap-2 px-3 group"
+          >
+            <ArrowRight className="w-4 h-4" />
+            <span className="text-sm font-medium">تغيير الواجهة</span>
+          </Button>
           <Button
             variant="ghost"
             onClick={environment === 'school' ? handleOpenProvinceSelection : handleBackToEnvironmentSelection}
@@ -194,42 +245,41 @@ export const AuthPage: React.FC = () => {
               {environment === 'school' ? <School className="w-8 h-8" /> : <Dumbbell className="w-8 h-8" />}
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {environment === 'school' ? 'البيئة المدرسية' : 'بيئة المجتمع'}
+            <h1 className="text-2xl font-black text-gray-900 mb-1">
+              {getRoleLabel(selectedRole)}
             </h1>
             {province && (
               <p className="text-blue-600 font-bold mb-1">
                 {province.arabicName}
               </p>
             )}
-            <p className="text-sm text-gray-500 font-medium">
-              منصة Haraka للتعليم الذكي
+            <p className="text-sm text-gray-500 font-bold">
+              {isRegistering ? 'إنشاء حساب جديد في Haraka' : 'تسجيل الدخول إلى النظام'}
             </p>
           </div>
 
           <div className="p-8 space-y-6">
-
-            {/* Role Tab Selector */}
-            <div className="space-y-3">
-              <Label className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center block">
-                تسجيل الدخول كـ
-              </Label>
-              <Tabs value={selectedRole} onValueChange={handleRoleSelect} className="w-full">
-                <TabsList className="w-full grid grid-cols-3 gap-1 bg-gray-100/50 p-1.5 h-auto rounded-xl">
-                  {getEnvironmentAccounts(environment).map((acc) => (
-                    <TabsTrigger
-                      key={acc.key}
-                      value={acc.key}
-                      className="text-xs py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary font-medium rounded-lg transition-all"
-                    >
-                      {acc.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+            {/* Context Badge */}
+            <div className="flex justify-center">
+              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${theme.badge} border border-current opacity-70`}>
+                {environment === 'school' ? 'بوابة المدرسة' : 'بوابة المجتمع'}
+              </span>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {isRegistering && (
+                <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">الأسم الأول</Label>
+                    <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-11 bg-gray-50" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">الأسم الأخير</Label>
+                    <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-11 bg-gray-50" />
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                   البريد الإلكتروني
@@ -252,9 +302,11 @@ export const AuthPage: React.FC = () => {
                   <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                     كلمة المرور
                   </Label>
-                  <a href="#" className={`text-xs font-semibold ${environment === 'school' ? 'text-blue-600' : 'text-orange-600'} hover:underline`}>
-                    هل نسيت كلمة المرور؟
-                  </a>
+                  {!isRegistering && (
+                    <a href="#" className={`text-xs font-semibold ${environment === 'school' ? 'text-blue-600' : 'text-orange-600'} hover:underline`}>
+                      هل نسيت كلمة المرور؟
+                    </a>
+                  )}
                 </div>
                 <div className="relative group">
                   <Lock className={`absolute right-3 top-3 h-4 w-4 text-gray-400 group-focus-within:${theme.iconUser} transition-colors`} />
@@ -285,12 +337,22 @@ export const AuthPage: React.FC = () => {
                   'جاري التحقق...'
                 ) : (
                   <span className="flex items-center gap-2">
-                    تسجيل الدخول
-                    <LogIn className="w-4 h-4" />
+                    {isRegistering ? 'إنشاء حساب جديد' : 'تسجيل الدخول'}
+                    {isRegistering ? <Check className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
                   </span>
                 )}
               </Button>
             </form>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setIsRegistering(!isRegistering)}
+                className={`text-sm font-bold ${environment === 'school' ? 'text-blue-600' : 'text-orange-600'} hover:underline`}
+              >
+                {isRegistering ? 'لديك حساب بالفعل؟ سجل دخولك' : 'ليس لديك حساب؟ أنشئ حساباً جديداً'}
+              </button>
+            </div>
 
             <div className="pt-4 border-t border-gray-100 flex items-center justify-center gap-2 text-xs text-gray-400 font-medium">
               <ShieldCheck className="w-3 h-3 text-green-500" />

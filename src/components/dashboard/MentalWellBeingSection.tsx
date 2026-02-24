@@ -1,73 +1,52 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Smile, Heart, Sun, Cloud, Moon, Book } from 'lucide-react';
+import { Smile, Heart, Sun, Cloud, Moon, Book, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseCard } from '@/components/exercises/ExerciseCard';
 import { MentalExercise } from '@/types/ExerciseTypes';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { SmartExerciseService } from '@/services/SmartExerciseService';
 
 interface MentalWellBeingSectionProps {
     isSimplified?: boolean;
 }
 
-const INITIAL_MENTAL_EXERCISES: MentalExercise[] = [
-    {
-        id: 'men-1',
-        title: 'التخيل الذهني للمباراة',
-        description: 'تخيل نفسك تؤدي حركاتك بامتياز في سيناريوهات مختلفة للمباراة.',
-        category: 'mental',
-        type: 'meditation',
-        level: 'advanced',
-        durationSeconds: 600,
-        completed: false,
-    },
-    {
-        id: 'men-2',
-        title: 'إعادة شحن التركيز',
-        description: 'تقنية سريعة لاستعادة التركيز الكامل بعد ارتكاب خطأ.',
-        category: 'mental',
-        type: 'breathing',
-        level: 'intermediate',
-        durationSeconds: 60,
-        completed: false,
-    },
-    {
-        id: 'men-3',
-        title: 'حديث النفس الإيجابي',
-        description: 'استبدال الأفكار السلبية بعبارات تعزيز الثقة والأداء.',
-        category: 'mental',
-        type: 'journaling',
-        level: 'beginner',
-        durationSeconds: 300,
-        completed: false,
-    },
-    {
-        id: 'men-4',
-        title: 'اسرخاء العضلات المتدرج',
-        description: 'تمرين للتخلص من التوتر الجسدي قبل المنافسة.',
-        category: 'mental',
-        type: 'meditation',
-        level: 'intermediate',
-        durationSeconds: 420,
-        completed: false,
-    },
-    {
-        id: 'men-5',
-        title: 'تحليل المشاعر ما بعد الأداء',
-        description: 'سجل مشاعرك بعد التدريب لتحسين الذكاء العاطفي الرياضي.',
-        category: 'mental',
-        type: 'journaling',
-        level: 'beginner',
-        durationSeconds: 240,
-        completed: false,
-    }
-];
-
 export function MentalWellBeingSection({ isSimplified = false }: MentalWellBeingSectionProps) {
     const [mood, setMood] = useLocalStorage<string | null>('daily-mood', null);
-    const [exercises, setExercises] = useLocalStorage<MentalExercise[]>('mental-exercises', INITIAL_MENTAL_EXERCISES);
+    const [exercises, setExercises] = useState<MentalExercise[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchExercises = async () => {
+            try {
+                setLoading(true);
+                const packs = await SmartExerciseService.getPacksByCategory('Mental');
+
+                const mapped = packs.map(pack => ({
+                    id: pack.id,
+                    title: pack.title,
+                    description: pack.description,
+                    category: 'mental' as const,
+                    type: (pack.subCategory.toLowerCase() as any) || 'meditation',
+                    level: pack.difficulty.toLowerCase() as any,
+                    durationSeconds: parseInt(pack.exercises[0]?.duration) * 60 || 300,
+                    completed: false
+                }));
+
+                setExercises(mapped);
+            } catch (err) {
+                console.error("Failed to fetch mental exercises", err);
+                setError("عذراً، فشل تحميل تمارين الرفاه النفسي.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchExercises();
+    }, []);
 
     const handleStartExercise = (exerciseId: string) => {
         console.log('Starting mental exercise:', exerciseId);
@@ -83,6 +62,26 @@ export function MentalWellBeingSection({ isSimplified = false }: MentalWellBeing
     const handleMoodSelect = (selectedMood: string) => {
         setMood(selectedMood);
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 text-purple-400 gap-4">
+                <Loader2 className="w-10 h-10 animate-spin" />
+                <span className="font-bold">جاري تحميل تمارين الرفاه...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <Card className="border-red-200 bg-red-50">
+                <CardContent className="flex items-center gap-4 py-6 text-red-700">
+                    <AlertCircle className="w-6 h-6" />
+                    <p className="font-medium">{error}</p>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <div className="space-y-6">

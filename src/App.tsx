@@ -18,6 +18,7 @@ import MinistryDashboard from '@/pages/dashboards/MinistryDashboard';
 import CompetitionDashboard from '@/pages/dashboards/CompetitionDashboard';
 import AdminDashboard from '@/pages/dashboards/AdminDashboard';
 import { ExerciseSessionPage } from '@/pages/student/ExerciseSessionPage';
+import DigitalIdentity from '@/pages/DigitalIdentity';
 
 function AppRoutes() {
   const { user, environment } = useAuth();
@@ -70,6 +71,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={getDashboardComponent()} />
       <Route path="/dashboard" element={getDashboardComponent()} />
+      <Route path="/identity" element={<DigitalIdentity />} />
       <Route path="/student/exercise/:packId" element={<ExerciseSessionPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

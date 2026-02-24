@@ -2,86 +2,56 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Zap, Timer, Focus } from 'lucide-react';
+import { Brain, Zap, Timer, Focus, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseCard } from '@/components/exercises/ExerciseCard';
 import { CognitiveExercise } from '@/types/ExerciseTypes';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { SmartExerciseService } from '@/services/SmartExerciseService';
 
 interface CognitiveSectionProps {
     isSimplified?: boolean;
 }
 
-const INITIAL_GAMES: CognitiveExercise[] = [
-    {
-        id: 'cog-1',
-        title: 'سرعة رد الفعل المتقدمة',
-        description: 'اضغط على الهدف الصحيح (ألوان/أشكال) بأقصى سرعة ممكنة.',
-        category: 'cognitive',
-        type: 'focus',
-        level: 'intermediate',
-        durationSeconds: 60,
-        completed: false,
-        score: 0,
-        targetMetric: 'Reaction Time (ms)'
-    },
-    {
-        id: 'cog-2',
-        title: 'الذاكرة التكتيكية',
-        description: 'شاهد تشكيلة اللاعبين لمدة 5 ثوانٍ ثم أعد ترتيبهم في أماكنهم الصحيحة.',
-        category: 'cognitive',
-        type: 'memory',
-        level: 'advanced',
-        durationSeconds: 120,
-        completed: false,
-        score: 0,
-        targetMetric: 'Accuracy (%)'
-    },
-    {
-        id: 'cog-3',
-        title: 'اتخاذ القرار السريع',
-        description: 'شاهد سيناريو قصير للهجمة واختر التمريرة الصحيحة في جزء من الثانية.',
-        category: 'cognitive',
-        type: 'focus',
-        level: 'advanced',
-        durationSeconds: 180,
-        completed: false,
-        score: 0,
-        targetMetric: 'Decision Speed (ms)'
-    },
-    {
-        id: 'cog-4',
-        title: 'تتبع اللاعبين المتعدد',
-        description: 'تتبع حركة 3 لاعبين محددين وسط مجموعة متحركة.',
-        category: 'cognitive',
-        type: 'focus',
-        level: 'intermediate',
-        durationSeconds: 90,
-        completed: false,
-        score: 0,
-        targetMetric: 'Tracking Accuracy (%)'
-    },
-    {
-        id: 'cog-5',
-        title: 'التعرف على الأنماط',
-        description: 'اكتشف النمط التكتيكي المتكرر في تحركات الخصم.',
-        category: 'cognitive',
-        type: 'pattern',
-        level: 'advanced',
-        durationSeconds: 150,
-        completed: false,
-        score: 0,
-        targetMetric: 'Pattern Recognition Score'
-    }
-];
-
 export function CognitiveSection({ isSimplified = false }: CognitiveSectionProps) {
-    const [exercises, setExercises] = useLocalStorage<CognitiveExercise[]>('cognitive-exercises', INITIAL_GAMES);
+    const [exercises, setExercises] = useState<CognitiveExercise[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchExercises = async () => {
+            try {
+                setLoading(true);
+                const packs = await SmartExerciseService.getPacksByCategory('Cognitive');
+
+                // Map ExercisePack to CognitiveExercise for backward compatibility with ExerciseCard
+                const mapped = packs.map(pack => ({
+                    id: pack.id,
+                    title: pack.title,
+                    description: pack.description,
+                    category: 'cognitive' as const,
+                    type: (pack.subCategory.toLowerCase() as any) || 'focus',
+                    level: pack.difficulty.toLowerCase() as any,
+                    durationSeconds: parseInt(pack.exercises[0]?.duration) * 60 || 300,
+                    completed: false,
+                    score: 0,
+                    targetMetric: pack.kpis[0]?.name || 'Performance'
+                }));
+
+                setExercises(mapped);
+            } catch (err) {
+                console.error("Failed to fetch cognitive exercises", err);
+                setError("عذراً، فشل تحميل التمارين الإدراكية.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchExercises();
+    }, []);
 
     const handleStartExercise = (exerciseId: string) => {
-        // In a real app, this would open a modal or navigate to the game
         console.log('Starting exercise:', exerciseId);
-
         // Mock completion for now
         const updatedExercises = exercises.map(ex => {
             if (ex.id === exerciseId) {
@@ -91,6 +61,26 @@ export function CognitiveSection({ isSimplified = false }: CognitiveSectionProps
         });
         setExercises(updatedExercises);
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 text-blue-400 gap-4">
+                <Loader2 className="w-10 h-10 animate-spin" />
+                <span className="font-bold">جاري تحميل القدرات الذهنية...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <Card className="border-red-200 bg-red-50">
+                <CardContent className="flex items-center gap-4 py-6 text-red-700">
+                    <AlertCircle className="w-6 h-6" />
+                    <p className="font-medium">{error}</p>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <div className="space-y-6">

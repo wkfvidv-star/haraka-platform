@@ -3,18 +3,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Activity, Heart, Scale, Ruler, Moon, Droplets, Flame, Footprints } from 'lucide-react';
 
-export const StudentHealthProfile = () => {
-    // Mock Data (Simulatiing the "Photos" dashboard)
+interface StudentHealthProfileProps {
+    metrics?: {
+        steps: number;
+        calories: number;
+        activeMinutes: number;
+        date: string;
+    } | null;
+}
+
+export const StudentHealthProfile: React.FC<StudentHealthProfileProps> = ({ metrics }) => {
+    // Real Data from props with fallbacks
     const healthMetrics = {
-        height: 145, // cm
-        weight: 38, // kg
+        height: 145, // Still mock as it's typically in a Profile model we haven't fully exposed yet
+        weight: 38,
         bmi: 18.1,
         bloodType: 'O+',
         heartRate: 78,
-        steps: 8543,
-        calories: 320,
-        sleep: '8.5 ساعات',
-        hydration: '1.2 لتر'
+        steps: metrics?.steps || 0,
+        calories: metrics?.calories || 0,
+        sleep: '0 ساعات',
+        hydration: '0 لتر'
     };
 
     const performanceStats = [

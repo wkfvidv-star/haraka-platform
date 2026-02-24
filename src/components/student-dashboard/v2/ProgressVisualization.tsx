@@ -14,16 +14,28 @@ import {
     Area
 } from 'recharts';
 
-export const ProgressVisualization: React.FC = () => {
+import { ActivityData } from '@/services/activityService';
 
-    const data = [
-        { name: 'أسبوع 1', score: 65, avg: 60 },
-        { name: 'أسبوع 2', score: 72, avg: 62 },
-        { name: 'أسبوع 3', score: 68, avg: 63 },
-        { name: 'أسبوع 4', score: 85, avg: 65 },
-        { name: 'أسبوع 5', score: 82, avg: 66 },
-        { name: 'أسبوع 6', score: 90, avg: 68 },
-    ];
+interface ProgressVisualizationProps {
+    history?: ActivityData[];
+}
+
+export const ProgressVisualization: React.FC<ProgressVisualizationProps> = ({ history = [] }) => {
+
+    const chartData = history.length > 0
+        ? history.map((item, idx) => ({
+            name: new Date(item.date).toLocaleDateString('ar-EG', { weekday: 'short' }),
+            score: item.steps / 100, // Scaling steps for the score chart
+            avg: 70
+        })).reverse()
+        : [
+            { name: 'أسبوع 1', score: 65, avg: 60 },
+            { name: 'أسبوع 2', score: 72, avg: 62 },
+            { name: 'أسبوع 3', score: 68, avg: 63 },
+            { name: 'أسبوع 4', score: 85, avg: 65 },
+            { name: 'أسبوع 5', score: 82, avg: 66 },
+            { name: 'أسبوع 6', score: 90, avg: 68 },
+        ];
 
     return (
         <Card className="col-span-1 lg:col-span-2 glass-card border-white/10 shadow-2xl relative overflow-hidden group">
@@ -47,7 +59,7 @@ export const ProgressVisualization: React.FC = () => {
             <CardContent className="relative z-10">
                 <div className="h-[320px] w-full mt-2">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                        <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />

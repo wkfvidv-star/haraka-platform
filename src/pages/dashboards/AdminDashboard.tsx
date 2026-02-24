@@ -12,6 +12,7 @@ import UserManagement from '@/components/admin/UserManagement';
 import SystemSettings from '@/components/admin/SystemSettings';
 import ActivityStatistics from '@/components/admin/ActivityStatistics';
 import AuditLogs from '@/components/admin/AuditLogs';
+import SmartAccessControl from '@/components/admin/SmartAccessControl';
 import {
   Users,
   Settings,
@@ -25,7 +26,8 @@ import {
   LogOut,
   Bell,
   Target,
-  Cpu
+  Cpu,
+  ShieldCheck
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -210,7 +212,7 @@ const AdminDashboard: React.FC = () => {
             <Tabs defaultValue="users" className="space-y-8">
               <div className="flex items-center justify-center">
                 <div className="bg-white/5 backdrop-blur-md p-1.5 rounded-3xl border border-white/10 inline-flex shadow-2xl">
-                  <TabsList className="bg-transparent border-none grid grid-cols-4 h-12 w-[500px]">
+                  <TabsList className="bg-transparent border-none grid grid-cols-5 h-12 w-[650px]">
                     <TabsTrigger
                       value="users"
                       className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 gap-2"
@@ -239,6 +241,13 @@ const AdminDashboard: React.FC = () => {
                       <FileText className="h-4 w-4" />
                       السجلات
                     </TabsTrigger>
+                    <TabsTrigger
+                      value="access"
+                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 gap-2"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      الوصول الذكي
+                    </TabsTrigger>
                   </TabsList>
                 </div>
               </div>
@@ -260,6 +269,10 @@ const AdminDashboard: React.FC = () => {
 
                     <TabsContent value="logs" className="m-0">
                       <AuditLogs />
+                    </TabsContent>
+
+                    <TabsContent value="access" className="m-0">
+                      <SmartAccessControl />
                     </TabsContent>
                   </CardContent>
                 </Card>

@@ -5,16 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { ArrowRight, ChevronRight, PlayCircle, CheckCircle2, Timer } from 'lucide-react';
 import { SmartExerciseService, ExercisePack, Exercise } from '@/services/SmartExerciseService';
+import { activityService } from '@/services/activityService';
 import { useTranslation } from '@/contexts/ThemeContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const ExerciseSessionPage: React.FC = () => {
     const { packId } = useParams<{ packId: string }>();
     const navigate = useNavigate();
     const { isRTL } = useTheme();
+    const { user, refreshProfiles } = useAuth();
     const [pack, setPack] = useState<ExercisePack | null>(null);
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [isComplete, setIsComplete] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Safety check for loading
     useEffect(() => {
@@ -36,11 +40,30 @@ export const ExerciseSessionPage: React.FC = () => {
     const currentExercise = pack.exercises[currentExerciseIndex];
     const progress = ((currentExerciseIndex) / pack.exercises.length) * 100;
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (currentExerciseIndex < pack.exercises.length - 1) {
             setCurrentExerciseIndex(prev => prev + 1);
         } else {
-            setIsComplete(true);
+            // Pack complete!
+            setIsSaving(true);
+            try {
+                if (user?.id && packId) {
+                    await activityService.completeSession(
+                        user.id,
+                        packId,
+                        5, // Hardcoded for now
+                        100 // Hardcoded XP
+                    );
+                    // Refresh profile data to see updated XP/Level
+                    if (refreshProfiles) await refreshProfiles();
+                }
+                setIsComplete(true);
+            } catch (error) {
+                console.error("Failed to save session", error);
+                setIsComplete(true);
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
