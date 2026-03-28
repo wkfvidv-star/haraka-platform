@@ -198,6 +198,10 @@ export const AIMotionLab: React.FC<{ onComplete?: () => void }> = ({ onComplete 
                             description: response.adjustment,
                         });
                     }
+                }
+            } catch (hceError) {
+                console.warn("HCE service failed silently:", hceError);
+            }
         } catch (error) {
             console.error("Analysis API failed. Falling back to local instant calculation to prevent lag:", error);
             // Instant fallback to prevent infinite loading "lag"
