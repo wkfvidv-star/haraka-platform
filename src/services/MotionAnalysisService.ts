@@ -35,70 +35,42 @@ export interface AISessionSummary {
     recommendations: string[]; // List of exercise IDs or Titles
 }
 
-// Mock Data Storage for "Student Profile Integration"
-let storedSummaries: AISessionSummary[] = [];
+import api from './api';
 
 export const MotionAnalysisService = {
     /**
      * Advanced Analysis using YOLOv8 & OpenCV via Backend Worker.
-     * Triggers FFmpeg optimization before computer vision processing.
      */
-    analyzeSession: async (videoFile?: File): Promise<{ metrics: BodyAnalysisMetrics, summary: AISessionSummary }> => {
-        // AI Architecture Trace: Upload -> FFmpeg (Compression) -> YOLOv8 (Pose/Object) -> OpenCV (Calculation)
-        console.log('Triggering AI Motion Pipeline: YOLOv8 Pose Estimation...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+    analyzeSession: async (videoFile?: File, duration: number = 60): Promise<{ metrics: BodyAnalysisMetrics, summary: AISessionSummary }> => {
+        const formData = new FormData();
+        if (videoFile) {
+            formData.append('video', videoFile);
+        } else {
+            // For demo/testing where a file might not be captured by the UI yet
+            // we send a dummy blob if necessary or handle it on backend
+            const blob = new Blob(["dummy"], { type: 'video/mp4' });
+            formData.append('video', blob, 'demo_session.mp4');
+        }
+        formData.append('duration', duration.toString());
+        formData.append('exerciseId', 'SQUAT_001');
 
-        const metrics: BodyAnalysisMetrics = {
-            postureScore: {
-                value: 82,
-                status: 'Good',
-                spineAlignment: 'مستقيم (Spine Straight)',
-                shoulderTilt: 'متوازن (Level)',
-                pelvicTilt: 'محايد (Neutral)',
-                headPosition: 'وضعية مثالية'
+        const response = await api.post('/analysis/motion', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
             },
-            balance: {
-                leftSide: 49,
-                rightSide: 51,
-                distributionStatus: 'متوازن جداً',
-                limbSymmetry: 94
-            },
-            centerOfGravity: {
-                x: 0.5,
-                y: 0.5,
-                offset: 'Center'
-            },
-            jointAngles: {
-                knees: { left: 10, right: 10 },
-                hips: { left: 5, right: 5 },
-                shoulders: { left: 5, right: 5 },
-                elbows: { left: 180, right: 180 }
-            },
-            asymmetryIndex: 5
+        });
+
+        if (!response.data.success) throw new Error(response.data.error);
+
+        return {
+            metrics: response.data.data.aiFeedback.metrics,
+            summary: response.data.data.aiFeedback.summary
         };
-
-        const summary: AISessionSummary = {
-            sessionId: Date.now().toString(),
-            date: new Date().toISOString(),
-            strengths: [
-                'ثبات ممتاز في القوام (YOLO Verified)',
-                'توزيع وزن مثالي بنسبة 50/50'
-            ],
-            weaknesses: [
-                'تحتاج لزيادة مدى الحركة في الركبة قليلاً'
-            ],
-            recommendations: [
-                'تمرين القرفصاء العميق (Deep Squats)',
-                'تدريبات إطالة لأوتار الركبة'
-            ]
-        };
-
-        storedSummaries.unshift(summary);
-        return { metrics, summary };
     },
 
     getLatestanalysis: async (): Promise<AISessionSummary | null> => {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return storedSummaries[0] || null;
+        const response = await api.get('/health/profile');
+        const submissions = response.data.data.submissions || [];
+        return submissions.length > 0 ? submissions[0].aiFeedback.summary : null;
     }
 };

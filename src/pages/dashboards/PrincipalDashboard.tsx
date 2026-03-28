@@ -8,6 +8,9 @@ import { useActivityTracker } from '@/hooks/useActivityTracker';
 import AIAnalyticsPage from '@/pages/AIAnalyticsPage';
 import PredictiveIntelligencePage from '@/pages/PredictiveIntelligencePage';
 import SchoolAnalytics from '@/components/school/SchoolAnalytics';
+import { PrincipalOnboarding } from '@/components/dashboard/PrincipalOnboarding';
+import { RatingSystem } from '@/components/shared/RatingSystem';
+import { ChatSystem } from '@/components/shared/ChatSystem';
 import {
   GraduationCap,
   Users,
@@ -23,12 +26,45 @@ import {
   Settings,
   Target,
   Globe,
-  MapPin
+  MapPin,
+  FileText,
+  Download
 } from 'lucide-react';
 
 const PrincipalDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'analytics' | 'predictive' | 'school-analytics'>('dashboard');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [receivedReports, setReceivedReports] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    // Check if new user & if onboarding seen
+    const hasSeenOnboarding = localStorage.getItem('haraka_principal_onboarding_seen');
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+      setIsNewUser(true);
+    }
+    
+    // Load synced reports
+    try {
+      const saved = JSON.parse(localStorage.getItem('haraka_sent_reports') || '[]');
+      const principalReports = saved.filter((r: any) => r.recipient === 'principal');
+      setReceivedReports(principalReports.reverse()); // Latest first
+    } catch(e) {}
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('haraka_principal_onboarding_seen', 'true');
+  };
+
+  const replayTour = () => {
+    localStorage.removeItem('haraka_principal_onboarding_seen');
+    setIsNewUser(false); // Reset to false for subsequent plays
+    setShowOnboarding(true);
+  };
+
   const { trackClick, trackInteraction } = useActivityTracker({
     component: 'PrincipalDashboard',
     trackClicks: true,
@@ -114,6 +150,14 @@ const PrincipalDashboard: React.FC = () => {
 
   return (
     <div className="expert-dashboard-root selection:bg-blue-500/30">
+
+      {showOnboarding && (
+        <PrincipalOnboarding
+          onComplete={handleOnboardingComplete}
+          isNewUser={isNewUser}
+        />
+      )}
+
       {/* Background Image with Deep Overlay */}
       <div
         className="expert-bg-image"
@@ -139,6 +183,14 @@ const PrincipalDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={replayTour}
+                  className="hidden sm:flex text-blue-400 border-blue-500/30 hover:bg-blue-500/10"
+                >
+                  إعادة الجولة
+                </Button>
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/5 text-slate-300">
                   <Bell className="h-4 w-4" />
                 </Button>
@@ -158,7 +210,7 @@ const PrincipalDashboard: React.FC = () => {
 
         <main className="expert-container">
           {/* AI Systems Quick Access Section */}
-          <section className="mb-12">
+          <section className="mb-12" data-tour="ai_systems">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-black flex items-center gap-3 text-white">
                 <div className="w-2 h-8 bg-[#3b82f6] rounded-full" />
@@ -245,7 +297,7 @@ const PrincipalDashboard: React.FC = () => {
           </section>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12" data-tour="quick_stats">
             {[
               { label: 'إجمالي الطلاب', value: '1,247', trend: '+12%', icon: Users, color: 'text-blue-400' },
               { label: 'المعلمون النشطون', value: '67', trend: '+3', icon: BookOpen, color: 'text-emerald-400' },
@@ -272,20 +324,21 @@ const PrincipalDashboard: React.FC = () => {
           </div>
 
           {/* Main Content Tabs */}
-          <Tabs defaultValue="overview" className="space-y-8">
+          <Tabs defaultValue="overview" className="space-y-8" data-tour="main_tabs">
             <div className="flex items-center justify-center">
               <div className="bg-white/5 backdrop-blur-md p-1.5 rounded-3xl border border-white/10 inline-flex shadow-2xl">
-                <TabsList className="bg-transparent border-none grid grid-cols-5 h-12 w-[600px]">
-                  {['overview', 'analytics', 'students', 'teachers', 'reports'].map((tab) => (
+                <TabsList className="bg-transparent border-none grid grid-cols-6 h-12 w-[720px]">
+                  {['overview', 'analytics', 'students', 'teachers', 'reports', 'ratings'].map((tab) => (
                     <TabsTrigger
                       key={tab}
                       value={tab}
-                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 px-6"
+                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 px-4"
                     >
                       {tab === 'overview' ? 'نظرة عامة' :
                         tab === 'analytics' ? 'التحليلات' :
                           tab === 'students' ? 'الطلاب' :
-                            tab === 'teachers' ? 'المعلمون' : 'التقارير'}
+                            tab === 'teachers' ? 'المعلمون' :
+                              tab === 'reports' ? 'التقارير' : '⭐ التقييم'}
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -396,12 +449,80 @@ const PrincipalDashboard: React.FC = () => {
                   أدوات تواصل وإدارة المعلمين يتم تحضيرها حالياً لتناسب احتياجاتكم
                 </p>
               </TabsContent>
-              <TabsContent value="reports" className="p-24 text-center glass-card border-white/5 rounded-3xl">
-                <BarChart3 className="h-24 w-24 mx-auto mb-6 text-slate-700 animate-pulse" />
-                <h3 className="text-2xl font-black text-white mb-2">مركز التقارير المتقدمة</h3>
-                <p className="text-slate-500 font-medium max-w-md mx-auto">
-                  تصدير وتحليل التقارير الدورية سيكون متاحاً لضمان أفضل متابعة للأداء
-                </p>
+              <TabsContent value="reports" className="animate-in fade-in duration-700">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-black text-white flex items-center gap-3">
+                     <FileText className="w-6 h-6 text-[#3b82f6]" /> التقارير المرفوعة من الأساتذة
+                  </h3>
+                  <Badge className="bg-[#3b82f6]/20 text-[#3b82f6] border border-[#3b82f6]/30 px-4 py-1.5 text-sm font-bold">
+                     إجمالي: {receivedReports.length}
+                  </Badge>
+                </div>
+
+                {receivedReports.length === 0 ? (
+                  <div className="p-24 text-center glass-card border-white/5 rounded-3xl">
+                    <BarChart3 className="h-24 w-24 mx-auto mb-6 text-slate-700 animate-pulse" />
+                    <h3 className="text-2xl font-black text-white mb-2">لا توجد تقارير حالياً</h3>
+                    <p className="text-slate-500 font-medium max-w-md mx-auto">
+                      جميع التقارير المرسلة من أساتذة أقسام المدرسة ستظهر هنا فور تزامنها.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {receivedReports.map((report) => (
+                      <Card key={report.id} className="glass-card border-white/5 hover:border-[#3b82f6]/40 transition-all duration-300 group">
+                        <CardHeader className="pb-2 border-b border-white/5">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <Badge className="bg-white/5 text-slate-300 border-white/10 mb-3">{report.period}</Badge>
+                              <CardTitle className="text-lg font-black text-white">{report.studentName}</CardTitle>
+                              <CardDescription className="text-blue-400 font-bold mt-1">{report.class}</CardDescription>
+                            </div>
+                            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
+                              <FileText className="w-6 h-6 text-[#3b82f6]" />
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between mb-4">
+                             <div className="text-sm font-bold text-slate-400">نوع التقرير</div>
+                             <div className="text-sm font-black text-white">{report.type}</div>
+                          </div>
+                          <div className="flex items-center justify-between mb-6">
+                             <div className="text-sm font-bold text-slate-400">معدل الإنجاز</div>
+                             <div className={`text-sm font-black px-2 py-1 rounded-md ${report.progress >= 70 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                               {report.progress}%
+                             </div>
+                          </div>
+                          <Button className="w-full bg-white/5 hover:bg-[#3b82f6] text-white transition-colors border border-white/10 hover:border-[#3b82f6]">
+                             <Download className="w-4 h-4 ml-2" /> استعراض وتنزيل
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="ratings" className="animate-in fade-in duration-500">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" dir="rtl">
+                  <div>
+                    <h3 className="text-xl font-black text-white mb-4">⭐ تقييم الأساتذة</h3>
+                    <RatingSystem
+                      raterRole="مدير مدرسة"
+                      raterName={user?.name || 'المدير'}
+                      targets={[
+                        { id: 't1', name: 'ستاذ أحمد لعماري', role: 'أستاذ رياضة بدنية' },
+                        { id: 't2', name: 'أستاذة فاطمة سوداني', role: 'أستاذة علوم ' },
+                        { id: 't3', name: 'أستاذ كريم بوكريم', role: 'أستاذ رياضيات' },
+                      ]}
+                      mode="rate"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white mb-4">💬 غرفة المدراء</h3>
+                    <ChatSystem userRole="principal" userName={user?.name || 'المدير'} inline defaultOpen />
+                  </div>
+                </div>
               </TabsContent>
             </div>
           </Tabs>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '@/services/authService';
-import { supabase } from '@/lib/supabaseClient';
+import api from '@/services/api';
 
 export type UserRole = 'student' | 'youth' | 'parent' | 'teacher' | 'principal' | 'coach' | 'directorate' | 'ministry' | 'competition' | 'admin';
 export type Environment = 'school' | 'community';
@@ -76,75 +76,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setProvinceState(JSON.parse(savedProvince));
     }
 
-    // Initialize session from Supabase
+    // Initialize session from local storage (Node.js Backend Auth)
     const initSession = async () => {
       setIsLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        // Fetch profile and progress for the initial load
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        const savedToken = localStorage.getItem('token');
+        const savedUserData = localStorage.getItem('user');
+        const savedEnvironment = localStorage.getItem('environment') as Environment;
+        const savedProvince = localStorage.getItem('province');
 
-        const { data: stats } = await supabase
-          .from('students_progress')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
-
-        if (profile) {
-          const mappedUser: User = {
-            id: session.user.id,
-            email: session.user.email!,
-            name: profile.name || '',
-            firstName: profile.name?.split(' ')[0] || '',
-            lastName: profile.name?.split(' ').slice(1).join(' ') || '',
-            role: profile.role || 'student',
-            environment: savedEnvironment || 'school',
-            xp: stats?.xp || 0,
-            level: stats?.level || 1,
-            badges: [], // Placeholder
-            playCoins: 0,
-            avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`
-          };
-          setUser(mappedUser);
+        if (savedToken && savedUserData) {
+          const parsedUser = JSON.parse(savedUserData);
+          setUser(parsedUser);
+          if (savedEnvironment) setEnvironmentState(savedEnvironment);
+          if (savedProvince) setProvinceState(JSON.parse(savedProvince));
+        } else {
+          // Fallback to anonymous/guest check if needed, or stay null
+          setUser(null);
         }
+      } catch (err) {
+        console.error('Failed to restore session:', err);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     initSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        setUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string, selectedEnvironment: Environment): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      const { success, user: backendUser, error } = await authService.login(email, password, selectedEnvironment);
+      const { success, user: backendUser, token, error } = await authService.login(email, password, selectedEnvironment);
 
-      if (success && backendUser) {
+      if (success && backendUser && token) {
         const mappedUser: User = {
           ...backendUser,
-          name: `${backendUser.firstName} ${backendUser.lastName}`,
-          environment: selectedEnvironment,
+          name: backendUser.name || `${backendUser.firstName} ${backendUser.lastName}`,
+          environment: (backendUser.environment as Environment) || selectedEnvironment,
           avatar: backendUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${backendUser.firstName}`,
-          badges: [],
-          subscriptionStatus: 'ACTIVE'
+          badges: backendUser.badges || [],
+          subscriptionStatus: backendUser.subscriptionStatus || 'ACTIVE'
         };
+
+        // PERSISTENCE FIX: Save token and user to localStorage
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(mappedUser));
+        localStorage.setItem('environment', selectedEnvironment);
 
         setUser(mappedUser);
         setEnvironmentState(selectedEnvironment);
-        localStorage.setItem('environment', selectedEnvironment);
         setIsLoading(false);
         return { success: true };
       }
@@ -162,28 +144,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const refreshProfiles = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      const { data: stats } = await supabase
-        .from('students_progress')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (profile) {
-        setUser(prev => prev ? ({
-          ...prev,
-          xp: stats?.xp || 0,
-          level: stats?.level || 1,
-          name: profile.name || prev.name,
-          avatar: profile.avatar_url || prev.avatar
-        }) : null);
+    if (user?.id) {
+      try {
+        const response = await api.get(`/profile/${user.id}`);
+        if (response.data && response.data.success) {
+          const profile = response.data.profile;
+          setUser(prev => prev ? ({
+            ...prev,
+            xp: response.data.xp || prev.xp,
+            level: response.data.level || prev.level,
+            name: `${profile.firstName} ${profile.lastName}`,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            avatar: profile.avatarUrl || prev.avatar
+          }) : null);
+        }
+      } catch (err) {
+        console.error('Failed to refresh profile:', err);
       }
     }
   };
@@ -199,12 +176,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
 
       let errorMessage = 'Registration failed';
-      if (error.message) {
+      if (error.response?.data?.error) {
+        const beErr = error.response.data.error;
+        if (Array.isArray(beErr)) {
+          errorMessage = beErr.map((e: any) => e.message || e.path?.join('.')).join(', ');
+        } else {
+          errorMessage = typeof beErr === 'string' ? beErr : JSON.stringify(beErr);
+        }
+      } else if (error.message) {
         errorMessage = error.message;
       } else if (error.error_description) {
         errorMessage = error.error_description;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
       }
 
       return { success: false, error: errorMessage };
@@ -245,11 +227,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const updateUserStats = (stats: Partial<Pick<User, 'xp' | 'level' | 'badges' | 'playCoins'>>) => {
+  const updateUserStats = async (stats: Partial<Pick<User, 'xp' | 'level' | 'badges' | 'playCoins'>>) => {
     if (user) {
       const updatedUser = { ...user, ...stats };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      try {
+        if (stats.xp !== undefined || stats.level !== undefined) {
+          await api.put(`/profile/${user.id}/xp`, { xp: updatedUser.xp, level: updatedUser.level });
+        }
+      } catch (err) {
+        console.error('Failed to sync XP with server:', err);
+      }
     }
   };
 

@@ -1,441 +1,281 @@
-import React, { useState, useEffect } from 'react';
-import { coachService, Group } from '@/services/coachService';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-
-// New Modular Components
-import { TeacherHero } from '@/components/teacher-dashboard/TeacherHero';
-import { TeacherStatsGrid } from '@/components/teacher-dashboard/TeacherStatsGrid';
-import { TeacherQuickActions } from '@/components/teacher-dashboard/TeacherQuickActions';
-import { TeacherClassesOverview } from '@/components/teacher-dashboard/TeacherClassesOverview';
-import { TeacherRecentActivity } from '@/components/teacher-dashboard/TeacherRecentActivity';
-import { TeacherUpcomingTasks } from '@/components/teacher-dashboard/TeacherUpcomingTasks';
-
-// Existing Sub-components
-import { ClassManagement } from '@/components/teacher/ClassManagement';
-import { ExerciseManagement } from '@/components/teacher/ExerciseManagement';
-import { ChallengeCreation } from '@/components/teacher/ChallengeCreation';
-import { CommunicationTools } from '@/components/teacher/CommunicationTools';
-
-import { useTranslation } from '@/contexts/ThemeContext';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import {
+  LayoutDashboard,
+  Video,
+  ClipboardList,
   Users,
-  BookOpen,
-  Trophy,
-  MessageSquare,
-  BarChart3,
+  FileText,
   LogOut,
-  User,
+  Bell,
+  Menu,
   GraduationCap,
-  Sparkles,
-  Home,
-  TrendingUp
+  Inbox,
+  Star,
+  MessageCircle
 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { RatingSystem } from '@/components/shared/RatingSystem';
+import { ChatSystem } from '@/components/shared/ChatSystem';
+
+// Import new modular components
+import { TeacherOverviewPanel } from '@/components/teacher/v2/TeacherOverviewPanel';
+import { TeacherVideoReview } from '@/components/teacher/v2/TeacherVideoReview';
+import { TeacherExerciseManager } from '@/components/teacher/v2/TeacherExerciseManager';
+import { TeacherClassManager } from '@/components/teacher/v2/TeacherClassManager';
+import { TeacherReports } from '@/components/teacher/v2/TeacherReports';
+import { TeacherOnboarding } from '@/components/teacher/v2/TeacherOnboarding';
+import { TeacherSetupModal } from '@/components/teacher/v2/TeacherSetupModal';
+import { TeacherStudentRequests } from '@/components/teacher/v2/TeacherStudentRequests';
+
+const navigationTabs = [
+  { id: 'overview', label: 'اللوحة الرئيسية', icon: LayoutDashboard },
+  { id: 'video-review', label: 'مراجعة الفيديوهات', icon: Video },
+  { id: 'exercises', label: 'التمارين والمناهج', icon: ClipboardList },
+  { id: 'class', label: 'إدارة القسم', icon: Users },
+  { id: 'requests', label: 'الطلبات الواردة', icon: Inbox },
+  { id: 'reports', label: 'التقارير', icon: FileText },
+  { id: 'ratings', label: 'تقييم التلاميذ', icon: Star },
+  { id: 'chat', label: 'دردشة الأساتذة', icon: MessageCircle },
+];
 
 export default function TeacherDashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const { t, language } = useTranslation();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { user, logout } = useAuth();
-  const isRTL = language === 'ar';
+  const isRTL = true;
 
-  // Phase 2: AI Note Drafter State
-  const [aiNote, setAiNote] = useState('');
-  const [isGeneratingNote, setIsGeneratingNote] = useState(false);
-
-  const generateAiNote = () => {
-    setIsGeneratingNote(true);
-    setTimeout(() => {
-      setAiNote('بناءً على تحليل البيانات للشهر الحالي، أظهرت الطالبة سارة تحسناً ملحوظاً في معدل الحضور بنسبة 10%، كما ارتفع أداؤها في التمارين البدنية. نوصي بتشجيعها على الاستمرار في المشاركة في التحديات الأسبوعية لتعزيز هذا التقدم.');
-      setIsGeneratingNote(false);
-    }, 1500);
-  };
-
-  const [dashboardStats, setDashboardStats] = useState({
-    totalClasses: 0,
-    totalStudents: 0,
-    activeStudents: 0,
-    averageProgress: 0,
-    completedExercises: 0,
-    activeChallenges: 0,
-    pendingReports: 0,
-    unreadMessages: 0
-  });
-
-  const [classOverview, setClassOverview] = useState<any[]>([]);
-  const [recentActivities, setRecentActivities] = useState<any[]>([
-    {
-      id: '1',
-      type: 'exercise_completed',
-      student: 'أحمد محمد علي',
-      activity: 'تدريب القوة الوظيفية',
-      class: 'الثالثة متوسط أ',
-      time: 'منذ 30 دقيقة',
-      score: 85
-    },
-    {
-      id: '2',
-      type: 'challenge_joined',
-      student: 'فاطمة الزهراء',
-      activity: 'تحدي اللياقة الشامل',
-      class: 'الثالثة متوسط أ',
-      time: 'منذ ساعة',
-      score: 92
-    }
-  ]);
-
-  useEffect(() => {
-    const fetchTeacherData = async () => {
-      if (user?.id) {
-        try {
-          const groups = await coachService.getGroups(user.id);
-          const totalStudents = groups.reduce((acc, g) => acc + g.memberCount, 0);
-
-          setDashboardStats(prev => ({
-            ...prev,
-            totalClasses: groups.length,
-            totalStudents: totalStudents,
-            activeStudents: totalStudents, // Simple assumption
-            averageProgress: 75, // Placeholder
-            completedExercises: 120 // Placeholder
-          }));
-
-          setClassOverview(groups.map(g => ({
-            id: g.id,
-            name: g.name,
-            students: g.memberCount,
-            activeStudents: g.memberCount,
-            averageProgress: 80,
-            recentActivity: 'نشط حديثاً',
-            status: 'نشط'
-          })));
-        } catch (error) {
-          console.error("Error fetching teacher data:", error);
-        }
-      }
-    };
-    fetchTeacherData();
-  }, [user]);
-
-  const upcomingTasks = [
-    {
-      id: '1',
-      title: 'إعداد تقرير شهري للثالثة متوسط أ',
-      dueDate: '2024-10-20',
-      priority: 'مهم',
-      type: 'تقرير'
-    },
-    {
-      id: '2',
-      title: 'إنشاء تحدي جديد للأسبوع القادم',
-      dueDate: '2024-10-18',
-      priority: 'عادي',
-      type: 'تحدي'
-    },
-    {
-      id: '3',
-      title: 'مراجعة التمارين المرفوعة',
-      dueDate: '2024-10-17',
-      priority: 'عاجل',
-      type: 'تمرين'
-    }
+  const STUDENT_TARGETS = [
+    { id: 'st1', name: 'ياسين محمود', role: 'تلميذ - السنة 4' },
+    { id: 'st2', name: 'أمير طارق', role: 'تلميذ - السنة 4' },
+    { id: 'st3', name: 'سارة بوزيد', role: 'تلميذة - السنة 4' },
+    { id: 'st4', name: 'كريم معروف', role: 'تلميذ - السنة 4' },
   ];
-
-  // تبويبات التنقل
-  const navigationTabs = [
-    { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
-    { id: 'classes', label: 'الصفوف', icon: Users },
-    { id: 'exercises', label: 'التمارين', icon: BookOpen },
-    { id: 'challenges', label: 'التحديات', icon: Trophy },
-    { id: 'reports', label: 'التقارير', icon: BarChart3 },
-    { id: 'communication', label: 'التواصل', icon: MessageSquare }
-  ];
-
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      {/* 1. Hero Section */}
-      <TeacherHero userName={user?.name || "المعلم"} stats={dashboardStats} />
-
-      {/* 2. Stats Grid */}
-      <TeacherStatsGrid stats={dashboardStats} />
-
-      {/* 3. Quick Actions */}
-      <TeacherQuickActions unreadMessages={dashboardStats.unreadMessages} setActiveTab={setActiveTab} />
-
-      {/* 4. Middle Section: Classes & Activity & Tasks */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Classes Overview */}
-        <div className="lg:col-span-2">
-          <TeacherClassesOverview classes={classOverview} onViewAll={() => setActiveTab('classes')} />
-        </div>
-
-        {/* Recent Activity */}
-        <div className="lg:col-span-1 h-full">
-          <TeacherRecentActivity activities={recentActivities} />
-        </div>
-
-        {/* Upcoming Tasks */}
-        <div className="lg:col-span-1 h-full">
-          <TeacherUpcomingTasks tasks={upcomingTasks} />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderReports = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="glass-card border-blue-500/20 shadow-xl overflow-hidden group">
-        <div className="absolute inset-0 bg-blue-600/10 mix-blend-overlay pointer-events-none" />
-        <CardHeader className="relative z-10 border-b border-white/5 pb-4">
-          <CardTitle className="text-xl sm:text-2xl font-black text-white flex items-center gap-3 tracking-tighter">
-            <div className="p-2 bg-blue-500/20 ring-1 ring-blue-500/30 rounded-xl">
-              <BarChart3 className="h-6 w-6 text-blue-400" />
-            </div>
-            التقارير والإحصائيات (Advanced Analytics)
-          </CardTitle>
-          <CardDescription className="text-gray-400 font-bold mt-1">
-            تحليلات مفصلة عن أداء الطلاب والصفوف (Data Hub)
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {/* Reports Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              تقرير الأداء الشهري
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">82%</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">متوسط الأداء</div>
-              </div>
-              <Button className="w-full" variant="outline">
-                عرض التقرير المفصل
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              تقرير حضور الطلاب
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">92%</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">معدل الحضور</div>
-              </div>
-              <Button className="w-full" variant="outline">
-                عرض التقرير المفصل
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card border-white/10 hover:border-blue-500/30 transition-all duration-300 group/report">
-          <CardHeader className="pb-4 border-b border-white/5">
-            <CardTitle className="text-lg font-black text-white group-hover/report:text-blue-300 transition-colors flex items-center gap-3 uppercase tracking-tight">
-              <Trophy className="h-5 w-5 text-blue-400" />
-              تقرير التحديات
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <div className="text-center p-6 bg-black/20 rounded-[1.5rem] border border-white/5 shadow-inner">
-                <div className="text-3xl font-black text-blue-400 leading-tight">5</div>
-                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">تحديات نشطة</div>
-              </div>
-              <Button className="w-full bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all h-10" variant="outline">
-                عرض تقرير التحديات
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Note Drafter - New for Phase 2 */}
-      <Card className="glass-card border-blue-500/20 shadow-2xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-blue-600/5 mix-blend-overlay pointer-events-none" />
-        <CardHeader className="relative z-10 border-b border-white/5 pb-4">
-          <CardTitle className="flex items-center gap-3 text-xl font-black text-white tracking-tight">
-            <div className="p-2 bg-blue-500/10 ring-1 ring-blue-500/20 rounded-lg">
-              <Sparkles className="h-5 w-5 text-blue-400" />
-            </div>
-            مسودة الملاحظات الذكية (AI Note Drafter)
-          </CardTitle>
-          <CardDescription className="text-gray-400 font-bold mt-1">
-            توليد مسودة ملاحظات للطلاب بالذكاء الاصطناعي بناءً على تحليل الأداء
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="relative z-10 pt-8">
-          <div className="space-y-6">
-            <textarea
-              className="w-full h-40 p-4 rounded-2xl bg-black/40 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-bold text-sm leading-relaxed"
-              placeholder="اختر طالباً أو اضغط على توليد لإنشاء مسودة عامة..."
-              value={aiNote}
-              onChange={(e) => setAiNote(e.target.value)}
-            />
-            <Button
-              onClick={generateAiNote}
-              disabled={isGeneratingNote}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-black px-8 py-6 rounded-2xl shadow-xl shadow-blue-900/40 transition-all hover:scale-[1.02] active:scale-95 text-base uppercase tracking-widest"
-            >
-              <Sparkles className="ml-3 h-5 w-5 animate-pulse" />
-              {isGeneratingNote ? 'جاري التحليل الرقمي...' : 'توليد مسودة الملاحظات'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Detailed Analytics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <BarChart3 className="h-5 w-5 text-blue-500" />
-            تحليل مفصل للأداء
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">الرسوم البيانية التفاعلية للأداء</p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return renderDashboard();
-      case 'classes': return <ClassManagement />;
-      case 'exercises': return <ExerciseManagement />;
-      case 'challenges': return <ChallengeCreation />;
-      case 'reports': return renderReports();
-      case 'communication': return <CommunicationTools />;
-      default: return renderDashboard();
+      case 'overview': return <TeacherOverviewPanel onNavigate={setActiveTab} />;
+      case 'video-review': return <TeacherVideoReview />;
+      case 'exercises': return <TeacherExerciseManager />;
+      case 'class': return <TeacherClassManager />;
+      case 'requests': return <TeacherStudentRequests />;
+      case 'reports': return <TeacherReports />;
+      case 'ratings': return (
+        <div className="space-y-6 p-2" dir="rtl">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 mb-1">⭐ تقييم التلاميذ</h2>
+            <p className="text-slate-500 font-medium">قيّم أداء تلاميذ قسمك بشكل دوري ومفصّل</p>
+          </div>
+          <RatingSystem
+            raterRole="أستاذ"
+            raterName={user?.name || 'الأستاذ'}
+            targets={STUDENT_TARGETS}
+            mode="rate"
+          />
+        </div>
+      );
+      case 'chat': return (
+        <div className="space-y-4 p-2" dir="rtl">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 mb-1">💬 غرفة الأساتذة</h2>
+            <p className="text-slate-500 font-medium">تواصل مع زملائك الأساتذة في فضاء مهني مشترك</p>
+          </div>
+          <ChatSystem userRole="teacher" userName={user?.name || 'الأستاذ'} inline defaultOpen />
+        </div>
+      );
+      default: return <TeacherOverviewPanel />;
     }
   };
 
   return (
-    <div className={`min-h-screen pb-20 relative overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`}>
+    <>
+      <TeacherOnboarding />
+      <div className={`flex h-screen overflow-hidden bg-slate-50/30 text-slate-900 font-sans ${isRTL ? 'rtl' : 'ltr'}`}>
+        
+        {/* ══════════════════════════════════════════════════════
+          BOLD PROFESSIONAL SIDEBAR (COACH DASHBOARD STYLE)
+      ══════════════════════════════════════════════════════ */}
+      <AnimatePresence mode="wait">
+        {isSidebarOpen && (
+          <motion.aside
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 280, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-20 shrink-0"
+          >
+            {/* Header / Logo */}
+            <div className="p-6 border-b border-slate-800/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xl flex-shrink-0 shadow-lg shadow-blue-900/20">
+                   <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                   <h2 className="font-extrabold text-lg text-white tracking-tight">الأستاذ الخبير</h2>
+                   <p className="text-sm font-semibold text-slate-400">Haraka Education</p>
+                </div>
+              </div>
+            </div>
 
-      {/* 🎯 Cinematic Sports-Themed Background Layer */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* The Image - High Detail Photographic Expert-Grade */}
-        <div
-          className="absolute inset-0 bg-[url('/images/teacher_cinematic_bg.png')] bg-cover bg-center bg-no-repeat transition-opacity duration-1000 scale-105"
-          aria-hidden="true"
-        />
-        {/* Precision Dark Overlay - Moody & Professional */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/98 via-blue-900/90 to-blue-950/98 mix-blend-multiply transition-colors duration-500" />
+            {/* Navigation Menus */}
+            <ScrollArea className="flex-1 py-6 px-4">
+              <div className="space-y-2">
+                {navigationTabs.map(tab => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-base font-bold ${
+                        active
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                      }`}
+                    >
+                      <Icon className={`w-6 h-6 flex-shrink-0 transition-colors ${active ? 'opacity-100' : 'opacity-70'}`} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
 
-        {/* Cinematic Vignette */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
+            {/* Footer User Menu */}
+            <div className="p-6 border-t border-slate-800/50 shrink-0 mt-auto">
+              <button 
+                onClick={logout}
+                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors text-base font-bold"
+              >
+                <LogOut className="w-6 h-6 opacity-70" />
+                <span>تسجيل الخروج</span>
+              </button>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
-        {/* Readability Guard: Secondary Shadow Layer for Content Pop */}
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[6px]" />
+      {/* ══════════════════════════════════════════════════════
+          MAIN CONTENT AREA
+      ══════════════════════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50/50">
+        
+        {/* TOP NAVBAR (BOLD) */}
+        <header className="h-20 bg-white border-b border-slate-200 px-6 lg:px-10 flex items-center justify-between shrink-0 sticky top-0 z-10 shadow-sm">
+          
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2.5 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="hidden sm:block">
+               <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">{navigationTabs.find(t => t.id === activeTab)?.label}</h1>
+               <p className="text-sm font-semibold text-slate-500">متصل الآن بالنظام الموحد</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors relative"
+              >
+                 <Bell className="w-6 h-6" />
+                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full" />
+              </button>
+
+              {/* Notifications Dropdown */}
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 text-right"
+                  >
+                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                       <h3 className="font-bold text-slate-900">الإشعارات</h3>
+                       <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-md">3 جديدة</span>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                       {/* Notification 1: Student */}
+                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
+                          <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                             <Video className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">ياسين محمود <span className="text-slate-500 font-medium text-xs">(تلميذ)</span></p>
+                            <p className="text-xs font-semibold text-slate-600 mt-0.5 line-clamp-2">قام بتسليم فيديو "تمرين التوازن والمشي" وينتظر تقييمك.</p>
+                            <p className="text-[10px] text-slate-400 mt-1">منذ 10 دقائق</p>
+                          </div>
+                       </div>
+                       
+                       {/* Notification 2: Principal */}
+                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
+                          <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                             <ClipboardList className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">إدارة الأكاديمية <span className="text-slate-500 font-medium text-xs">(مدير)</span></p>
+                            <p className="text-xs font-semibold text-slate-600 mt-0.5 line-clamp-2">يُرجى اعتماد التقرير الفصلي للقسم الابتدائي قبل نهاية الأسبوع.</p>
+                            <p className="text-[10px] text-slate-400 mt-1">منذ ساعتين</p>
+                          </div>
+                       </div>
+
+                       {/* Notification 3: Parent */}
+                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
+                          <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                             <Users className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">ولي أمر أمير طارق <span className="text-slate-500 font-medium text-xs">(ولي التلميذ)</span></p>
+                            <p className="text-xs font-semibold text-slate-600 mt-0.5 line-clamp-2">استفسار بخصوص نتائج التحليل البيوميكانيكي الأخيرة لولدي.</p>
+                            <p className="text-[10px] text-slate-400 mt-1">أمس</p>
+                          </div>
+                       </div>
+                    </div>
+                    <div className="p-3 text-center border-t border-slate-100 bg-slate-50">
+                       <button className="text-blue-600 text-sm font-bold hover:underline">عرض كل الإشعارات</button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            
+            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md border-0 shrink-0">
+              {user?.name ? user.name.charAt(0) : 'E'}
+            </div>
+          </div>
+        </header>
+
+        {/* Setup Modal will automatically show if no classes are selected */}
+        <TeacherSetupModal />
+
+        {/* Dashboard Content */}
+        <div className="flex-1 overflow-auto rounded-xl">
+          <div className="max-w-[1600px] mx-auto p-6 lg:p-10">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.15 }}
+                className="min-h-full"
+              >
+                {renderContent()}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
-      {/* Top Header - Precision Styled */}
-      <header className="bg-blue-950/60 dark:bg-gray-900/60 backdrop-blur-3xl sticky top-0 z-40 border-b border-white/10 shadow-2xl transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo and Title */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-white/20">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-xl font-black tracking-tighter text-white">
-                منصة الحركة <span className="text-blue-400 opacity-80">(Teacher Hub)</span>
-              </h1>
-            </div>
-
-            {/* User Info and Controls */}
-            <div className="flex items-center gap-4">
-              <LanguageSwitcher />
-
-              {/* User Profile - Expert Style */}
-              <div className="flex items-center gap-3 pl-2 pr-5 py-2 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-inner group cursor-pointer hover:bg-white/10 transition-all">
-                <div className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg overflow-hidden ring-2 ring-white/10 group-hover:ring-blue-400/50 transition-all">
-                  <User className="h-5 w-5" />
-                </div>
-                <div className="hidden md:block">
-                  <div className="text-sm font-black text-white leading-tight uppercase tracking-tight">
-                    {user?.name || "المعلم"}
-                  </div>
-                  <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest opacity-70">المعلم الرياضي</div>
-                </div>
-              </div>
-
-              {/* Logout Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={logout}
-                className="text-white/60 hover:text-red-400 hover:bg-red-400/10 transition-all rounded-xl"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Tabs - Precision Floating Style */}
-        <div className="border-t border-white/5 bg-white/5 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-            <nav className="flex space-x-1 rtl:space-x-reverse overflow-x-auto no-scrollbar">
-              {navigationTabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      flex items-center gap-2 py-2 px-5 rounded-full font-black text-xs whitespace-nowrap
-                      transition-all duration-300 relative uppercase tracking-wider
-                      ${isActive
-                        ? 'bg-white text-blue-900 shadow-xl scale-105'
-                        : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                      }
-                    `}
-                  >
-                    <Icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
-                    {tab.label}
-                    {tab.id === 'communication' && dashboardStats.unreadMessages > 0 && (
-                      <Badge className="ml-2 bg-red-600 text-white text-[10px] px-2 py-0 h-4 min-w-[18px] flex justify-center items-center shadow-lg animate-pulse">
-                        {dashboardStats.unreadMessages}
-                      </Badge>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content - Precision Alignment */}
-      <main className="flex-1 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
-            {renderContent()}
-          </div>
-        </div>
-      </main>
     </div>
+    </>
   );
 }

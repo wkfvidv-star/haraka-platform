@@ -55,7 +55,13 @@ pnpm i
 ```shell
 pnpm add some_new_dependency
 
-**Start Preview**
+**Start Local Development (Frontend & Backend)**
+
+```shell
+pnpm run dev:all
+```
+
+**Start Frontend Only**
 
 ```shell
 pnpm run dev

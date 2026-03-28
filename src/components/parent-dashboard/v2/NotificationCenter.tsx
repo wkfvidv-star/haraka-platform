@@ -16,8 +16,8 @@ interface Notification {
 }
 
 export const NotificationCenter: React.FC = () => {
-    // Mock Data
-    const notifications: Notification[] = [
+    // Mock Data + Dynamic State
+    const [notifications, setNotifications] = React.useState<Notification[]>([
         {
             id: '1',
             type: 'success',
@@ -45,7 +45,34 @@ export const NotificationCenter: React.FC = () => {
             childName: 'فاطمة',
             isRead: true
         }
-    ];
+    ]);
+
+    // Read synced reports from localStorage
+    React.useEffect(() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem('haraka_sent_reports') || '[]');
+            const parentReports = saved.filter((r: any) => r.recipient === 'parent');
+            
+            if (parentReports.length > 0) {
+                const dynamicNotifs: Notification[] = parentReports.map((r: any) => ({
+                    id: r.id,
+                    type: 'info',
+                    title: `تقرير أستاذ جديد: ${r.type}`,
+                    message: `تم استلام تقرير (${r.period}) من الأستاذ. معدل الإنجاز: ${r.progress}%`,
+                    time: 'جديد (مُزامن الآن)',
+                    childName: r.studentName.split(' ')[0],
+                    isRead: false
+                })).reverse(); // Show latest first
+                
+                // Merge without duplicates (using id)
+                setNotifications(prev => {
+                    const existingIds = prev.map(p => p.id);
+                    const newNotifs = dynamicNotifs.filter(n => !existingIds.includes(n.id));
+                    return [...newNotifs, ...prev];
+                });
+            }
+        } catch(e) {}
+    }, []);
 
     const getIcon = (type: string) => {
         switch (type) {

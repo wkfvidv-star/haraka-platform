@@ -10,33 +10,41 @@ const activitySchema = z.object({
 
 export const saveActivity = async (req, res) => {
     try {
-        const { userId } = req.user; // Assuming auth middleware adds user to req
+        const { userId } = req.user;
         const { steps, calories, activeMinutes } = activitySchema.parse(req.body);
         const date = new Date();
         date.setHours(0, 0, 0, 0);
 
-        const activity = await prisma.dailyActivity.upsert({
-            where: {
-                userId_date: {
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Update/Create Daily Activity (Health Tracking Only - No XP)
+            const activity = await tx.dailyActivity.upsert({
+                where: {
+                    userId_date: {
+                        userId,
+                        date,
+                    },
+                },
+                update: {
+                    steps: { increment: steps || 0 },
+                    calories: { increment: calories || 0 },
+                    activeMinutes: { increment: activeMinutes || 0 },
+                },
+                create: {
                     userId,
                     date,
+                    steps: steps || 0,
+                    calories: calories || 0,
+                    activeMinutes: activeMinutes || 0,
                 },
-            },
-            update: {
-                steps: { increment: steps || 0 },
-                calories: { increment: calories || 0 },
-                activeMinutes: { increment: activeMinutes || 0 },
-            },
-            create: {
-                userId,
-                date,
-                steps: steps || 0,
-                calories: calories || 0,
-                activeMinutes: activeMinutes || 0,
-            },
+            });
+
+            // Note: XP, PlayCoins, and Level Up are strictly reserved for 
+            // Fraud-Verified Training Sessions via /api/session/complete
+
+            return { activity };
         });
 
-        res.json({ success: true, activity });
+        res.json({ success: true, ...result });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ success: false, error: error.errors });
@@ -49,11 +57,17 @@ export const saveActivity = async (req, res) => {
 export const getActivityHistory = async (req, res) => {
     try {
         const { userId } = req.user;
-        const history = await prisma.dailyActivity.findMany({
-            where: { userId },
-            orderBy: { date: 'desc' },
-            take: 7,
-        });
+        let history = [];
+        try {
+            history = await prisma.dailyActivity.findMany({
+                where: { userId },
+                orderBy: { date: 'desc' },
+                take: 7,
+            });
+        } catch (dbError) {
+            logger.warn('Activity History DB Error (likely missing table):', dbError.message);
+            history = []; // Fallback to empty history
+        }
 
         res.json({ success: true, history });
     } catch (error) {

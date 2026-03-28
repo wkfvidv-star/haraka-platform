@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import api from './api';
 
 export interface ActivityData {
     steps: number;
@@ -16,27 +17,36 @@ export const activityService = {
     },
 
     getHistory: async (): Promise<ActivityData[]> => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return [];
-
-        const { data, error } = await supabase
-            .from('sessions')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        return data.map(s => ({
-            steps: 0,
-            calories: 0,
-            activeMinutes: s.duration_minutes || 0,
-            date: s.created_at
-        }));
+        try {
+            const response = await api.get('/activity/history');
+            if (response.data.success && Array.isArray(response.data.history)) {
+                return response.data.history.map((s: any) => ({
+                    steps: s.steps || 0,
+                    calories: s.calories || 0,
+                    activeMinutes: s.activeMinutes || 0,
+                    date: s.date || s.createdAt
+                }));
+            }
+            return [];
+        } catch (error) {
+            console.error("Failed to fetch activity history:", error);
+            return [];
+        }
     },
 
     completeSession: async (userId: string, exerciseId: string, durationMinutes: number, xpGained: number) => {
-        // 1. Record the session
+        // 1. Record in Node.js Backend (XP & Coins logic)
+        try {
+            await api.post('/activity/save', {
+                activeMinutes: durationMinutes,
+                steps: xpGained * 5, // Mapping XP back to some 'steps' for variety
+                calories: durationMinutes * 10
+            });
+        } catch (error) {
+            console.error("Backend sync failed, falling back to direct Supabase:", error);
+        }
+
+        // 2. Fallback/Dual-Write to Supabase for legacy components
         const { error: sessionError } = await supabase
             .from('sessions')
             .insert({
@@ -48,29 +58,27 @@ export const activityService = {
 
         if (sessionError) throw sessionError;
 
-        // 2. Update player progress
+        // 3. Update player progress in Supabase (Legacy sync)
         const { data: currentProgress, error: fetchError } = await supabase
             .from('students_progress')
             .select('*')
             .eq('user_id', userId)
             .single();
 
-        if (fetchError) throw fetchError;
+        if (!fetchError && currentProgress) {
+            const newXp = (currentProgress.xp || 0) + xpGained;
+            const newLevel = Math.floor(newXp / 1000) + 1;
 
-        const newXp = (currentProgress.xp || 0) + xpGained;
-        const newLevel = Math.floor(newXp / 1000) + 1; // Example: level up every 1000 XP
+            await supabase
+                .from('students_progress')
+                .update({
+                    xp: newXp,
+                    level: newLevel,
+                    last_active_at: new Date().toISOString()
+                })
+                .eq('user_id', userId);
+        }
 
-        const { error: updateError } = await supabase
-            .from('students_progress')
-            .update({
-                xp: newXp,
-                level: newLevel,
-                last_active_at: new Date().toISOString()
-            })
-            .eq('user_id', userId);
-
-        if (updateError) throw updateError;
-
-        return { xp: newXp, level: newLevel };
+        return { success: true };
     }
 };

@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { BarChart3, TrendingUp, Users, Activity, ArrowUpRight } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Activity, ArrowUpRight, Cpu } from 'lucide-react';
+import api from '@/services/api';
 
 const ActivityStatistics: React.FC = () => {
+  const [metrics, setMetrics] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const res = await api.get('/admin/metrics');
+        if (res.data.success) {
+          setMetrics(res.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to load metrics', err);
+      }
+    };
+    fetchMetrics();
+  }, []);
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
@@ -19,10 +35,11 @@ const ActivityStatistics: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'إجمالي المستخدمين', value: '1,247', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', trend: '+12%' },
-              { label: 'مستخدمين نشطين', value: '892', icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+5%' },
-              { label: 'معدل التفاعل', value: '85%', icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+2%' },
-              { label: 'جلسات اليوم', value: '2,341', icon: BarChart3, color: 'text-sky-600', bg: 'bg-sky-50', trend: '+18%' }
+              { label: 'إجمالي المستخدمين', value: metrics?.users?.total || '...', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', trend: metrics?.users?.growth || '+0%' },
+              { label: 'مستخدمين نشطين (الآن)', value: metrics?.users?.activeNow || '...', icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: 'Live' },
+              { label: 'إجمالي الجلسات', value: metrics?.activity?.totalSessions || '...', icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '' },
+              { label: 'استدعاءات AI', value: metrics?.activity?.totalAiCalls || '...', icon: BarChart3, color: 'text-sky-600', bg: 'bg-sky-50', trend: '' },
+              { label: 'استهلاك الذاكرة (%)', value: (metrics?.health?.memoryUsagePercent || 0) + '%', icon: Cpu, color: 'text-orange-600', bg: 'bg-orange-50', trend: '' }
             ].map((stat, idx) => (
               <div key={idx} className="relative overflow-hidden group p-5 bg-white/80 border border-blue-50/50 rounded-2xl hover:shadow-lg transition-all duration-300">
                 <div className="flex items-start justify-between mb-2">

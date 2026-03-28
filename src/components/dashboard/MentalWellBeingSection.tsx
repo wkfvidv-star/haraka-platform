@@ -74,8 +74,8 @@ export function MentalWellBeingSection({ isSimplified = false }: MentalWellBeing
 
     if (error) {
         return (
-            <Card className="border-red-200 bg-red-50">
-                <CardContent className="flex items-center gap-4 py-6 text-red-700">
+            <Card className="border-rose-500/20 bg-rose-500/10">
+                <CardContent className="flex items-center gap-4 py-6 text-rose-400">
                     <AlertCircle className="w-6 h-6" />
                     <p className="font-medium">{error}</p>
                 </CardContent>
@@ -95,25 +95,25 @@ export function MentalWellBeingSection({ isSimplified = false }: MentalWellBeing
             </div>
 
             {/* Daily Mood Check-in */}
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
+            <Card className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-500/20">
                 <CardHeader>
-                    <CardTitle className="text-lg text-blue-900">كيف تشعر اليوم؟</CardTitle>
+                    <CardTitle className="text-lg text-blue-400">كيف تشعر اليوم؟</CardTitle>
                 </CardHeader>
                 <CardContent className="flex justify-around py-4">
                     {[
-                        { icon: Sun, label: 'رائع', value: 'great', color: 'text-yellow-500' },
-                        { icon: Smile, label: 'جيد', value: 'good', color: 'text-green-500' },
-                        { icon: Cloud, label: 'عادي', value: 'okay', color: 'text-blue-500' },
-                        { icon: Moon, label: 'متعب', value: 'tired', color: 'text-purple-500' },
+                        { icon: Sun, label: 'رائع', value: 'great', color: 'text-yellow-400' },
+                        { icon: Smile, label: 'جيد', value: 'good', color: 'text-emerald-400' },
+                        { icon: Cloud, label: 'عادي', value: 'okay', color: 'text-blue-400' },
+                        { icon: Moon, label: 'متعب', value: 'tired', color: 'text-indigo-400' },
                     ].map((item) => (
                         <div key={item.value} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleMoodSelect(item.value)}>
                             <div className={cn(
-                                "p-3 rounded-full bg-white shadow-sm transition-transform hover:scale-110",
-                                mood === item.value ? "ring-2 ring-blue-400 scale-110" : ""
+                                "p-3 rounded-full bg-slate-800 border border-white/5 shadow-sm transition-transform hover:scale-110 hover:bg-slate-700",
+                                mood === item.value ? "ring-2 ring-blue-400 bg-blue-500/10 scale-110" : ""
                             )}>
                                 <item.icon className={cn("w-8 h-8", item.color)} />
                             </div>
-                            <span className="text-sm font-medium text-gray-600">{item.label}</span>
+                            <span className="text-sm font-medium text-slate-400">{item.label}</span>
                         </div>
                     ))}
                 </CardContent>

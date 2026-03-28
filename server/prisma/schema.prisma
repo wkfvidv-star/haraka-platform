@@ -1,23 +1,21 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
   ADMIN
   STUDENT
-  PARENT
-  TEACHER
   COACH
   YOUTH
+  PARENT
+  TEACHER
+  PRINCIPAL
+  DIRECTORATE
+  MINISTRY
 }
 
 enum SubscriptionStatus {
@@ -30,26 +28,45 @@ enum SubscriptionStatus {
 model User {
   id                 String             @id @default(uuid())
   email              String             @unique
-  password           String             // Hashed
+  password           String
   role               UserRole           @default(STUDENT)
   isActive           Boolean            @default(true)
   digitalId          String?            @unique @default(uuid())
   qrToken            String?            @unique
-  subscriptionStatus SubscriptionStatus @default(ACTIVE)
+  subscriptionStatus SubscriptionStatus @default(PENDING)
   xp                 Int                @default(0)
   level              Int                @default(1)
   playCoins          Int                @default(0)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
+  // Phase 9: Admin Execution Security
+  mfaEnabled         Boolean            @default(false)
+  mfaSecret          String?
+  permissions        String[]           @default([])
+
   profile            Profile?
   student            Student?
   parent             Parent?
   coach              Coach?
-  auditLogs          AuditLog[]
+  eventLogs          EventLog[]
   dailyActivities    DailyActivity[]
   exerciseSubmissions ExerciseSubmission[]
   accessLogs         AccessLog[]
+  physicalMetrics    PhysicalMetric[]
+  goals              Goal[]
+  trainingSessions   TrainingSession[]
+  subscriptions      Subscription[]
+  aiUsageLogs        AiUsageLog[]
+  
+  // Phase 4: Identity Integrity
+  tokenVersion       Int                @default(0)
+  deviceLimit        Int                @default(3)
+  refreshTokens      RefreshToken[]
+  
+  // Phase 9: Pilot Guard
+  betaCohort         String?            // e.g. "PILOT_2024_01"
+  trustedDevices     UserDevice[]
 
   @@map("users")
 }
@@ -57,8 +74,8 @@ model User {
 model Profile {
   id        String   @id @default(uuid())
   userId    String   @unique
-  firstName String
-  lastName  String
+  firstName String?
+  lastName  String?
   avatarUrl    String?
   bio          String?
   height       Float?   // in cm
@@ -82,7 +99,6 @@ model Student {
   
   attendance     Attendance[]
   grades         Grade[]
-
 
   @@map("students")
 }
@@ -131,18 +147,29 @@ model Grade {
   @@map("grades")
 }
 
-model AuditLog {
-  id        String   @id @default(uuid())
-  userId    String?
-  action    String
-  resource  String
-  details   Json?
-  ipAddress String?
-  createdAt DateTime @default(now())
+// -------------------------------------------------------------
+// PHASE 3: EVENT-SOURCED APPEND-ONLY SYSTEM (Integrity Layer)
+// -------------------------------------------------------------
+model EventLog {
+  id             String   @id @default(uuid())
+  traceId        String   // Links Node -> Vision -> Fraud Engine
+  userId         String?
+  eventType      String   // SESSION_START, METRICS_RECEIVED, FRAUD_VERDICT, XP_COMMITTED
+  payload        Json     // Canonical Serialization of the event data
+  
+  // Cryptographic Hash Chain
+  previousHash   String?  @unique // Null ONLY for the genesis event
+  currentHash    String   @unique
+  serverSignature String  // Node's cryptographic proof
 
-  user      User?    @relation(fields: [userId], references: [id])
+  ipAddress      String?
+  createdAt      DateTime @default(now())
 
-  @@map("audit_logs")
+  user           User?    @relation(fields: [userId], references: [id])
+
+  @@index([traceId])
+  @@index([userId, eventType])
+  @@map("event_logs")
 }
 
 model AccessLog {
@@ -185,7 +212,7 @@ enum SubmissionStatus {
 model ExerciseSubmission {
   id              String           @id @default(uuid())
   userId          String
-  exerciseId      String           // Could be a relation if Exercise model existed
+  exerciseId      String
   videoUrl        String
   durationSeconds Int
   status          SubmissionStatus @default(PENDING)
@@ -194,7 +221,181 @@ model ExerciseSubmission {
   updatedAt       DateTime         @updatedAt
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise        Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
   @@map("exercise_submissions")
 }
 
+model PhysicalMetric {
+  id               String   @id @default(uuid())
+  userId           String
+  height           Float?
+  weight           Float?
+  bmi              Float?
+  heartRate        Int?
+  agilityScore     Int?
+  balanceScore     Int?
+  flexibilityScore Int?
+  strengthScore    Int?
+  enduranceScore   Int?
+  date             DateTime @default(now()) @db.Date
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("physical_metrics")
+}
+
+model Goal {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  targetValue Float?
+  currentValue Float    @default(0)
+  unit        String?
+  isCompleted Boolean  @default(false)
+  deadline    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model Competition {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  type         String
+  rewardXp     Int      @default(0)
+  rewardCoins  Int      @default(0)
+  participants Int      @default(0)
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+
+  @@map("competitions")
+}
+
+model Exercise {
+  id              String           @id @default(uuid())
+  title           String
+  description     String?
+  category        String           // motor, cognitive, psychological, rehabilitation
+  subCategory     String?
+  difficulty      String           // Beginner, Intermediate, Advanced
+  duration        String?
+  instructions    String[]
+  videoUrl        String?
+  createdAt       DateTime         @default(now())
+
+  trainingSessions    TrainingSession[]
+  exerciseSubmissions ExerciseSubmission[]
+
+  @@map("exercises")
+}
+
+model TrainingSession {
+  id              String           @id @default(uuid())
+  userId          String
+  exerciseId      String
+  durationSeconds Int
+  motionScore     Int              @default(0)
+  fatigueIndex    Int              @default(0)
+  completedReps   Int              @default(0)
+  qualityScore    Int              @default(0)
+  aiFeedback      Json?
+  nonce           String?          @unique
+  expiresAt       DateTime?
+  status          String           @default("PENDING") // PENDING, COMPLETED, ABORTED
+  createdAt       DateTime         @default(now())
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise        Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([expiresAt])
+  @@map("training_sessions")
+}
+
+model Plan {
+  id              String         @id @default(uuid())
+  name            String
+  stripePriceId   String?
+  price           Float          @default(0)
+  interval        String         @default("month") // month, year
+  features        String[]
+  createdAt       DateTime       @default(now())
+
+  subscriptions   Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id              String         @id @default(uuid())
+  userId          String
+  planId          String
+  stripeSubId     String?
+  status          String         @default("ACTIVE") // ACTIVE, CANCELED, PAST_DUE
+  currentPeriodEnd DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model AiUsageLog {
+  id              String         @id @default(uuid())
+  userId          String
+  serviceName     String         // e.g., openai_chat, yolo_vision, whisper_audio
+  tokensUsed      Int            @default(0)
+  processingTimeMs Int           @default(0)
+  status          String         @default("SUCCESS")
+  errorMessage    String?
+  createdAt       DateTime       @default(now())
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("ai_usage_logs")
+}
+// -------------------------------------------------------------
+// PHASE 4: IDENTITY INTEGRITY LAYER (Trust Stack)
+// -------------------------------------------------------------
+model RefreshToken {
+  id           String   @id @default(uuid())
+  token        String   @unique
+  userId       String
+  familyId     String   // Links a chain of rotations
+  isUsed       Boolean  @default(false)
+  version      Int      @default(0)
+  deviceId     String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model UserDevice {
+  id           String   @id @default(uuid())
+  userId       String
+  deviceHash   String   @unique
+  deviceName   String?
+  trustScore   Float    @default(1.0)
+  lastLogin    DateTime @default(now())
+  isBlocked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_devices")
+}

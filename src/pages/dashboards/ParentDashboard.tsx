@@ -3,8 +3,10 @@ import { useTranslation } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
-import { LogOut, Home, Users, BarChart3, Calendar, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { LogOut, Home, Users, BarChart3, Calendar, MessageSquare, LayoutDashboard, PlayCircle, Star, MessageCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { RatingSystem } from '@/components/shared/RatingSystem';
+import { ChatSystem } from '@/components/shared/ChatSystem';
 
 // V2 Components
 import { ParentIdentityCard } from '@/components/parent-dashboard/v2/ParentIdentityCard';
@@ -13,6 +15,8 @@ import { ChildrenOverview, ChildSummary } from '@/components/parent-dashboard/v2
 import { NotificationCenter } from '@/components/parent-dashboard/v2/NotificationCenter';
 import { DinnerDiscussionCard } from '@/components/parent-dashboard/v2/DinnerDiscussionCard';
 import { ParentAIAssistant } from '@/components/parent-dashboard/v2/ParentAIAssistant';
+import { ParentCoachPanel } from '@/components/parent-dashboard/ParentCoachPanel';
+import { ParentOnboarding } from '@/components/parent-dashboard/ParentOnboarding';
 
 // Existing Sub-Systems (Wrapped to keep functionality)
 import { ChildrenList } from '@/components/parent/ChildrenList';
@@ -30,6 +34,18 @@ export default function ParentDashboard() {
   const { t, language } = useTranslation();
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
+
+  // Onboarding Status
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('haraka_parent_onboarding_seen');
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+      setIsNewUser(true);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchFamily = async () => {
@@ -53,14 +69,17 @@ export default function ParentDashboard() {
     { id: 'children', label: 'الأطفال', icon: Users },
     { id: 'schedule', label: 'الجدول', icon: Calendar },
     { id: 'reports', label: 'التقارير', icon: BarChart3 },
-    { id: 'messages', label: 'الرسائل', icon: MessageSquare }
+    { id: 'messages', label: 'الرسائل', icon: MessageSquare },
+    { id: 'coaching', label: 'التدريب والتغذية', icon: Star },
+    { id: 'ratings', label: 'تقييم طفلي', icon: Star },
+    { id: 'chat', label: 'غرفة الأولياء', icon: MessageCircle },
   ];
 
   const renderDashboardContent = () => (
     <div className="space-y-6 animate-in fade-in duration-500">
 
       {/* 1. Identity & Overview Section */}
-      <section>
+      <section data-tour="parent_identity">
         <ParentIdentityCard
           parentName={user?.name || "ولي الأمر"}
           onViewMessages={() => setActiveTab('messages')}
@@ -69,10 +88,10 @@ export default function ParentDashboard() {
 
       {/* 2. Family Pulse Section (Timeline & Children Quick View) */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" data-tour="family_activity">
           <FamilyActivityHub />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1" data-tour="children_overview">
           <ChildrenOverview
             children={children}
             onViewChild={(id) => { setSelectedChildId(id); setActiveTab('children'); }}
@@ -81,7 +100,7 @@ export default function ParentDashboard() {
       </section>
 
       {/* 3. Engagement & Notifications */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6" data-tour="parent_engagement">
         <DinnerDiscussionCard />
         <NotificationCenter />
       </section>
@@ -96,18 +115,70 @@ export default function ParentDashboard() {
       case 'schedule': return <SchedulingSystem />;
       case 'reports': return (
         <div className="space-y-6">
-          {/* Re-using existing analysis card but wrapped nicely */}
           <div className="text-xl font-bold text-gray-800 dark:text-white mb-4">التقارير التفصيلية</div>
           <StudentAnalysisCard />
         </div>
       );
       case 'messages': return <MessagingSystem />;
+      case 'coaching': return (
+        <div className="space-y-4" dir="rtl">
+          <div>
+            <h2 className="text-2xl font-black text-white mb-1">🏆 مركز تدريب وتغذية الشباب</h2>
+            <p className="text-white/60 font-medium">احجز حصصاً وقيّم المدربين واستلم تقارير ابنك</p>
+          </div>
+          <ParentCoachPanel parentName={user?.name || 'ولي الأمر'} />
+        </div>
+      );
+      case 'ratings': return (
+        <div className="space-y-6" dir="rtl">
+          <div>
+            <h2 className="text-2xl font-black text-white mb-1">⭐ تقييم طفلي</h2>
+            <p className="text-white/60 font-medium">استعرض التقييمات المسجّلة لولدك من الأساتذة والمدربين</p>
+          </div>
+          <RatingSystem
+            raterRole="ولي الأمر"
+            raterName={user?.name || 'ولي الأمر'}
+            receiverId="st1"
+            receiverName="ياسين محمود"
+            mode="view"
+          />
+        </div>
+      );
+      case 'chat': return (
+        <div className="space-y-4" dir="rtl">
+          <div>
+            <h2 className="text-2xl font-black text-white mb-1">💬 غرفة الأولياء</h2>
+            <p className="text-white/60 font-medium">تواصل مع أولياء أمور التلاميذ الآخرين</p>
+          </div>
+          <ChatSystem userRole="parent" userName={user?.name || 'ولي الأمر'} inline defaultOpen />
+        </div>
+      );
       default: return renderDashboardContent();
     }
   };
 
+  const handleCompleteOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('haraka_parent_onboarding_seen', 'true');
+  };
+
+  const handleReplayOnboarding = () => {
+    localStorage.removeItem('haraka_parent_onboarding_seen');
+    setIsNewUser(false);
+    setShowOnboarding(true);
+  };
+
   return (
     <div className={`min-h-screen pb-20 relative overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`}>
+
+      {/* Onboarding Overlay */}
+      {showOnboarding && (
+        <ParentOnboarding
+          onComplete={handleCompleteOnboarding}
+          onSkip={handleCompleteOnboarding}
+          isNewUser={isNewUser}
+        />
+      )}
 
       {/* 🎯 Cinematic Sports-Themed Background Layer */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -136,7 +207,10 @@ export default function ParentDashboard() {
             <h1 className="font-black text-lg hidden sm:block tracking-tight text-gray-900 dark:text-white">منصة العائلة (Parent Pulse)</h1>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1 bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm p-1 rounded-full border border-white/10">
+          <nav
+            data-tour="parent_navigation"
+            className="hidden md:flex items-center gap-1 bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm p-1 rounded-full border border-white/10"
+          >
             {navigationTabs.map(tab => (
               <button
                 key={tab.id}
@@ -156,6 +230,19 @@ export default function ParentDashboard() {
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <div className="h-6 w-[1px] bg-gray-200 dark:bg-gray-800 mx-1" />
+
+            {/* Replay Tour Button styled identical to LanguageSwitcher/LogOut but with PlayIcon */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReplayOnboarding}
+              className="bg-white/5 border-white/10 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/10 transition-all rounded-xl gap-2 h-10 px-4 group hidden md:flex"
+              title="إعادة جولة التعريف"
+            >
+              <PlayCircle className="w-4 h-4" />
+              <span>إعادة الجولة</span>
+            </Button>
+
             <Button variant="ghost" size="icon" onClick={logout} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl">
               <LogOut className="w-5 h-5" />
             </Button>
@@ -167,7 +254,7 @@ export default function ParentDashboard() {
         {renderActiveTab()}
       </main>
 
-      <div className="relative z-50">
+      <div className="relative z-50" data-tour="parent_assistant">
         <ParentAIAssistant />
       </div>
     </div>

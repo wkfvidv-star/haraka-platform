@@ -8,9 +8,14 @@ import { DirectorateReportsManagement } from '@/components/ministry/DirectorateR
 import { NationalCompetitions } from '@/components/ministry/NationalCompetitions';
 import { NationalMaps } from '@/components/ministry/NationalMaps';
 import NationalMotionAnalytics from '@/components/ministry/NationalMotionAnalytics';
+import { NationalHeatmapReport } from '@/components/ministry/NationalHeatmapReport';
+import { PolicyReportExporter } from '@/components/ministry/PolicyReportExporter';
+import { MinistryOnboarding } from '@/components/ministry-dashboard/MinistryOnboarding';
 import { useTranslation } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { RatingSystem } from '@/components/shared/RatingSystem';
+import { ChatSystem } from '@/components/shared/ChatSystem';
 import {
   Building2,
   Users,
@@ -35,7 +40,8 @@ import {
   Settings,
   Bell,
   Plus,
-  Globe
+  Globe,
+  PlayCircle
 } from 'lucide-react';
 
 interface NationalStats {
@@ -101,6 +107,20 @@ export default function MinistryDashboard() {
   const { t, language } = useTranslation();
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
+
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+    const hasSeen = localStorage.getItem('haraka_ministry_onboarding_seen');
+    return !hasSeen;
+  });
+
+  const handleCompleteOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('haraka_ministry_onboarding_seen', 'true');
+  };
+
+  const handleReplayOnboarding = () => {
+    setShowOnboarding(true);
+  };
 
   const [nationalStats] = useState<NationalStats>({
     totalProvinces: 58,
@@ -175,13 +195,14 @@ export default function MinistryDashboard() {
   ]);
 
   const navigationTabs = [
-    { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
-    { id: 'regions', label: 'الخريطة الوطنية', icon: MapPin },
+    { id: 'dashboard',        label: 'لوحة التحكم',                          icon: Home },
+    { id: 'regions',          label: 'الخريطة الوطنية',                     icon: MapPin },
     { id: 'motion-analytics', label: 'الإحصائيات الوطنية للتحليل الحركي', icon: Globe },
-    { id: 'reports', label: 'تقارير المديريات', icon: BarChart3 },
-    { id: 'competitions', label: 'المسابقات الوطنية', icon: Trophy },
-    { id: 'schools', label: 'المدارس', icon: School },
-    { id: 'notifications', label: 'الإشعارات', icon: Bell }
+    { id: 'reports',          label: 'تقارير المديريات',                  icon: BarChart3 },
+    { id: 'competitions',     label: 'المسابقات الوطنية',               icon: Trophy },
+    { id: 'schools',          label: 'المدارس',                            icon: School },
+    { id: 'notifications',    label: 'الإشعارات',                         icon: Bell },
+    { id: 'ratings',          label: '⭐ تقييم المديريات',              icon: Award },
   ];
 
   const handleProvinceSelect = (province: ProvincePerformance) => {
@@ -334,6 +355,18 @@ export default function MinistryDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Regional Comparison Chart */}
+        <div className="lg:col-span-2 relative z-10">
+          <NationalHeatmapReport />
+        </div>
+
+        {/* Action Panel */}
+        <div className="lg:col-span-1 border-r border-slate-200 dark:border-[#1e293b] pr-6 h-full relative z-10">
+          <PolicyReportExporter />
+        </div>
+      </div>
     </div>
   );
 
@@ -346,12 +379,37 @@ export default function MinistryDashboard() {
       case 'motion-analytics': return <NationalMotionAnalytics />;
       case 'schools': return renderDashboard();
       case 'notifications': return renderDashboard();
+      case 'ratings': return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" dir="rtl">
+          <div>
+            <h3 className="text-2xl font-black text-white mb-4">⭐ تقييم المديريات</h3>
+            <RatingSystem
+              raterRole="وزارة"
+              raterName={user?.name || 'الوزارة'}
+              targets={topPerformingProvinces.map(p => ({ id: p.id, name: `مديرية ${p.arabicName}`, role: `ولاية ${p.arabicName}` }))}
+              mode="rate"
+            />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-white mb-4">💬 غرفة الوزارة</h3>
+            <ChatSystem userRole="ministry" userName={user?.name || 'الوزارة'} inline defaultOpen />
+          </div>
+        </div>
+      );
       default: return renderDashboard();
     }
   };
 
   return (
     <div className="expert-dashboard-root selection:bg-red-500/30">
+      {/* Onboarding Overlay */}
+      {showOnboarding && (
+        <MinistryOnboarding
+          onComplete={handleCompleteOnboarding}
+          onSkip={handleCompleteOnboarding}
+        />
+      )}
+
       {/* Background Image with Deep Overlay */}
       <div
         className="expert-bg-image"
@@ -380,6 +438,17 @@ export default function MinistryDashboard() {
                   <Bell className="h-4 w-4" />
                 </Button>
                 <div className="h-8 w-[1px] bg-white/10 mx-2" />
+                {/* Replay Tour Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReplayOnboarding}
+                  className="bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/10 transition-all rounded-xl gap-2 font-bold hidden md:flex"
+                >
+                  <PlayCircle className="w-4 h-4 group-hover:text-red-400 transition-colors" />
+                  إعادة الجولة
+                </Button>
+                <div className="h-8 w-[1px] bg-white/10 mx-1 hidden md:block" />
                 <Button
                   variant="ghost"
                   onClick={logout}

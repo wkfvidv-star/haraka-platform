@@ -2,9 +2,39 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { MessageSquare, Calendar, CheckCircle, Clock, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { healthService, Goal } from '@/services/healthService';
 
 export const VirtualCoach: React.FC = () => {
+    const [goals, setGoals] = useState<Goal[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchGoals = async () => {
+            try {
+                setLoading(true);
+                const data = await healthService.getHealthProfile();
+                if (data.goals) {
+                    setGoals(data.goals);
+                }
+            } catch (error) {
+                console.error("Failed to fetch goals:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchGoals();
+    }, []);
+
+    // Fallback goals if none found
+    const displayGoals = goals.length > 0 ? goals : [
+        { id: '1', title: 'إكمال 3 جلسات توازن', isCompleted: true, currentValue: 1, targetValue: 1 },
+        { id: '2', title: 'تحسين سرعة رد الفعل بنسبة 2%', isCompleted: false, currentValue: 0, targetValue: 1 },
+        { id: '3', title: 'رفع فيديو لتحليل القفز', isCompleted: false, currentValue: 0, targetValue: 1 }
+    ];
+
     return (
         <Card className="glass-card border-orange-500/20 shadow-2xl relative overflow-hidden group">
             {/* Subtle brand glow */}
@@ -37,18 +67,18 @@ export const VirtualCoach: React.FC = () => {
                             أهداف هذا الأسبوع
                         </h4>
                         <div className="space-y-3">
-                            {[
-                                { text: 'إكمال 3 جلسات توازن', done: true },
-                                { text: 'تحسين سرعة رد الفعل بنسبة 2%', done: false },
-                                { text: 'رفع فيديو لتحليل القفز', done: false }
-                            ].map((goal, i) => (
-                                <div key={i} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${goal.done ? 'bg-green-500/10 border-green-500/20 text-green-300' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${goal.done ? 'bg-green-600 border-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.4)]' : 'border-gray-600 shadow-inner'}`}>
-                                        {goal.done && <CheckCircle className="w-4 h-4" />}
+                            {loading ? (
+                                [1, 2, 3].map(i => <div key={i} className="h-14 bg-white/5 animate-pulse rounded-2xl" />)
+                            ) : (
+                                displayGoals.map((goal, i) => (
+                                    <div key={goal.id} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${goal.isCompleted ? 'bg-green-500/10 border-green-500/20 text-green-300' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${goal.isCompleted ? 'bg-green-600 border-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.4)]' : 'border-gray-600 shadow-inner'}`}>
+                                            {goal.isCompleted && <CheckCircle className="w-4 h-4" />}
+                                        </div>
+                                        <span className={`text-sm font-bold ${goal.isCompleted ? 'opacity-60' : ''}`}>{goal.title}</span>
                                     </div>
-                                    <span className={`text-sm font-bold ${goal.done ? 'opacity-60' : ''}`}>{goal.text}</span>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
 

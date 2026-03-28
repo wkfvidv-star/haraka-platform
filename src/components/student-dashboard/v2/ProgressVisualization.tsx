@@ -20,22 +20,29 @@ interface ProgressVisualizationProps {
     history?: ActivityData[];
 }
 
-export const ProgressVisualization: React.FC<ProgressVisualizationProps> = ({ history = [] }) => {
+export const ProgressVisualization: React.FC<ProgressVisualizationProps & { submissions?: any[] }> = ({ history = [], submissions = [] }) => {
 
-    const chartData = history.length > 0
-        ? history.map((item, idx) => ({
-            name: new Date(item.date).toLocaleDateString('ar-EG', { weekday: 'short' }),
-            score: item.steps / 100, // Scaling steps for the score chart
-            avg: 70
+    // Map real AI session scores to the growth chart
+    const chartData = submissions.length > 0
+        ? submissions.map((s, idx) => ({
+            name: new Date(s.createdAt).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }),
+            score: s.aiFeedback?.metrics?.postureScore || 0,
+            avg: 75 // Institutional average placeholder
         })).reverse()
-        : [
-            { name: 'أسبوع 1', score: 65, avg: 60 },
-            { name: 'أسبوع 2', score: 72, avg: 62 },
-            { name: 'أسبوع 3', score: 68, avg: 63 },
-            { name: 'أسبوع 4', score: 85, avg: 65 },
-            { name: 'أسبوع 5', score: 82, avg: 66 },
-            { name: 'أسبوع 6', score: 90, avg: 68 },
-        ];
+        : history.length > 0
+            ? history.map((item, idx) => ({
+                name: new Date(item.date).toLocaleDateString('ar-EG', { weekday: 'short' }),
+                score: item.steps / 100, // Scaling steps for the score chart
+                avg: 70
+            })).reverse()
+            : [
+                { name: 'أسبوع 1', score: 65, avg: 60 },
+                { name: 'أسبوع 2', score: 72, avg: 62 },
+                { name: 'أسبوع 3', score: 68, avg: 63 },
+                { name: 'أسبوع 4', score: 85, avg: 65 },
+                { name: 'أسبوع 5', score: 82, avg: 66 },
+                { name: 'أسبوع 6', score: 90, avg: 68 },
+            ];
 
     return (
         <Card className="col-span-1 lg:col-span-2 glass-card border-white/10 shadow-2xl relative overflow-hidden group">

@@ -8,13 +8,19 @@ import { useNavigate } from 'react-router-dom';
 
 interface ExercisePackCardProps {
     pack: ExercisePack;
+    onStart?: () => void;
 }
 
-export const ExercisePackCard: React.FC<ExercisePackCardProps> = ({ pack }) => {
+export const ExercisePackCard: React.FC<ExercisePackCardProps> = ({ pack, onStart }) => {
     const navigate = useNavigate();
 
-    const handleStart = () => {
-        navigate(`/student/exercise/${pack.id}`);
+    const handleStart = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (onStart) {
+            onStart();
+        } else {
+            navigate(`/student/exercise/${pack.id}`);
+        }
     };
 
     const difficultyStyles = {
@@ -44,7 +50,7 @@ export const ExercisePackCard: React.FC<ExercisePackCardProps> = ({ pack }) => {
                     {pack.description}
                 </CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow space-y-6 relative z-10">
+            <CardContent className="flex-grow space-y-6 relative z-20">
                 <div className="flex flex-wrap gap-3 text-[11px] font-black uppercase tracking-wider text-blue-300">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
                         <Clock className="w-3.5 h-3.5" />
@@ -68,13 +74,13 @@ export const ExercisePackCard: React.FC<ExercisePackCardProps> = ({ pack }) => {
                     </div>
                 )}
             </CardContent>
-            <CardFooter className="relative z-10 pb-6">
+            <CardFooter className="relative z-20 pb-6">
                 <Button
                     className="w-full h-12 gap-3 group/btn bg-white text-blue-900 hover:bg-blue-50 font-black rounded-xl shadow-lg transition-all"
                     onClick={handleStart}
                 >
                     <Play className="w-5 h-5 fill-current group-hover/btn:scale-110 transition-transform" />
-                    <span>ابدأ التمرين</span>
+                    <span>عرض الباقة والبدء</span>
                 </Button>
             </CardFooter>
         </Card>

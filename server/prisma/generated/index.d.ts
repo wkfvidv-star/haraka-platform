@@ -3,7 +3,7 @@
  * Client
 **/
 
-import * as runtime from './runtime/library.js';
+import * as runtime from './runtime/client.js';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
@@ -68,6 +68,21 @@ export type DailyActivity = $Result.DefaultSelection<Prisma.$DailyActivityPayloa
  * 
  */
 export type ExerciseSubmission = $Result.DefaultSelection<Prisma.$ExerciseSubmissionPayload>
+/**
+ * Model PhysicalMetric
+ * 
+ */
+export type PhysicalMetric = $Result.DefaultSelection<Prisma.$PhysicalMetricPayload>
+/**
+ * Model Goal
+ * 
+ */
+export type Goal = $Result.DefaultSelection<Prisma.$GoalPayload>
+/**
+ * Model Competition
+ * 
+ */
+export type Competition = $Result.DefaultSelection<Prisma.$CompetitionPayload>
 
 /**
  * Enums
@@ -76,10 +91,14 @@ export namespace $Enums {
   export const UserRole: {
   ADMIN: 'ADMIN',
   STUDENT: 'STUDENT',
+  COACH: 'COACH',
+  YOUTH: 'YOUTH',
   PARENT: 'PARENT',
   TEACHER: 'TEACHER',
-  COACH: 'COACH',
-  YOUTH: 'YOUTH'
+  PRINCIPAL: 'PRINCIPAL',
+  DIRECTORATE: 'DIRECTORATE',
+  MINISTRY: 'MINISTRY',
+  COMPETITION: 'COMPETITION'
 };
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
@@ -120,7 +139,7 @@ export const SubmissionStatus: typeof $Enums.SubmissionStatus
 
 /**
  * ##  Prisma Client ʲˢ
- * 
+ *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
@@ -129,19 +148,19 @@ export const SubmissionStatus: typeof $Enums.SubmissionStatus
  * const users = await prisma.user.findMany()
  * ```
  *
- * 
+ *
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */
 export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
+  const U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
     /**
    * ##  Prisma Client ʲˢ
-   * 
+   *
    * Type-safe database client for TypeScript & Node.js
    * @example
    * ```
@@ -150,12 +169,12 @@ export class PrismaClient<
    * const users = await prisma.user.findMany()
    * ```
    *
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
    */
 
   constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
-  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
 
   /**
    * Connect with the database
@@ -167,20 +186,13 @@ export class PrismaClient<
    */
   $disconnect(): $Utils.JsPromise<void>;
 
-  /**
-   * Add a middleware
-   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
-   * @see https://pris.ly/d/extensions
-   */
-  $use(cb: Prisma.Middleware): void
-
 /**
    * Executes a prepared raw query and returns the number of affected rows.
    * @example
    * ```
    * const result = await prisma.$executeRaw`UPDATE User SET cool = ${true} WHERE email = ${'user@email.com'};`
    * ```
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -192,7 +204,7 @@ export class PrismaClient<
    * ```
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * ```
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -203,7 +215,7 @@ export class PrismaClient<
    * ```
    * const result = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1} OR email = ${'user@email.com'};`
    * ```
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -215,7 +227,7 @@ export class PrismaClient<
    * ```
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * ```
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -238,8 +250,9 @@ export class PrismaClient<
 
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
 
-
-  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb, ExtArgs>
+  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
+    extArgs: ExtArgs
+  }>>
 
       /**
    * `prisma.user`: Exposes CRUD operations for the **User** model.
@@ -249,7 +262,7 @@ export class PrismaClient<
     * const users = await prisma.user.findMany()
     * ```
     */
-  get user(): Prisma.UserDelegate<ExtArgs>;
+  get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.profile`: Exposes CRUD operations for the **Profile** model.
@@ -259,7 +272,7 @@ export class PrismaClient<
     * const profiles = await prisma.profile.findMany()
     * ```
     */
-  get profile(): Prisma.ProfileDelegate<ExtArgs>;
+  get profile(): Prisma.ProfileDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.student`: Exposes CRUD operations for the **Student** model.
@@ -269,7 +282,7 @@ export class PrismaClient<
     * const students = await prisma.student.findMany()
     * ```
     */
-  get student(): Prisma.StudentDelegate<ExtArgs>;
+  get student(): Prisma.StudentDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.parent`: Exposes CRUD operations for the **Parent** model.
@@ -279,7 +292,7 @@ export class PrismaClient<
     * const parents = await prisma.parent.findMany()
     * ```
     */
-  get parent(): Prisma.ParentDelegate<ExtArgs>;
+  get parent(): Prisma.ParentDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.coach`: Exposes CRUD operations for the **Coach** model.
@@ -289,7 +302,7 @@ export class PrismaClient<
     * const coaches = await prisma.coach.findMany()
     * ```
     */
-  get coach(): Prisma.CoachDelegate<ExtArgs>;
+  get coach(): Prisma.CoachDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.attendance`: Exposes CRUD operations for the **Attendance** model.
@@ -299,7 +312,7 @@ export class PrismaClient<
     * const attendances = await prisma.attendance.findMany()
     * ```
     */
-  get attendance(): Prisma.AttendanceDelegate<ExtArgs>;
+  get attendance(): Prisma.AttendanceDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.grade`: Exposes CRUD operations for the **Grade** model.
@@ -309,7 +322,7 @@ export class PrismaClient<
     * const grades = await prisma.grade.findMany()
     * ```
     */
-  get grade(): Prisma.GradeDelegate<ExtArgs>;
+  get grade(): Prisma.GradeDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.auditLog`: Exposes CRUD operations for the **AuditLog** model.
@@ -319,7 +332,7 @@ export class PrismaClient<
     * const auditLogs = await prisma.auditLog.findMany()
     * ```
     */
-  get auditLog(): Prisma.AuditLogDelegate<ExtArgs>;
+  get auditLog(): Prisma.AuditLogDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.accessLog`: Exposes CRUD operations for the **AccessLog** model.
@@ -329,7 +342,7 @@ export class PrismaClient<
     * const accessLogs = await prisma.accessLog.findMany()
     * ```
     */
-  get accessLog(): Prisma.AccessLogDelegate<ExtArgs>;
+  get accessLog(): Prisma.AccessLogDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.dailyActivity`: Exposes CRUD operations for the **DailyActivity** model.
@@ -339,7 +352,7 @@ export class PrismaClient<
     * const dailyActivities = await prisma.dailyActivity.findMany()
     * ```
     */
-  get dailyActivity(): Prisma.DailyActivityDelegate<ExtArgs>;
+  get dailyActivity(): Prisma.DailyActivityDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.exerciseSubmission`: Exposes CRUD operations for the **ExerciseSubmission** model.
@@ -349,7 +362,37 @@ export class PrismaClient<
     * const exerciseSubmissions = await prisma.exerciseSubmission.findMany()
     * ```
     */
-  get exerciseSubmission(): Prisma.ExerciseSubmissionDelegate<ExtArgs>;
+  get exerciseSubmission(): Prisma.ExerciseSubmissionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.physicalMetric`: Exposes CRUD operations for the **PhysicalMetric** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PhysicalMetrics
+    * const physicalMetrics = await prisma.physicalMetric.findMany()
+    * ```
+    */
+  get physicalMetric(): Prisma.PhysicalMetricDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.goal`: Exposes CRUD operations for the **Goal** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Goals
+    * const goals = await prisma.goal.findMany()
+    * ```
+    */
+  get goal(): Prisma.GoalDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.competition`: Exposes CRUD operations for the **Competition** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Competitions
+    * const competitions = await prisma.competition.findMany()
+    * ```
+    */
+  get competition(): Prisma.CompetitionDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -370,7 +413,6 @@ export namespace Prisma {
   export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
   export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
   export import PrismaClientValidationError = runtime.PrismaClientValidationError
-  export import NotFoundError = runtime.NotFoundError
 
   /**
    * Re-export of sql-template-tag
@@ -391,14 +433,6 @@ export namespace Prisma {
   export type DecimalJsLike = runtime.DecimalJsLike
 
   /**
-   * Metrics 
-   */
-  export type Metrics = runtime.Metrics
-  export type Metric<T> = runtime.Metric<T>
-  export type MetricHistogram = runtime.MetricHistogram
-  export type MetricHistogramBucket = runtime.MetricHistogramBucket
-
-  /**
   * Extensions
   */
   export import Extension = $Extensions.UserArgs
@@ -409,20 +443,22 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 5.22.0
-   * Query Engine version: 605197351a3c8bdd595af2d2a9bc3025bca48ea2
+   * Prisma Client JS version: 7.0.1
+   * Query Engine version: f09f2815f091dbba658cdcd2264306d88bb5bda6
    */
   export type PrismaVersion = {
     client: string
+    engine: string
   }
 
-  export const prismaVersion: PrismaVersion 
+  export const prismaVersion: PrismaVersion
 
   /**
    * Utility Types
    */
 
 
+  export import Bytes = runtime.Bytes
   export import JsonObject = runtime.JsonObject
   export import JsonArray = runtime.JsonArray
   export import JsonValue = runtime.JsonValue
@@ -432,15 +468,15 @@ export namespace Prisma {
 
   /**
    * Types of the values used to represent different kinds of `null` values when working with JSON fields.
-   * 
+   *
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   namespace NullTypes {
     /**
     * Type of `Prisma.DbNull`.
-    * 
+    *
     * You cannot use other instances of this class. Please use the `Prisma.DbNull` value.
-    * 
+    *
     * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
     */
     class DbNull {
@@ -450,9 +486,9 @@ export namespace Prisma {
 
     /**
     * Type of `Prisma.JsonNull`.
-    * 
+    *
     * You cannot use other instances of this class. Please use the `Prisma.JsonNull` value.
-    * 
+    *
     * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
     */
     class JsonNull {
@@ -462,9 +498,9 @@ export namespace Prisma {
 
     /**
     * Type of `Prisma.AnyNull`.
-    * 
+    *
     * You cannot use other instances of this class. Please use the `Prisma.AnyNull` value.
-    * 
+    *
     * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
     */
     class AnyNull {
@@ -475,21 +511,21 @@ export namespace Prisma {
 
   /**
    * Helper for filtering JSON entries that have `null` on the database (empty on the db)
-   * 
+   *
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   export const DbNull: NullTypes.DbNull
 
   /**
    * Helper for filtering JSON entries that have JSON `null` values (not empty on the db)
-   * 
+   *
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   export const JsonNull: NullTypes.JsonNull
 
   /**
    * Helper for filtering JSON entries that are `Prisma.DbNull` or `Prisma.JsonNull`
-   * 
+   *
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   export const AnyNull: NullTypes.AnyNull
@@ -677,7 +713,7 @@ export namespace Prisma {
   type AtLeast<O extends object, K extends string> = NoExpand<
     O extends unknown
     ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
-      | {[P in keyof O as P extends K ? K : never]-?: O[P]} & O
+      | {[P in keyof O as P extends K ? P : never]-?: O[P]} & O
     : never>;
 
   type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
@@ -801,23 +837,26 @@ export namespace Prisma {
     AuditLog: 'AuditLog',
     AccessLog: 'AccessLog',
     DailyActivity: 'DailyActivity',
-    ExerciseSubmission: 'ExerciseSubmission'
+    ExerciseSubmission: 'ExerciseSubmission',
+    PhysicalMetric: 'PhysicalMetric',
+    Goal: 'Goal',
+    Competition: 'Competition'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
 
 
-  export type Datasources = {
-    db?: Datasource
+
+  interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
+    returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
   }
 
-  interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs, clientOptions: PrismaClientOptions }, $Utils.Record<string, any>> {
-    returns: Prisma.TypeMap<this['params']['extArgs'], this['params']['clientOptions']>
-  }
-
-  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
+  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = {
+    globalOmitOptions: {
+      omit: GlobalOmitOptions
+    }
     meta: {
-      modelProps: "user" | "profile" | "student" | "parent" | "coach" | "attendance" | "grade" | "auditLog" | "accessLog" | "dailyActivity" | "exerciseSubmission"
+      modelProps: "user" | "profile" | "student" | "parent" | "coach" | "attendance" | "grade" | "auditLog" | "accessLog" | "dailyActivity" | "exerciseSubmission" | "physicalMetric" | "goal" | "competition"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -872,6 +911,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.UserUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPayload>[]
           }
           upsert: {
             args: Prisma.UserUpsertArgs<ExtArgs>
@@ -943,6 +986,10 @@ export namespace Prisma {
             args: Prisma.ProfileUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.ProfileUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProfilePayload>[]
+          }
           upsert: {
             args: Prisma.ProfileUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ProfilePayload>
@@ -1012,6 +1059,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.StudentUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.StudentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StudentPayload>[]
           }
           upsert: {
             args: Prisma.StudentUpsertArgs<ExtArgs>
@@ -1083,6 +1134,10 @@ export namespace Prisma {
             args: Prisma.ParentUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.ParentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParentPayload>[]
+          }
           upsert: {
             args: Prisma.ParentUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ParentPayload>
@@ -1152,6 +1207,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.CoachUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CoachUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CoachPayload>[]
           }
           upsert: {
             args: Prisma.CoachUpsertArgs<ExtArgs>
@@ -1223,6 +1282,10 @@ export namespace Prisma {
             args: Prisma.AttendanceUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.AttendanceUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AttendancePayload>[]
+          }
           upsert: {
             args: Prisma.AttendanceUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$AttendancePayload>
@@ -1292,6 +1355,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.GradeUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GradeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GradePayload>[]
           }
           upsert: {
             args: Prisma.GradeUpsertArgs<ExtArgs>
@@ -1363,6 +1430,10 @@ export namespace Prisma {
             args: Prisma.AuditLogUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.AuditLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AuditLogPayload>[]
+          }
           upsert: {
             args: Prisma.AuditLogUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$AuditLogPayload>
@@ -1432,6 +1503,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.AccessLogUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AccessLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessLogPayload>[]
           }
           upsert: {
             args: Prisma.AccessLogUpsertArgs<ExtArgs>
@@ -1503,6 +1578,10 @@ export namespace Prisma {
             args: Prisma.DailyActivityUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.DailyActivityUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyActivityPayload>[]
+          }
           upsert: {
             args: Prisma.DailyActivityUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DailyActivityPayload>
@@ -1573,6 +1652,10 @@ export namespace Prisma {
             args: Prisma.ExerciseSubmissionUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.ExerciseSubmissionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ExerciseSubmissionPayload>[]
+          }
           upsert: {
             args: Prisma.ExerciseSubmissionUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ExerciseSubmissionPayload>
@@ -1588,6 +1671,228 @@ export namespace Prisma {
           count: {
             args: Prisma.ExerciseSubmissionCountArgs<ExtArgs>
             result: $Utils.Optional<ExerciseSubmissionCountAggregateOutputType> | number
+          }
+        }
+      }
+      PhysicalMetric: {
+        payload: Prisma.$PhysicalMetricPayload<ExtArgs>
+        fields: Prisma.PhysicalMetricFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PhysicalMetricFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PhysicalMetricFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>
+          }
+          findFirst: {
+            args: Prisma.PhysicalMetricFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PhysicalMetricFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>
+          }
+          findMany: {
+            args: Prisma.PhysicalMetricFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>[]
+          }
+          create: {
+            args: Prisma.PhysicalMetricCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>
+          }
+          createMany: {
+            args: Prisma.PhysicalMetricCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PhysicalMetricCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>[]
+          }
+          delete: {
+            args: Prisma.PhysicalMetricDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>
+          }
+          update: {
+            args: Prisma.PhysicalMetricUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>
+          }
+          deleteMany: {
+            args: Prisma.PhysicalMetricDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PhysicalMetricUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PhysicalMetricUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>[]
+          }
+          upsert: {
+            args: Prisma.PhysicalMetricUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PhysicalMetricPayload>
+          }
+          aggregate: {
+            args: Prisma.PhysicalMetricAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePhysicalMetric>
+          }
+          groupBy: {
+            args: Prisma.PhysicalMetricGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PhysicalMetricGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PhysicalMetricCountArgs<ExtArgs>
+            result: $Utils.Optional<PhysicalMetricCountAggregateOutputType> | number
+          }
+        }
+      }
+      Goal: {
+        payload: Prisma.$GoalPayload<ExtArgs>
+        fields: Prisma.GoalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GoalFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GoalFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>
+          }
+          findFirst: {
+            args: Prisma.GoalFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GoalFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>
+          }
+          findMany: {
+            args: Prisma.GoalFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>[]
+          }
+          create: {
+            args: Prisma.GoalCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>
+          }
+          createMany: {
+            args: Prisma.GoalCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GoalCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>[]
+          }
+          delete: {
+            args: Prisma.GoalDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>
+          }
+          update: {
+            args: Prisma.GoalUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>
+          }
+          deleteMany: {
+            args: Prisma.GoalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GoalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GoalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>[]
+          }
+          upsert: {
+            args: Prisma.GoalUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GoalPayload>
+          }
+          aggregate: {
+            args: Prisma.GoalAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGoal>
+          }
+          groupBy: {
+            args: Prisma.GoalGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GoalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GoalCountArgs<ExtArgs>
+            result: $Utils.Optional<GoalCountAggregateOutputType> | number
+          }
+        }
+      }
+      Competition: {
+        payload: Prisma.$CompetitionPayload<ExtArgs>
+        fields: Prisma.CompetitionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CompetitionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CompetitionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>
+          }
+          findFirst: {
+            args: Prisma.CompetitionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CompetitionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>
+          }
+          findMany: {
+            args: Prisma.CompetitionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>[]
+          }
+          create: {
+            args: Prisma.CompetitionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>
+          }
+          createMany: {
+            args: Prisma.CompetitionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CompetitionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>[]
+          }
+          delete: {
+            args: Prisma.CompetitionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>
+          }
+          update: {
+            args: Prisma.CompetitionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>
+          }
+          deleteMany: {
+            args: Prisma.CompetitionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CompetitionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CompetitionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>[]
+          }
+          upsert: {
+            args: Prisma.CompetitionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompetitionPayload>
+          }
+          aggregate: {
+            args: Prisma.CompetitionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCompetition>
+          }
+          groupBy: {
+            args: Prisma.CompetitionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CompetitionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CompetitionCountArgs<ExtArgs>
+            result: $Utils.Optional<CompetitionCountAggregateOutputType> | number
           }
         }
       }
@@ -1620,30 +1925,30 @@ export namespace Prisma {
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
   export interface PrismaClientOptions {
     /**
-     * Overwrites the datasource url from your schema.prisma file
-     */
-    datasources?: Datasources
-    /**
-     * Overwrites the datasource url from your schema.prisma file
-     */
-    datasourceUrl?: string
-    /**
      * @default "colorless"
      */
     errorFormat?: ErrorFormat
     /**
      * @example
      * ```
-     * // Defaults to stdout
+     * // Shorthand for `emit: 'stdout'`
      * log: ['query', 'info', 'warn', 'error']
      * 
-     * // Emit as events
+     * // Emit as events only
      * log: [
-     *   { emit: 'stdout', level: 'query' },
-     *   { emit: 'stdout', level: 'info' },
-     *   { emit: 'stdout', level: 'warn' }
-     *   { emit: 'stdout', level: 'error' }
+     *   { emit: 'event', level: 'query' },
+     *   { emit: 'event', level: 'info' },
+     *   { emit: 'event', level: 'warn' }
+     *   { emit: 'event', level: 'error' }
      * ]
+     * 
+     * / Emit as events and log to stdout
+     * og: [
+     *  { emit: 'stdout', level: 'query' },
+     *  { emit: 'stdout', level: 'info' },
+     *  { emit: 'stdout', level: 'warn' }
+     *  { emit: 'stdout', level: 'error' }
+     * 
      * ```
      * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
      */
@@ -1658,8 +1963,46 @@ export namespace Prisma {
       timeout?: number
       isolationLevel?: Prisma.TransactionIsolationLevel
     }
+    /**
+     * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`
+     */
+    adapter?: runtime.SqlDriverAdapterFactory
+    /**
+     * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+     */
+    accelerateUrl?: string
+    /**
+     * Global configuration for omitting model fields by default.
+     * 
+     * @example
+     * ```
+     * const prisma = new PrismaClient({
+     *   omit: {
+     *     user: {
+     *       password: true
+     *     }
+     *   }
+     * })
+     * ```
+     */
+    omit?: Prisma.GlobalOmitConfig
   }
-
+  export type GlobalOmitConfig = {
+    user?: UserOmit
+    profile?: ProfileOmit
+    student?: StudentOmit
+    parent?: ParentOmit
+    coach?: CoachOmit
+    attendance?: AttendanceOmit
+    grade?: GradeOmit
+    auditLog?: AuditLogOmit
+    accessLog?: AccessLogOmit
+    dailyActivity?: DailyActivityOmit
+    exerciseSubmission?: ExerciseSubmissionOmit
+    physicalMetric?: PhysicalMetricOmit
+    goal?: GoalOmit
+    competition?: CompetitionOmit
+  }
 
   /* Types for Logging */
   export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -1668,10 +2011,15 @@ export namespace Prisma {
     emit: 'stdout' | 'event'
   }
 
-  export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-  export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
-    GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
-    : never
+  export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
+
+  export type GetLogType<T> = CheckIsLogLevel<
+    T extends LogDefinition ? T['level'] : T
+  >;
+
+  export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
+    ? GetLogType<T[number]>
+    : never;
 
   export type QueryEvent = {
     timestamp: Date
@@ -1700,6 +2048,7 @@ export namespace Prisma {
     | 'createManyAndReturn'
     | 'update'
     | 'updateMany'
+    | 'updateManyAndReturn'
     | 'upsert'
     | 'delete'
     | 'deleteMany'
@@ -1710,25 +2059,6 @@ export namespace Prisma {
     | 'runCommandRaw'
     | 'findRaw'
     | 'groupBy'
-
-  /**
-   * These options are being passed into the middleware as "params"
-   */
-  export type MiddlewareParams = {
-    model?: ModelName
-    action: PrismaAction
-    args: any
-    dataPath: string[]
-    runInTransaction: boolean
-  }
-
-  /**
-   * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
-   */
-  export type Middleware<T = any> = (
-    params: MiddlewareParams,
-    next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
-  ) => $Utils.JsPromise<T>
 
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
@@ -1756,6 +2086,8 @@ export namespace Prisma {
     dailyActivities: number
     exerciseSubmissions: number
     accessLogs: number
+    physicalMetrics: number
+    goals: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1763,6 +2095,8 @@ export namespace Prisma {
     dailyActivities?: boolean | UserCountOutputTypeCountDailyActivitiesArgs
     exerciseSubmissions?: boolean | UserCountOutputTypeCountExerciseSubmissionsArgs
     accessLogs?: boolean | UserCountOutputTypeCountAccessLogsArgs
+    physicalMetrics?: boolean | UserCountOutputTypeCountPhysicalMetricsArgs
+    goals?: boolean | UserCountOutputTypeCountGoalsArgs
   }
 
   // Custom InputTypes
@@ -1802,6 +2136,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountAccessLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccessLogWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPhysicalMetricsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PhysicalMetricWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountGoalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GoalWhereInput
   }
 
 
@@ -2158,10 +2506,28 @@ export namespace Prisma {
     dailyActivities?: boolean | User$dailyActivitiesArgs<ExtArgs>
     exerciseSubmissions?: boolean | User$exerciseSubmissionsArgs<ExtArgs>
     accessLogs?: boolean | User$accessLogsArgs<ExtArgs>
+    physicalMetrics?: boolean | User$physicalMetricsArgs<ExtArgs>
+    goals?: boolean | User$goalsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    password?: boolean
+    role?: boolean
+    isActive?: boolean
+    digitalId?: boolean
+    qrToken?: boolean
+    subscriptionStatus?: boolean
+    xp?: boolean
+    level?: boolean
+    playCoins?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["user"]>
+
+  export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
     password?: boolean
@@ -2193,6 +2559,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "role" | "isActive" | "digitalId" | "qrToken" | "subscriptionStatus" | "xp" | "level" | "playCoins" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     profile?: boolean | User$profileArgs<ExtArgs>
     student?: boolean | User$studentArgs<ExtArgs>
@@ -2202,9 +2569,12 @@ export namespace Prisma {
     dailyActivities?: boolean | User$dailyActivitiesArgs<ExtArgs>
     exerciseSubmissions?: boolean | User$exerciseSubmissionsArgs<ExtArgs>
     accessLogs?: boolean | User$accessLogsArgs<ExtArgs>
+    physicalMetrics?: boolean | User$physicalMetricsArgs<ExtArgs>
+    goals?: boolean | User$goalsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UserIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
@@ -2217,6 +2587,8 @@ export namespace Prisma {
       dailyActivities: Prisma.$DailyActivityPayload<ExtArgs>[]
       exerciseSubmissions: Prisma.$ExerciseSubmissionPayload<ExtArgs>[]
       accessLogs: Prisma.$AccessLogPayload<ExtArgs>[]
+      physicalMetrics: Prisma.$PhysicalMetricPayload<ExtArgs>[]
+      goals: Prisma.$GoalPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2238,12 +2610,12 @@ export namespace Prisma {
 
   type UserGetPayload<S extends boolean | null | undefined | UserDefaultArgs> = $Result.GetResult<Prisma.$UserPayload, S>
 
-  type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<UserFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: UserCountAggregateInputType | true
     }
 
-  export interface UserDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface UserDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['User'], meta: { name: 'User' } }
     /**
      * Find zero or one User that matches the filter.
@@ -2256,10 +2628,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends UserFindUniqueArgs>(args: SelectSubset<T, UserFindUniqueArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends UserFindUniqueArgs>(args: SelectSubset<T, UserFindUniqueArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one User that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one User that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
      * @example
@@ -2270,7 +2642,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(args: SelectSubset<T, UserFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(args: SelectSubset<T, UserFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first User that matches the filter.
@@ -2285,7 +2657,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends UserFindFirstArgs>(args?: SelectSubset<T, UserFindFirstArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends UserFindFirstArgs>(args?: SelectSubset<T, UserFindFirstArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first User that matches the filter or
@@ -2301,7 +2673,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends UserFindFirstOrThrowArgs>(args?: SelectSubset<T, UserFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends UserFindFirstOrThrowArgs>(args?: SelectSubset<T, UserFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more Users that matches the filter.
@@ -2319,7 +2691,7 @@ export namespace Prisma {
      * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends UserFindManyArgs>(args?: SelectSubset<T, UserFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends UserFindManyArgs>(args?: SelectSubset<T, UserFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a User.
@@ -2333,7 +2705,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends UserCreateArgs>(args: SelectSubset<T, UserCreateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends UserCreateArgs>(args: SelectSubset<T, UserCreateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many Users.
@@ -2361,7 +2733,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Users and only return the `id`
-     * const userWithIdOnly = await prisma.user.createManyAndReturn({ 
+     * const userWithIdOnly = await prisma.user.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -2371,7 +2743,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends UserCreateManyAndReturnArgs>(args?: SelectSubset<T, UserCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends UserCreateManyAndReturnArgs>(args?: SelectSubset<T, UserCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a User.
@@ -2385,7 +2757,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends UserDeleteArgs>(args: SelectSubset<T, UserDeleteArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends UserDeleteArgs>(args: SelectSubset<T, UserDeleteArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one User.
@@ -2402,7 +2774,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends UserUpdateArgs>(args: SelectSubset<T, UserUpdateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends UserUpdateArgs>(args: SelectSubset<T, UserUpdateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more Users.
@@ -2438,6 +2810,36 @@ export namespace Prisma {
     updateMany<T extends UserUpdateManyArgs>(args: SelectSubset<T, UserUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more Users and returns the data updated in the database.
+     * @param {UserUpdateManyAndReturnArgs} args - Arguments to update many Users.
+     * @example
+     * // Update many Users
+     * const user = await prisma.user.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Users and only return the `id`
+     * const userWithIdOnly = await prisma.user.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserUpdateManyAndReturnArgs>(args: SelectSubset<T, UserUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one User.
      * @param {UserUpsertArgs} args - Arguments to update or create a User.
      * @example
@@ -2454,7 +2856,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends UserUpsertArgs>(args: SelectSubset<T, UserUpsertArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends UserUpsertArgs>(args: SelectSubset<T, UserUpsertArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -2594,16 +2996,18 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    profile<T extends User$profileArgs<ExtArgs> = {}>(args?: Subset<T, User$profileArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    student<T extends User$studentArgs<ExtArgs> = {}>(args?: Subset<T, User$studentArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    parent<T extends User$parentArgs<ExtArgs> = {}>(args?: Subset<T, User$parentArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    coach<T extends User$coachArgs<ExtArgs> = {}>(args?: Subset<T, User$coachArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    auditLogs<T extends User$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany"> | Null>
-    dailyActivities<T extends User$dailyActivitiesArgs<ExtArgs> = {}>(args?: Subset<T, User$dailyActivitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findMany"> | Null>
-    exerciseSubmissions<T extends User$exerciseSubmissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$exerciseSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findMany"> | Null>
-    accessLogs<T extends User$accessLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$accessLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findMany"> | Null>
+    profile<T extends User$profileArgs<ExtArgs> = {}>(args?: Subset<T, User$profileArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    student<T extends User$studentArgs<ExtArgs> = {}>(args?: Subset<T, User$studentArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    parent<T extends User$parentArgs<ExtArgs> = {}>(args?: Subset<T, User$parentArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    coach<T extends User$coachArgs<ExtArgs> = {}>(args?: Subset<T, User$coachArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    auditLogs<T extends User$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    dailyActivities<T extends User$dailyActivitiesArgs<ExtArgs> = {}>(args?: Subset<T, User$dailyActivitiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    exerciseSubmissions<T extends User$exerciseSubmissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$exerciseSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    accessLogs<T extends User$accessLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$accessLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    physicalMetrics<T extends User$physicalMetricsArgs<ExtArgs> = {}>(args?: Subset<T, User$physicalMetricsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    goals<T extends User$goalsArgs<ExtArgs> = {}>(args?: Subset<T, User$goalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2631,7 +3035,7 @@ export namespace Prisma {
 
   /**
    * Fields of the User model
-   */ 
+   */
   interface UserFieldRefs {
     readonly id: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
@@ -2659,6 +3063,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
@@ -2677,6 +3085,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
@@ -2694,6 +3106,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -2743,6 +3159,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
@@ -2791,6 +3211,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
@@ -2834,6 +3258,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
@@ -2863,6 +3291,10 @@ export namespace Prisma {
      */
     select?: UserSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
      * The data used to create many Users.
      */
     data: UserCreateManyInput | UserCreateManyInput[]
@@ -2877,6 +3309,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -2903,6 +3339,36 @@ export namespace Prisma {
      * Filter which Users to update
      */
     where?: UserWhereInput
+    /**
+     * Limit how many Users to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * User updateManyAndReturn
+   */
+  export type UserUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * The data used to update Users.
+     */
+    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>
+    /**
+     * Filter which Users to update
+     */
+    where?: UserWhereInput
+    /**
+     * Limit how many Users to update.
+     */
+    limit?: number
   }
 
   /**
@@ -2913,6 +3379,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -2940,6 +3410,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
@@ -2957,6 +3431,10 @@ export namespace Prisma {
      * Filter which Users to delete
      */
     where?: UserWhereInput
+    /**
+     * Limit how many Users to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -2967,6 +3445,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Profile
      */
     select?: ProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -2983,6 +3465,10 @@ export namespace Prisma {
      */
     select?: StudentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: StudentInclude<ExtArgs> | null
@@ -2997,6 +3483,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Parent
      */
     select?: ParentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -3013,6 +3503,10 @@ export namespace Prisma {
      */
     select?: CoachSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: CoachInclude<ExtArgs> | null
@@ -3027,6 +3521,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AuditLog
      */
     select?: AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -3048,6 +3546,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelect<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: DailyActivityInclude<ExtArgs> | null
@@ -3067,6 +3569,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ExerciseSubmission
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -3088,6 +3594,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AccessLogInclude<ExtArgs> | null
@@ -3100,6 +3610,54 @@ export namespace Prisma {
   }
 
   /**
+   * User.physicalMetrics
+   */
+  export type User$physicalMetricsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    where?: PhysicalMetricWhereInput
+    orderBy?: PhysicalMetricOrderByWithRelationInput | PhysicalMetricOrderByWithRelationInput[]
+    cursor?: PhysicalMetricWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PhysicalMetricScalarFieldEnum | PhysicalMetricScalarFieldEnum[]
+  }
+
+  /**
+   * User.goals
+   */
+  export type User$goalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    where?: GoalWhereInput
+    orderBy?: GoalOrderByWithRelationInput | GoalOrderByWithRelationInput[]
+    cursor?: GoalWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GoalScalarFieldEnum | GoalScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3107,6 +3665,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -3316,8 +3878,8 @@ export namespace Prisma {
   export type ProfileGroupByOutputType = {
     id: string
     userId: string
-    firstName: string
-    lastName: string
+    firstName: string | null
+    lastName: string | null
     avatarUrl: string | null
     bio: string | null
     height: number | null
@@ -3373,6 +3935,20 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["profile"]>
 
+  export type ProfileSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    firstName?: boolean
+    lastName?: boolean
+    avatarUrl?: boolean
+    bio?: boolean
+    height?: boolean
+    weight?: boolean
+    bloodType?: boolean
+    athleticGoal?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["profile"]>
+
   export type ProfileSelectScalar = {
     id?: boolean
     userId?: boolean
@@ -3386,10 +3962,14 @@ export namespace Prisma {
     athleticGoal?: boolean
   }
 
+  export type ProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "firstName" | "lastName" | "avatarUrl" | "bio" | "height" | "weight" | "bloodType" | "athleticGoal", ExtArgs["result"]["profile"]>
   export type ProfileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
   export type ProfileIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ProfileIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
 
@@ -3401,8 +3981,8 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
-      firstName: string
-      lastName: string
+      firstName: string | null
+      lastName: string | null
       avatarUrl: string | null
       bio: string | null
       height: number | null
@@ -3415,12 +3995,12 @@ export namespace Prisma {
 
   type ProfileGetPayload<S extends boolean | null | undefined | ProfileDefaultArgs> = $Result.GetResult<Prisma.$ProfilePayload, S>
 
-  type ProfileCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<ProfileFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type ProfileCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProfileFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: ProfileCountAggregateInputType | true
     }
 
-  export interface ProfileDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface ProfileDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Profile'], meta: { name: 'Profile' } }
     /**
      * Find zero or one Profile that matches the filter.
@@ -3433,10 +4013,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends ProfileFindUniqueArgs>(args: SelectSubset<T, ProfileFindUniqueArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends ProfileFindUniqueArgs>(args: SelectSubset<T, ProfileFindUniqueArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one Profile that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one Profile that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {ProfileFindUniqueOrThrowArgs} args - Arguments to find a Profile
      * @example
@@ -3447,7 +4027,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends ProfileFindUniqueOrThrowArgs>(args: SelectSubset<T, ProfileFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends ProfileFindUniqueOrThrowArgs>(args: SelectSubset<T, ProfileFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Profile that matches the filter.
@@ -3462,7 +4042,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends ProfileFindFirstArgs>(args?: SelectSubset<T, ProfileFindFirstArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends ProfileFindFirstArgs>(args?: SelectSubset<T, ProfileFindFirstArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Profile that matches the filter or
@@ -3478,7 +4058,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends ProfileFindFirstOrThrowArgs>(args?: SelectSubset<T, ProfileFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends ProfileFindFirstOrThrowArgs>(args?: SelectSubset<T, ProfileFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more Profiles that matches the filter.
@@ -3496,7 +4076,7 @@ export namespace Prisma {
      * const profileWithIdOnly = await prisma.profile.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends ProfileFindManyArgs>(args?: SelectSubset<T, ProfileFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findMany">>
+    findMany<T extends ProfileFindManyArgs>(args?: SelectSubset<T, ProfileFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a Profile.
@@ -3510,7 +4090,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends ProfileCreateArgs>(args: SelectSubset<T, ProfileCreateArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends ProfileCreateArgs>(args: SelectSubset<T, ProfileCreateArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many Profiles.
@@ -3538,7 +4118,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Profiles and only return the `id`
-     * const profileWithIdOnly = await prisma.profile.createManyAndReturn({ 
+     * const profileWithIdOnly = await prisma.profile.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -3548,7 +4128,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends ProfileCreateManyAndReturnArgs>(args?: SelectSubset<T, ProfileCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends ProfileCreateManyAndReturnArgs>(args?: SelectSubset<T, ProfileCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a Profile.
@@ -3562,7 +4142,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends ProfileDeleteArgs>(args: SelectSubset<T, ProfileDeleteArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends ProfileDeleteArgs>(args: SelectSubset<T, ProfileDeleteArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one Profile.
@@ -3579,7 +4159,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends ProfileUpdateArgs>(args: SelectSubset<T, ProfileUpdateArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends ProfileUpdateArgs>(args: SelectSubset<T, ProfileUpdateArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more Profiles.
@@ -3615,6 +4195,36 @@ export namespace Prisma {
     updateMany<T extends ProfileUpdateManyArgs>(args: SelectSubset<T, ProfileUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more Profiles and returns the data updated in the database.
+     * @param {ProfileUpdateManyAndReturnArgs} args - Arguments to update many Profiles.
+     * @example
+     * // Update many Profiles
+     * const profile = await prisma.profile.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Profiles and only return the `id`
+     * const profileWithIdOnly = await prisma.profile.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProfileUpdateManyAndReturnArgs>(args: SelectSubset<T, ProfileUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one Profile.
      * @param {ProfileUpsertArgs} args - Arguments to update or create a Profile.
      * @example
@@ -3631,7 +4241,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends ProfileUpsertArgs>(args: SelectSubset<T, ProfileUpsertArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends ProfileUpsertArgs>(args: SelectSubset<T, ProfileUpsertArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -3771,9 +4381,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3801,7 +4411,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Profile model
-   */ 
+   */
   interface ProfileFieldRefs {
     readonly id: FieldRef<"Profile", 'String'>
     readonly userId: FieldRef<"Profile", 'String'>
@@ -3826,6 +4436,10 @@ export namespace Prisma {
      */
     select?: ProfileSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ProfileInclude<ExtArgs> | null
@@ -3844,6 +4458,10 @@ export namespace Prisma {
      */
     select?: ProfileSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ProfileInclude<ExtArgs> | null
@@ -3861,6 +4479,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Profile
      */
     select?: ProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -3910,6 +4532,10 @@ export namespace Prisma {
      */
     select?: ProfileSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ProfileInclude<ExtArgs> | null
@@ -3958,6 +4584,10 @@ export namespace Prisma {
      */
     select?: ProfileSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ProfileInclude<ExtArgs> | null
@@ -4001,6 +4631,10 @@ export namespace Prisma {
      */
     select?: ProfileSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ProfileInclude<ExtArgs> | null
@@ -4030,6 +4664,10 @@ export namespace Prisma {
      */
     select?: ProfileSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
      * The data used to create many Profiles.
      */
     data: ProfileCreateManyInput | ProfileCreateManyInput[]
@@ -4048,6 +4686,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Profile
      */
     select?: ProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -4074,6 +4716,40 @@ export namespace Prisma {
      * Filter which Profiles to update
      */
     where?: ProfileWhereInput
+    /**
+     * Limit how many Profiles to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Profile updateManyAndReturn
+   */
+  export type ProfileUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Profile
+     */
+    select?: ProfileSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
+     * The data used to update Profiles.
+     */
+    data: XOR<ProfileUpdateManyMutationInput, ProfileUncheckedUpdateManyInput>
+    /**
+     * Filter which Profiles to update
+     */
+    where?: ProfileWhereInput
+    /**
+     * Limit how many Profiles to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProfileIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -4084,6 +4760,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Profile
      */
     select?: ProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -4111,6 +4791,10 @@ export namespace Prisma {
      */
     select?: ProfileSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ProfileInclude<ExtArgs> | null
@@ -4128,6 +4812,10 @@ export namespace Prisma {
      * Filter which Profiles to delete
      */
     where?: ProfileWhereInput
+    /**
+     * Limit how many Profiles to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -4138,6 +4826,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Profile
      */
     select?: ProfileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Profile
+     */
+    omit?: ProfileOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -4317,6 +5009,15 @@ export namespace Prisma {
     parent?: boolean | Student$parentArgs<ExtArgs>
   }, ExtArgs["result"]["student"]>
 
+  export type StudentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    gradeLevel?: boolean
+    parentId?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    parent?: boolean | Student$parentArgs<ExtArgs>
+  }, ExtArgs["result"]["student"]>
+
   export type StudentSelectScalar = {
     id?: boolean
     userId?: boolean
@@ -4324,6 +5025,7 @@ export namespace Prisma {
     parentId?: boolean
   }
 
+  export type StudentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "gradeLevel" | "parentId", ExtArgs["result"]["student"]>
   export type StudentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     parent?: boolean | Student$parentArgs<ExtArgs>
@@ -4332,6 +5034,10 @@ export namespace Prisma {
     _count?: boolean | StudentCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type StudentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    parent?: boolean | Student$parentArgs<ExtArgs>
+  }
+  export type StudentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     parent?: boolean | Student$parentArgs<ExtArgs>
   }
@@ -4355,12 +5061,12 @@ export namespace Prisma {
 
   type StudentGetPayload<S extends boolean | null | undefined | StudentDefaultArgs> = $Result.GetResult<Prisma.$StudentPayload, S>
 
-  type StudentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<StudentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type StudentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<StudentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: StudentCountAggregateInputType | true
     }
 
-  export interface StudentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface StudentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Student'], meta: { name: 'Student' } }
     /**
      * Find zero or one Student that matches the filter.
@@ -4373,10 +5079,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends StudentFindUniqueArgs>(args: SelectSubset<T, StudentFindUniqueArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends StudentFindUniqueArgs>(args: SelectSubset<T, StudentFindUniqueArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one Student that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one Student that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {StudentFindUniqueOrThrowArgs} args - Arguments to find a Student
      * @example
@@ -4387,7 +5093,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends StudentFindUniqueOrThrowArgs>(args: SelectSubset<T, StudentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends StudentFindUniqueOrThrowArgs>(args: SelectSubset<T, StudentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Student that matches the filter.
@@ -4402,7 +5108,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends StudentFindFirstArgs>(args?: SelectSubset<T, StudentFindFirstArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends StudentFindFirstArgs>(args?: SelectSubset<T, StudentFindFirstArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Student that matches the filter or
@@ -4418,7 +5124,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends StudentFindFirstOrThrowArgs>(args?: SelectSubset<T, StudentFindFirstOrThrowArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends StudentFindFirstOrThrowArgs>(args?: SelectSubset<T, StudentFindFirstOrThrowArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more Students that matches the filter.
@@ -4436,7 +5142,7 @@ export namespace Prisma {
      * const studentWithIdOnly = await prisma.student.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends StudentFindManyArgs>(args?: SelectSubset<T, StudentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends StudentFindManyArgs>(args?: SelectSubset<T, StudentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a Student.
@@ -4450,7 +5156,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends StudentCreateArgs>(args: SelectSubset<T, StudentCreateArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends StudentCreateArgs>(args: SelectSubset<T, StudentCreateArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many Students.
@@ -4478,7 +5184,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Students and only return the `id`
-     * const studentWithIdOnly = await prisma.student.createManyAndReturn({ 
+     * const studentWithIdOnly = await prisma.student.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -4488,7 +5194,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends StudentCreateManyAndReturnArgs>(args?: SelectSubset<T, StudentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends StudentCreateManyAndReturnArgs>(args?: SelectSubset<T, StudentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a Student.
@@ -4502,7 +5208,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends StudentDeleteArgs>(args: SelectSubset<T, StudentDeleteArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends StudentDeleteArgs>(args: SelectSubset<T, StudentDeleteArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one Student.
@@ -4519,7 +5225,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends StudentUpdateArgs>(args: SelectSubset<T, StudentUpdateArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends StudentUpdateArgs>(args: SelectSubset<T, StudentUpdateArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more Students.
@@ -4555,6 +5261,36 @@ export namespace Prisma {
     updateMany<T extends StudentUpdateManyArgs>(args: SelectSubset<T, StudentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more Students and returns the data updated in the database.
+     * @param {StudentUpdateManyAndReturnArgs} args - Arguments to update many Students.
+     * @example
+     * // Update many Students
+     * const student = await prisma.student.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Students and only return the `id`
+     * const studentWithIdOnly = await prisma.student.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends StudentUpdateManyAndReturnArgs>(args: SelectSubset<T, StudentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one Student.
      * @param {StudentUpsertArgs} args - Arguments to update or create a Student.
      * @example
@@ -4571,7 +5307,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends StudentUpsertArgs>(args: SelectSubset<T, StudentUpsertArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends StudentUpsertArgs>(args: SelectSubset<T, StudentUpsertArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -4711,12 +5447,12 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__StudentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__StudentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    parent<T extends Student$parentArgs<ExtArgs> = {}>(args?: Subset<T, Student$parentArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
-    attendance<T extends Student$attendanceArgs<ExtArgs> = {}>(args?: Subset<T, Student$attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany"> | Null>
-    grades<T extends Student$gradesArgs<ExtArgs> = {}>(args?: Subset<T, Student$gradesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findMany"> | Null>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    parent<T extends Student$parentArgs<ExtArgs> = {}>(args?: Subset<T, Student$parentArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    attendance<T extends Student$attendanceArgs<ExtArgs> = {}>(args?: Subset<T, Student$attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    grades<T extends Student$gradesArgs<ExtArgs> = {}>(args?: Subset<T, Student$gradesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4744,7 +5480,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Student model
-   */ 
+   */
   interface StudentFieldRefs {
     readonly id: FieldRef<"Student", 'String'>
     readonly userId: FieldRef<"Student", 'String'>
@@ -4762,6 +5498,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Student
      */
     select?: StudentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -4781,6 +5521,10 @@ export namespace Prisma {
      */
     select?: StudentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: StudentInclude<ExtArgs> | null
@@ -4798,6 +5542,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Student
      */
     select?: StudentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -4847,6 +5595,10 @@ export namespace Prisma {
      */
     select?: StudentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: StudentInclude<ExtArgs> | null
@@ -4895,6 +5647,10 @@ export namespace Prisma {
      */
     select?: StudentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: StudentInclude<ExtArgs> | null
@@ -4938,6 +5694,10 @@ export namespace Prisma {
      */
     select?: StudentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: StudentInclude<ExtArgs> | null
@@ -4967,6 +5727,10 @@ export namespace Prisma {
      */
     select?: StudentSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
      * The data used to create many Students.
      */
     data: StudentCreateManyInput | StudentCreateManyInput[]
@@ -4985,6 +5749,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Student
      */
     select?: StudentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5011,6 +5779,40 @@ export namespace Prisma {
      * Filter which Students to update
      */
     where?: StudentWhereInput
+    /**
+     * Limit how many Students to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Student updateManyAndReturn
+   */
+  export type StudentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Student
+     */
+    select?: StudentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
+     * The data used to update Students.
+     */
+    data: XOR<StudentUpdateManyMutationInput, StudentUncheckedUpdateManyInput>
+    /**
+     * Filter which Students to update
+     */
+    where?: StudentWhereInput
+    /**
+     * Limit how many Students to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StudentIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -5021,6 +5823,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Student
      */
     select?: StudentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5048,6 +5854,10 @@ export namespace Prisma {
      */
     select?: StudentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: StudentInclude<ExtArgs> | null
@@ -5065,6 +5875,10 @@ export namespace Prisma {
      * Filter which Students to delete
      */
     where?: StudentWhereInput
+    /**
+     * Limit how many Students to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -5075,6 +5889,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Parent
      */
     select?: ParentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5090,6 +5908,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Attendance
      */
     select?: AttendanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5111,6 +5933,10 @@ export namespace Prisma {
      */
     select?: GradeSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: GradeInclude<ExtArgs> | null
@@ -5130,6 +5956,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Student
      */
     select?: StudentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5297,18 +6127,29 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["parent"]>
 
+  export type ParentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    phoneNumber?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parent"]>
+
   export type ParentSelectScalar = {
     id?: boolean
     userId?: boolean
     phoneNumber?: boolean
   }
 
+  export type ParentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "phoneNumber", ExtArgs["result"]["parent"]>
   export type ParentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     students?: boolean | Parent$studentsArgs<ExtArgs>
     _count?: boolean | ParentCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ParentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ParentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
 
@@ -5328,12 +6169,12 @@ export namespace Prisma {
 
   type ParentGetPayload<S extends boolean | null | undefined | ParentDefaultArgs> = $Result.GetResult<Prisma.$ParentPayload, S>
 
-  type ParentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<ParentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type ParentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: ParentCountAggregateInputType | true
     }
 
-  export interface ParentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface ParentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Parent'], meta: { name: 'Parent' } }
     /**
      * Find zero or one Parent that matches the filter.
@@ -5346,10 +6187,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends ParentFindUniqueArgs>(args: SelectSubset<T, ParentFindUniqueArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends ParentFindUniqueArgs>(args: SelectSubset<T, ParentFindUniqueArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one Parent that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one Parent that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {ParentFindUniqueOrThrowArgs} args - Arguments to find a Parent
      * @example
@@ -5360,7 +6201,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends ParentFindUniqueOrThrowArgs>(args: SelectSubset<T, ParentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends ParentFindUniqueOrThrowArgs>(args: SelectSubset<T, ParentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Parent that matches the filter.
@@ -5375,7 +6216,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends ParentFindFirstArgs>(args?: SelectSubset<T, ParentFindFirstArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends ParentFindFirstArgs>(args?: SelectSubset<T, ParentFindFirstArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Parent that matches the filter or
@@ -5391,7 +6232,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends ParentFindFirstOrThrowArgs>(args?: SelectSubset<T, ParentFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends ParentFindFirstOrThrowArgs>(args?: SelectSubset<T, ParentFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more Parents that matches the filter.
@@ -5409,7 +6250,7 @@ export namespace Prisma {
      * const parentWithIdOnly = await prisma.parent.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends ParentFindManyArgs>(args?: SelectSubset<T, ParentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends ParentFindManyArgs>(args?: SelectSubset<T, ParentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a Parent.
@@ -5423,7 +6264,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends ParentCreateArgs>(args: SelectSubset<T, ParentCreateArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends ParentCreateArgs>(args: SelectSubset<T, ParentCreateArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many Parents.
@@ -5451,7 +6292,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Parents and only return the `id`
-     * const parentWithIdOnly = await prisma.parent.createManyAndReturn({ 
+     * const parentWithIdOnly = await prisma.parent.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -5461,7 +6302,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends ParentCreateManyAndReturnArgs>(args?: SelectSubset<T, ParentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends ParentCreateManyAndReturnArgs>(args?: SelectSubset<T, ParentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a Parent.
@@ -5475,7 +6316,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends ParentDeleteArgs>(args: SelectSubset<T, ParentDeleteArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends ParentDeleteArgs>(args: SelectSubset<T, ParentDeleteArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one Parent.
@@ -5492,7 +6333,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends ParentUpdateArgs>(args: SelectSubset<T, ParentUpdateArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends ParentUpdateArgs>(args: SelectSubset<T, ParentUpdateArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more Parents.
@@ -5528,6 +6369,36 @@ export namespace Prisma {
     updateMany<T extends ParentUpdateManyArgs>(args: SelectSubset<T, ParentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more Parents and returns the data updated in the database.
+     * @param {ParentUpdateManyAndReturnArgs} args - Arguments to update many Parents.
+     * @example
+     * // Update many Parents
+     * const parent = await prisma.parent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Parents and only return the `id`
+     * const parentWithIdOnly = await prisma.parent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParentUpdateManyAndReturnArgs>(args: SelectSubset<T, ParentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one Parent.
      * @param {ParentUpsertArgs} args - Arguments to update or create a Parent.
      * @example
@@ -5544,7 +6415,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends ParentUpsertArgs>(args: SelectSubset<T, ParentUpsertArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends ParentUpsertArgs>(args: SelectSubset<T, ParentUpsertArgs<ExtArgs>>): Prisma__ParentClient<$Result.GetResult<Prisma.$ParentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -5684,10 +6555,10 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__ParentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__ParentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    students<T extends Parent$studentsArgs<ExtArgs> = {}>(args?: Subset<T, Parent$studentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findMany"> | Null>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    students<T extends Parent$studentsArgs<ExtArgs> = {}>(args?: Subset<T, Parent$studentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5715,7 +6586,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Parent model
-   */ 
+   */
   interface ParentFieldRefs {
     readonly id: FieldRef<"Parent", 'String'>
     readonly userId: FieldRef<"Parent", 'String'>
@@ -5732,6 +6603,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Parent
      */
     select?: ParentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5751,6 +6626,10 @@ export namespace Prisma {
      */
     select?: ParentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ParentInclude<ExtArgs> | null
@@ -5768,6 +6647,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Parent
      */
     select?: ParentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5817,6 +6700,10 @@ export namespace Prisma {
      */
     select?: ParentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ParentInclude<ExtArgs> | null
@@ -5865,6 +6752,10 @@ export namespace Prisma {
      */
     select?: ParentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ParentInclude<ExtArgs> | null
@@ -5908,6 +6799,10 @@ export namespace Prisma {
      */
     select?: ParentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ParentInclude<ExtArgs> | null
@@ -5937,6 +6832,10 @@ export namespace Prisma {
      */
     select?: ParentSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
+    /**
      * The data used to create many Parents.
      */
     data: ParentCreateManyInput | ParentCreateManyInput[]
@@ -5955,6 +6854,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Parent
      */
     select?: ParentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -5981,6 +6884,40 @@ export namespace Prisma {
      * Filter which Parents to update
      */
     where?: ParentWhereInput
+    /**
+     * Limit how many Parents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Parent updateManyAndReturn
+   */
+  export type ParentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Parent
+     */
+    select?: ParentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
+    /**
+     * The data used to update Parents.
+     */
+    data: XOR<ParentUpdateManyMutationInput, ParentUncheckedUpdateManyInput>
+    /**
+     * Filter which Parents to update
+     */
+    where?: ParentWhereInput
+    /**
+     * Limit how many Parents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParentIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -5991,6 +6928,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Parent
      */
     select?: ParentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -6018,6 +6959,10 @@ export namespace Prisma {
      */
     select?: ParentSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ParentInclude<ExtArgs> | null
@@ -6035,6 +6980,10 @@ export namespace Prisma {
      * Filter which Parents to delete
      */
     where?: ParentWhereInput
+    /**
+     * Limit how many Parents to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -6045,6 +6994,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Student
      */
     select?: StudentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Student
+     */
+    omit?: StudentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -6065,6 +7018,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Parent
      */
     select?: ParentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Parent
+     */
+    omit?: ParentOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -6230,16 +7187,27 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["coach"]>
 
+  export type CoachSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    specialization?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["coach"]>
+
   export type CoachSelectScalar = {
     id?: boolean
     userId?: boolean
     specialization?: boolean
   }
 
+  export type CoachOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "specialization", ExtArgs["result"]["coach"]>
   export type CoachInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
   export type CoachIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type CoachIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
 
@@ -6258,12 +7226,12 @@ export namespace Prisma {
 
   type CoachGetPayload<S extends boolean | null | undefined | CoachDefaultArgs> = $Result.GetResult<Prisma.$CoachPayload, S>
 
-  type CoachCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<CoachFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type CoachCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CoachFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: CoachCountAggregateInputType | true
     }
 
-  export interface CoachDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface CoachDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Coach'], meta: { name: 'Coach' } }
     /**
      * Find zero or one Coach that matches the filter.
@@ -6276,10 +7244,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends CoachFindUniqueArgs>(args: SelectSubset<T, CoachFindUniqueArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends CoachFindUniqueArgs>(args: SelectSubset<T, CoachFindUniqueArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one Coach that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one Coach that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {CoachFindUniqueOrThrowArgs} args - Arguments to find a Coach
      * @example
@@ -6290,7 +7258,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends CoachFindUniqueOrThrowArgs>(args: SelectSubset<T, CoachFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends CoachFindUniqueOrThrowArgs>(args: SelectSubset<T, CoachFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Coach that matches the filter.
@@ -6305,7 +7273,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends CoachFindFirstArgs>(args?: SelectSubset<T, CoachFindFirstArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends CoachFindFirstArgs>(args?: SelectSubset<T, CoachFindFirstArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Coach that matches the filter or
@@ -6321,7 +7289,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends CoachFindFirstOrThrowArgs>(args?: SelectSubset<T, CoachFindFirstOrThrowArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends CoachFindFirstOrThrowArgs>(args?: SelectSubset<T, CoachFindFirstOrThrowArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more Coaches that matches the filter.
@@ -6339,7 +7307,7 @@ export namespace Prisma {
      * const coachWithIdOnly = await prisma.coach.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends CoachFindManyArgs>(args?: SelectSubset<T, CoachFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends CoachFindManyArgs>(args?: SelectSubset<T, CoachFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a Coach.
@@ -6353,7 +7321,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends CoachCreateArgs>(args: SelectSubset<T, CoachCreateArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends CoachCreateArgs>(args: SelectSubset<T, CoachCreateArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many Coaches.
@@ -6381,7 +7349,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Coaches and only return the `id`
-     * const coachWithIdOnly = await prisma.coach.createManyAndReturn({ 
+     * const coachWithIdOnly = await prisma.coach.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -6391,7 +7359,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends CoachCreateManyAndReturnArgs>(args?: SelectSubset<T, CoachCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends CoachCreateManyAndReturnArgs>(args?: SelectSubset<T, CoachCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a Coach.
@@ -6405,7 +7373,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends CoachDeleteArgs>(args: SelectSubset<T, CoachDeleteArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends CoachDeleteArgs>(args: SelectSubset<T, CoachDeleteArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one Coach.
@@ -6422,7 +7390,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends CoachUpdateArgs>(args: SelectSubset<T, CoachUpdateArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends CoachUpdateArgs>(args: SelectSubset<T, CoachUpdateArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more Coaches.
@@ -6458,6 +7426,36 @@ export namespace Prisma {
     updateMany<T extends CoachUpdateManyArgs>(args: SelectSubset<T, CoachUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more Coaches and returns the data updated in the database.
+     * @param {CoachUpdateManyAndReturnArgs} args - Arguments to update many Coaches.
+     * @example
+     * // Update many Coaches
+     * const coach = await prisma.coach.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Coaches and only return the `id`
+     * const coachWithIdOnly = await prisma.coach.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CoachUpdateManyAndReturnArgs>(args: SelectSubset<T, CoachUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one Coach.
      * @param {CoachUpsertArgs} args - Arguments to update or create a Coach.
      * @example
@@ -6474,7 +7472,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends CoachUpsertArgs>(args: SelectSubset<T, CoachUpsertArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends CoachUpsertArgs>(args: SelectSubset<T, CoachUpsertArgs<ExtArgs>>): Prisma__CoachClient<$Result.GetResult<Prisma.$CoachPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -6614,9 +7612,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__CoachClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__CoachClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6644,7 +7642,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Coach model
-   */ 
+   */
   interface CoachFieldRefs {
     readonly id: FieldRef<"Coach", 'String'>
     readonly userId: FieldRef<"Coach", 'String'>
@@ -6661,6 +7659,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Coach
      */
     select?: CoachSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -6680,6 +7682,10 @@ export namespace Prisma {
      */
     select?: CoachSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: CoachInclude<ExtArgs> | null
@@ -6697,6 +7703,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Coach
      */
     select?: CoachSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -6746,6 +7756,10 @@ export namespace Prisma {
      */
     select?: CoachSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: CoachInclude<ExtArgs> | null
@@ -6794,6 +7808,10 @@ export namespace Prisma {
      */
     select?: CoachSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: CoachInclude<ExtArgs> | null
@@ -6837,6 +7855,10 @@ export namespace Prisma {
      */
     select?: CoachSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: CoachInclude<ExtArgs> | null
@@ -6866,6 +7888,10 @@ export namespace Prisma {
      */
     select?: CoachSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
      * The data used to create many Coaches.
      */
     data: CoachCreateManyInput | CoachCreateManyInput[]
@@ -6884,6 +7910,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Coach
      */
     select?: CoachSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -6910,6 +7940,40 @@ export namespace Prisma {
      * Filter which Coaches to update
      */
     where?: CoachWhereInput
+    /**
+     * Limit how many Coaches to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Coach updateManyAndReturn
+   */
+  export type CoachUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coach
+     */
+    select?: CoachSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
+     * The data used to update Coaches.
+     */
+    data: XOR<CoachUpdateManyMutationInput, CoachUncheckedUpdateManyInput>
+    /**
+     * Filter which Coaches to update
+     */
+    where?: CoachWhereInput
+    /**
+     * Limit how many Coaches to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CoachIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -6920,6 +7984,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Coach
      */
     select?: CoachSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -6947,6 +8015,10 @@ export namespace Prisma {
      */
     select?: CoachSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: CoachInclude<ExtArgs> | null
@@ -6964,6 +8036,10 @@ export namespace Prisma {
      * Filter which Coaches to delete
      */
     where?: CoachWhereInput
+    /**
+     * Limit how many Coaches to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -6974,6 +8050,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Coach
      */
     select?: CoachSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coach
+     */
+    omit?: CoachOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -7148,6 +8228,14 @@ export namespace Prisma {
     student?: boolean | StudentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
 
+  export type AttendanceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    studentId?: boolean
+    date?: boolean
+    status?: boolean
+    student?: boolean | StudentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["attendance"]>
+
   export type AttendanceSelectScalar = {
     id?: boolean
     studentId?: boolean
@@ -7155,10 +8243,14 @@ export namespace Prisma {
     status?: boolean
   }
 
+  export type AttendanceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "studentId" | "date" | "status", ExtArgs["result"]["attendance"]>
   export type AttendanceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     student?: boolean | StudentDefaultArgs<ExtArgs>
   }
   export type AttendanceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    student?: boolean | StudentDefaultArgs<ExtArgs>
+  }
+  export type AttendanceIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     student?: boolean | StudentDefaultArgs<ExtArgs>
   }
 
@@ -7178,12 +8270,12 @@ export namespace Prisma {
 
   type AttendanceGetPayload<S extends boolean | null | undefined | AttendanceDefaultArgs> = $Result.GetResult<Prisma.$AttendancePayload, S>
 
-  type AttendanceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<AttendanceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type AttendanceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AttendanceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: AttendanceCountAggregateInputType | true
     }
 
-  export interface AttendanceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface AttendanceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Attendance'], meta: { name: 'Attendance' } }
     /**
      * Find zero or one Attendance that matches the filter.
@@ -7196,10 +8288,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends AttendanceFindUniqueArgs>(args: SelectSubset<T, AttendanceFindUniqueArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends AttendanceFindUniqueArgs>(args: SelectSubset<T, AttendanceFindUniqueArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one Attendance that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one Attendance that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {AttendanceFindUniqueOrThrowArgs} args - Arguments to find a Attendance
      * @example
@@ -7210,7 +8302,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends AttendanceFindUniqueOrThrowArgs>(args: SelectSubset<T, AttendanceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends AttendanceFindUniqueOrThrowArgs>(args: SelectSubset<T, AttendanceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Attendance that matches the filter.
@@ -7225,7 +8317,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends AttendanceFindFirstArgs>(args?: SelectSubset<T, AttendanceFindFirstArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends AttendanceFindFirstArgs>(args?: SelectSubset<T, AttendanceFindFirstArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Attendance that matches the filter or
@@ -7241,7 +8333,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends AttendanceFindFirstOrThrowArgs>(args?: SelectSubset<T, AttendanceFindFirstOrThrowArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends AttendanceFindFirstOrThrowArgs>(args?: SelectSubset<T, AttendanceFindFirstOrThrowArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more Attendances that matches the filter.
@@ -7259,7 +8351,7 @@ export namespace Prisma {
      * const attendanceWithIdOnly = await prisma.attendance.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends AttendanceFindManyArgs>(args?: SelectSubset<T, AttendanceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany">>
+    findMany<T extends AttendanceFindManyArgs>(args?: SelectSubset<T, AttendanceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a Attendance.
@@ -7273,7 +8365,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends AttendanceCreateArgs>(args: SelectSubset<T, AttendanceCreateArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends AttendanceCreateArgs>(args: SelectSubset<T, AttendanceCreateArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many Attendances.
@@ -7301,7 +8393,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Attendances and only return the `id`
-     * const attendanceWithIdOnly = await prisma.attendance.createManyAndReturn({ 
+     * const attendanceWithIdOnly = await prisma.attendance.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -7311,7 +8403,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends AttendanceCreateManyAndReturnArgs>(args?: SelectSubset<T, AttendanceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends AttendanceCreateManyAndReturnArgs>(args?: SelectSubset<T, AttendanceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a Attendance.
@@ -7325,7 +8417,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends AttendanceDeleteArgs>(args: SelectSubset<T, AttendanceDeleteArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends AttendanceDeleteArgs>(args: SelectSubset<T, AttendanceDeleteArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one Attendance.
@@ -7342,7 +8434,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends AttendanceUpdateArgs>(args: SelectSubset<T, AttendanceUpdateArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends AttendanceUpdateArgs>(args: SelectSubset<T, AttendanceUpdateArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more Attendances.
@@ -7378,6 +8470,36 @@ export namespace Prisma {
     updateMany<T extends AttendanceUpdateManyArgs>(args: SelectSubset<T, AttendanceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more Attendances and returns the data updated in the database.
+     * @param {AttendanceUpdateManyAndReturnArgs} args - Arguments to update many Attendances.
+     * @example
+     * // Update many Attendances
+     * const attendance = await prisma.attendance.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Attendances and only return the `id`
+     * const attendanceWithIdOnly = await prisma.attendance.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AttendanceUpdateManyAndReturnArgs>(args: SelectSubset<T, AttendanceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one Attendance.
      * @param {AttendanceUpsertArgs} args - Arguments to update or create a Attendance.
      * @example
@@ -7394,7 +8516,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends AttendanceUpsertArgs>(args: SelectSubset<T, AttendanceUpsertArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends AttendanceUpsertArgs>(args: SelectSubset<T, AttendanceUpsertArgs<ExtArgs>>): Prisma__AttendanceClient<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -7534,9 +8656,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__AttendanceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__AttendanceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    student<T extends StudentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, StudentDefaultArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    student<T extends StudentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, StudentDefaultArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7564,7 +8686,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Attendance model
-   */ 
+   */
   interface AttendanceFieldRefs {
     readonly id: FieldRef<"Attendance", 'String'>
     readonly studentId: FieldRef<"Attendance", 'String'>
@@ -7582,6 +8704,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Attendance
      */
     select?: AttendanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -7601,6 +8727,10 @@ export namespace Prisma {
      */
     select?: AttendanceSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AttendanceInclude<ExtArgs> | null
@@ -7618,6 +8748,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Attendance
      */
     select?: AttendanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -7667,6 +8801,10 @@ export namespace Prisma {
      */
     select?: AttendanceSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AttendanceInclude<ExtArgs> | null
@@ -7715,6 +8853,10 @@ export namespace Prisma {
      */
     select?: AttendanceSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AttendanceInclude<ExtArgs> | null
@@ -7758,6 +8900,10 @@ export namespace Prisma {
      */
     select?: AttendanceSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AttendanceInclude<ExtArgs> | null
@@ -7787,6 +8933,10 @@ export namespace Prisma {
      */
     select?: AttendanceSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
+    /**
      * The data used to create many Attendances.
      */
     data: AttendanceCreateManyInput | AttendanceCreateManyInput[]
@@ -7805,6 +8955,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Attendance
      */
     select?: AttendanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -7831,6 +8985,40 @@ export namespace Prisma {
      * Filter which Attendances to update
      */
     where?: AttendanceWhereInput
+    /**
+     * Limit how many Attendances to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Attendance updateManyAndReturn
+   */
+  export type AttendanceUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Attendance
+     */
+    select?: AttendanceSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
+    /**
+     * The data used to update Attendances.
+     */
+    data: XOR<AttendanceUpdateManyMutationInput, AttendanceUncheckedUpdateManyInput>
+    /**
+     * Filter which Attendances to update
+     */
+    where?: AttendanceWhereInput
+    /**
+     * Limit how many Attendances to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttendanceIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -7841,6 +9029,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Attendance
      */
     select?: AttendanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -7868,6 +9060,10 @@ export namespace Prisma {
      */
     select?: AttendanceSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AttendanceInclude<ExtArgs> | null
@@ -7885,6 +9081,10 @@ export namespace Prisma {
      * Filter which Attendances to delete
      */
     where?: AttendanceWhereInput
+    /**
+     * Limit how many Attendances to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -7895,6 +9095,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Attendance
      */
     select?: AttendanceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Attendance
+     */
+    omit?: AttendanceOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -8112,6 +9316,15 @@ export namespace Prisma {
     student?: boolean | StudentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["grade"]>
 
+  export type GradeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    studentId?: boolean
+    subject?: boolean
+    score?: boolean
+    date?: boolean
+    student?: boolean | StudentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["grade"]>
+
   export type GradeSelectScalar = {
     id?: boolean
     studentId?: boolean
@@ -8120,10 +9333,14 @@ export namespace Prisma {
     date?: boolean
   }
 
+  export type GradeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "studentId" | "subject" | "score" | "date", ExtArgs["result"]["grade"]>
   export type GradeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     student?: boolean | StudentDefaultArgs<ExtArgs>
   }
   export type GradeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    student?: boolean | StudentDefaultArgs<ExtArgs>
+  }
+  export type GradeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     student?: boolean | StudentDefaultArgs<ExtArgs>
   }
 
@@ -8144,12 +9361,12 @@ export namespace Prisma {
 
   type GradeGetPayload<S extends boolean | null | undefined | GradeDefaultArgs> = $Result.GetResult<Prisma.$GradePayload, S>
 
-  type GradeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<GradeFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type GradeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GradeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: GradeCountAggregateInputType | true
     }
 
-  export interface GradeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface GradeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Grade'], meta: { name: 'Grade' } }
     /**
      * Find zero or one Grade that matches the filter.
@@ -8162,10 +9379,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends GradeFindUniqueArgs>(args: SelectSubset<T, GradeFindUniqueArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends GradeFindUniqueArgs>(args: SelectSubset<T, GradeFindUniqueArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one Grade that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one Grade that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {GradeFindUniqueOrThrowArgs} args - Arguments to find a Grade
      * @example
@@ -8176,7 +9393,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends GradeFindUniqueOrThrowArgs>(args: SelectSubset<T, GradeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends GradeFindUniqueOrThrowArgs>(args: SelectSubset<T, GradeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Grade that matches the filter.
@@ -8191,7 +9408,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends GradeFindFirstArgs>(args?: SelectSubset<T, GradeFindFirstArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends GradeFindFirstArgs>(args?: SelectSubset<T, GradeFindFirstArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first Grade that matches the filter or
@@ -8207,7 +9424,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends GradeFindFirstOrThrowArgs>(args?: SelectSubset<T, GradeFindFirstOrThrowArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends GradeFindFirstOrThrowArgs>(args?: SelectSubset<T, GradeFindFirstOrThrowArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more Grades that matches the filter.
@@ -8225,7 +9442,7 @@ export namespace Prisma {
      * const gradeWithIdOnly = await prisma.grade.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends GradeFindManyArgs>(args?: SelectSubset<T, GradeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findMany">>
+    findMany<T extends GradeFindManyArgs>(args?: SelectSubset<T, GradeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a Grade.
@@ -8239,7 +9456,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends GradeCreateArgs>(args: SelectSubset<T, GradeCreateArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends GradeCreateArgs>(args: SelectSubset<T, GradeCreateArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many Grades.
@@ -8267,7 +9484,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Grades and only return the `id`
-     * const gradeWithIdOnly = await prisma.grade.createManyAndReturn({ 
+     * const gradeWithIdOnly = await prisma.grade.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -8277,7 +9494,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends GradeCreateManyAndReturnArgs>(args?: SelectSubset<T, GradeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends GradeCreateManyAndReturnArgs>(args?: SelectSubset<T, GradeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a Grade.
@@ -8291,7 +9508,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends GradeDeleteArgs>(args: SelectSubset<T, GradeDeleteArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends GradeDeleteArgs>(args: SelectSubset<T, GradeDeleteArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one Grade.
@@ -8308,7 +9525,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends GradeUpdateArgs>(args: SelectSubset<T, GradeUpdateArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends GradeUpdateArgs>(args: SelectSubset<T, GradeUpdateArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more Grades.
@@ -8344,6 +9561,36 @@ export namespace Prisma {
     updateMany<T extends GradeUpdateManyArgs>(args: SelectSubset<T, GradeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more Grades and returns the data updated in the database.
+     * @param {GradeUpdateManyAndReturnArgs} args - Arguments to update many Grades.
+     * @example
+     * // Update many Grades
+     * const grade = await prisma.grade.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Grades and only return the `id`
+     * const gradeWithIdOnly = await prisma.grade.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GradeUpdateManyAndReturnArgs>(args: SelectSubset<T, GradeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one Grade.
      * @param {GradeUpsertArgs} args - Arguments to update or create a Grade.
      * @example
@@ -8360,7 +9607,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends GradeUpsertArgs>(args: SelectSubset<T, GradeUpsertArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends GradeUpsertArgs>(args: SelectSubset<T, GradeUpsertArgs<ExtArgs>>): Prisma__GradeClient<$Result.GetResult<Prisma.$GradePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -8500,9 +9747,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__GradeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__GradeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    student<T extends StudentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, StudentDefaultArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    student<T extends StudentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, StudentDefaultArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8530,7 +9777,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Grade model
-   */ 
+   */
   interface GradeFieldRefs {
     readonly id: FieldRef<"Grade", 'String'>
     readonly studentId: FieldRef<"Grade", 'String'>
@@ -8550,6 +9797,10 @@ export namespace Prisma {
      */
     select?: GradeSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: GradeInclude<ExtArgs> | null
@@ -8568,6 +9819,10 @@ export namespace Prisma {
      */
     select?: GradeSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: GradeInclude<ExtArgs> | null
@@ -8585,6 +9840,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Grade
      */
     select?: GradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -8634,6 +9893,10 @@ export namespace Prisma {
      */
     select?: GradeSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: GradeInclude<ExtArgs> | null
@@ -8682,6 +9945,10 @@ export namespace Prisma {
      */
     select?: GradeSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: GradeInclude<ExtArgs> | null
@@ -8725,6 +9992,10 @@ export namespace Prisma {
      */
     select?: GradeSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: GradeInclude<ExtArgs> | null
@@ -8754,6 +10025,10 @@ export namespace Prisma {
      */
     select?: GradeSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * The data used to create many Grades.
      */
     data: GradeCreateManyInput | GradeCreateManyInput[]
@@ -8772,6 +10047,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Grade
      */
     select?: GradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -8798,6 +10077,40 @@ export namespace Prisma {
      * Filter which Grades to update
      */
     where?: GradeWhereInput
+    /**
+     * Limit how many Grades to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Grade updateManyAndReturn
+   */
+  export type GradeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Grade
+     */
+    select?: GradeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
+     * The data used to update Grades.
+     */
+    data: XOR<GradeUpdateManyMutationInput, GradeUncheckedUpdateManyInput>
+    /**
+     * Filter which Grades to update
+     */
+    where?: GradeWhereInput
+    /**
+     * Limit how many Grades to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GradeIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -8808,6 +10121,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Grade
      */
     select?: GradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -8835,6 +10152,10 @@ export namespace Prisma {
      */
     select?: GradeSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: GradeInclude<ExtArgs> | null
@@ -8852,6 +10173,10 @@ export namespace Prisma {
      * Filter which Grades to delete
      */
     where?: GradeWhereInput
+    /**
+     * Limit how many Grades to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -8862,6 +10187,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the Grade
      */
     select?: GradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Grade
+     */
+    omit?: GradeOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -9059,6 +10388,17 @@ export namespace Prisma {
     user?: boolean | AuditLog$userArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
+  export type AuditLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    action?: boolean
+    resource?: boolean
+    details?: boolean
+    ipAddress?: boolean
+    createdAt?: boolean
+    user?: boolean | AuditLog$userArgs<ExtArgs>
+  }, ExtArgs["result"]["auditLog"]>
+
   export type AuditLogSelectScalar = {
     id?: boolean
     userId?: boolean
@@ -9069,10 +10409,14 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
+  export type AuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "action" | "resource" | "details" | "ipAddress" | "createdAt", ExtArgs["result"]["auditLog"]>
   export type AuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | AuditLog$userArgs<ExtArgs>
   }
   export type AuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | AuditLog$userArgs<ExtArgs>
+  }
+  export type AuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | AuditLog$userArgs<ExtArgs>
   }
 
@@ -9095,12 +10439,12 @@ export namespace Prisma {
 
   type AuditLogGetPayload<S extends boolean | null | undefined | AuditLogDefaultArgs> = $Result.GetResult<Prisma.$AuditLogPayload, S>
 
-  type AuditLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<AuditLogFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type AuditLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AuditLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: AuditLogCountAggregateInputType | true
     }
 
-  export interface AuditLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface AuditLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AuditLog'], meta: { name: 'AuditLog' } }
     /**
      * Find zero or one AuditLog that matches the filter.
@@ -9113,10 +10457,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends AuditLogFindUniqueArgs>(args: SelectSubset<T, AuditLogFindUniqueArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends AuditLogFindUniqueArgs>(args: SelectSubset<T, AuditLogFindUniqueArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one AuditLog that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one AuditLog that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {AuditLogFindUniqueOrThrowArgs} args - Arguments to find a AuditLog
      * @example
@@ -9127,7 +10471,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends AuditLogFindUniqueOrThrowArgs>(args: SelectSubset<T, AuditLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends AuditLogFindUniqueOrThrowArgs>(args: SelectSubset<T, AuditLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first AuditLog that matches the filter.
@@ -9142,7 +10486,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends AuditLogFindFirstArgs>(args?: SelectSubset<T, AuditLogFindFirstArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends AuditLogFindFirstArgs>(args?: SelectSubset<T, AuditLogFindFirstArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first AuditLog that matches the filter or
@@ -9158,7 +10502,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends AuditLogFindFirstOrThrowArgs>(args?: SelectSubset<T, AuditLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends AuditLogFindFirstOrThrowArgs>(args?: SelectSubset<T, AuditLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more AuditLogs that matches the filter.
@@ -9176,7 +10520,7 @@ export namespace Prisma {
      * const auditLogWithIdOnly = await prisma.auditLog.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends AuditLogFindManyArgs>(args?: SelectSubset<T, AuditLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends AuditLogFindManyArgs>(args?: SelectSubset<T, AuditLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a AuditLog.
@@ -9190,7 +10534,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends AuditLogCreateArgs>(args: SelectSubset<T, AuditLogCreateArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends AuditLogCreateArgs>(args: SelectSubset<T, AuditLogCreateArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many AuditLogs.
@@ -9218,7 +10562,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many AuditLogs and only return the `id`
-     * const auditLogWithIdOnly = await prisma.auditLog.createManyAndReturn({ 
+     * const auditLogWithIdOnly = await prisma.auditLog.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -9228,7 +10572,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends AuditLogCreateManyAndReturnArgs>(args?: SelectSubset<T, AuditLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends AuditLogCreateManyAndReturnArgs>(args?: SelectSubset<T, AuditLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a AuditLog.
@@ -9242,7 +10586,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends AuditLogDeleteArgs>(args: SelectSubset<T, AuditLogDeleteArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends AuditLogDeleteArgs>(args: SelectSubset<T, AuditLogDeleteArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one AuditLog.
@@ -9259,7 +10603,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends AuditLogUpdateArgs>(args: SelectSubset<T, AuditLogUpdateArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends AuditLogUpdateArgs>(args: SelectSubset<T, AuditLogUpdateArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more AuditLogs.
@@ -9295,6 +10639,36 @@ export namespace Prisma {
     updateMany<T extends AuditLogUpdateManyArgs>(args: SelectSubset<T, AuditLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more AuditLogs and returns the data updated in the database.
+     * @param {AuditLogUpdateManyAndReturnArgs} args - Arguments to update many AuditLogs.
+     * @example
+     * // Update many AuditLogs
+     * const auditLog = await prisma.auditLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AuditLogs and only return the `id`
+     * const auditLogWithIdOnly = await prisma.auditLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AuditLogUpdateManyAndReturnArgs>(args: SelectSubset<T, AuditLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one AuditLog.
      * @param {AuditLogUpsertArgs} args - Arguments to update or create a AuditLog.
      * @example
@@ -9311,7 +10685,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends AuditLogUpsertArgs>(args: SelectSubset<T, AuditLogUpsertArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends AuditLogUpsertArgs>(args: SelectSubset<T, AuditLogUpsertArgs<ExtArgs>>): Prisma__AuditLogClient<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -9451,9 +10825,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__AuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__AuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends AuditLog$userArgs<ExtArgs> = {}>(args?: Subset<T, AuditLog$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    user<T extends AuditLog$userArgs<ExtArgs> = {}>(args?: Subset<T, AuditLog$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9481,7 +10855,7 @@ export namespace Prisma {
 
   /**
    * Fields of the AuditLog model
-   */ 
+   */
   interface AuditLogFieldRefs {
     readonly id: FieldRef<"AuditLog", 'String'>
     readonly userId: FieldRef<"AuditLog", 'String'>
@@ -9503,6 +10877,10 @@ export namespace Prisma {
      */
     select?: AuditLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AuditLogInclude<ExtArgs> | null
@@ -9521,6 +10899,10 @@ export namespace Prisma {
      */
     select?: AuditLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AuditLogInclude<ExtArgs> | null
@@ -9538,6 +10920,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AuditLog
      */
     select?: AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -9587,6 +10973,10 @@ export namespace Prisma {
      */
     select?: AuditLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AuditLogInclude<ExtArgs> | null
@@ -9635,6 +11025,10 @@ export namespace Prisma {
      */
     select?: AuditLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AuditLogInclude<ExtArgs> | null
@@ -9678,6 +11072,10 @@ export namespace Prisma {
      */
     select?: AuditLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AuditLogInclude<ExtArgs> | null
@@ -9707,6 +11105,10 @@ export namespace Prisma {
      */
     select?: AuditLogSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
      * The data used to create many AuditLogs.
      */
     data: AuditLogCreateManyInput | AuditLogCreateManyInput[]
@@ -9725,6 +11127,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AuditLog
      */
     select?: AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -9751,6 +11157,40 @@ export namespace Prisma {
      * Filter which AuditLogs to update
      */
     where?: AuditLogWhereInput
+    /**
+     * Limit how many AuditLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AuditLog updateManyAndReturn
+   */
+  export type AuditLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AuditLog
+     */
+    select?: AuditLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
+     * The data used to update AuditLogs.
+     */
+    data: XOR<AuditLogUpdateManyMutationInput, AuditLogUncheckedUpdateManyInput>
+    /**
+     * Filter which AuditLogs to update
+     */
+    where?: AuditLogWhereInput
+    /**
+     * Limit how many AuditLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AuditLogIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -9761,6 +11201,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AuditLog
      */
     select?: AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -9788,6 +11232,10 @@ export namespace Prisma {
      */
     select?: AuditLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AuditLogInclude<ExtArgs> | null
@@ -9805,6 +11253,10 @@ export namespace Prisma {
      * Filter which AuditLogs to delete
      */
     where?: AuditLogWhereInput
+    /**
+     * Limit how many AuditLogs to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -9815,6 +11267,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -9830,6 +11286,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AuditLog
      */
     select?: AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AuditLog
+     */
+    omit?: AuditLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -10031,6 +11491,17 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["accessLog"]>
 
+  export type AccessLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    type?: boolean
+    location?: boolean
+    status?: boolean
+    reason?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accessLog"]>
+
   export type AccessLogSelectScalar = {
     id?: boolean
     userId?: boolean
@@ -10041,10 +11512,14 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
+  export type AccessLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "type" | "location" | "status" | "reason" | "createdAt", ExtArgs["result"]["accessLog"]>
   export type AccessLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
   export type AccessLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type AccessLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
 
@@ -10067,12 +11542,12 @@ export namespace Prisma {
 
   type AccessLogGetPayload<S extends boolean | null | undefined | AccessLogDefaultArgs> = $Result.GetResult<Prisma.$AccessLogPayload, S>
 
-  type AccessLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<AccessLogFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type AccessLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AccessLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: AccessLogCountAggregateInputType | true
     }
 
-  export interface AccessLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface AccessLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AccessLog'], meta: { name: 'AccessLog' } }
     /**
      * Find zero or one AccessLog that matches the filter.
@@ -10085,10 +11560,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends AccessLogFindUniqueArgs>(args: SelectSubset<T, AccessLogFindUniqueArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends AccessLogFindUniqueArgs>(args: SelectSubset<T, AccessLogFindUniqueArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one AccessLog that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one AccessLog that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {AccessLogFindUniqueOrThrowArgs} args - Arguments to find a AccessLog
      * @example
@@ -10099,7 +11574,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends AccessLogFindUniqueOrThrowArgs>(args: SelectSubset<T, AccessLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends AccessLogFindUniqueOrThrowArgs>(args: SelectSubset<T, AccessLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first AccessLog that matches the filter.
@@ -10114,7 +11589,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends AccessLogFindFirstArgs>(args?: SelectSubset<T, AccessLogFindFirstArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends AccessLogFindFirstArgs>(args?: SelectSubset<T, AccessLogFindFirstArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first AccessLog that matches the filter or
@@ -10130,7 +11605,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends AccessLogFindFirstOrThrowArgs>(args?: SelectSubset<T, AccessLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends AccessLogFindFirstOrThrowArgs>(args?: SelectSubset<T, AccessLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more AccessLogs that matches the filter.
@@ -10148,7 +11623,7 @@ export namespace Prisma {
      * const accessLogWithIdOnly = await prisma.accessLog.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends AccessLogFindManyArgs>(args?: SelectSubset<T, AccessLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends AccessLogFindManyArgs>(args?: SelectSubset<T, AccessLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a AccessLog.
@@ -10162,7 +11637,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends AccessLogCreateArgs>(args: SelectSubset<T, AccessLogCreateArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends AccessLogCreateArgs>(args: SelectSubset<T, AccessLogCreateArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many AccessLogs.
@@ -10190,7 +11665,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many AccessLogs and only return the `id`
-     * const accessLogWithIdOnly = await prisma.accessLog.createManyAndReturn({ 
+     * const accessLogWithIdOnly = await prisma.accessLog.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -10200,7 +11675,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends AccessLogCreateManyAndReturnArgs>(args?: SelectSubset<T, AccessLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends AccessLogCreateManyAndReturnArgs>(args?: SelectSubset<T, AccessLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a AccessLog.
@@ -10214,7 +11689,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends AccessLogDeleteArgs>(args: SelectSubset<T, AccessLogDeleteArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends AccessLogDeleteArgs>(args: SelectSubset<T, AccessLogDeleteArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one AccessLog.
@@ -10231,7 +11706,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends AccessLogUpdateArgs>(args: SelectSubset<T, AccessLogUpdateArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends AccessLogUpdateArgs>(args: SelectSubset<T, AccessLogUpdateArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more AccessLogs.
@@ -10267,6 +11742,36 @@ export namespace Prisma {
     updateMany<T extends AccessLogUpdateManyArgs>(args: SelectSubset<T, AccessLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more AccessLogs and returns the data updated in the database.
+     * @param {AccessLogUpdateManyAndReturnArgs} args - Arguments to update many AccessLogs.
+     * @example
+     * // Update many AccessLogs
+     * const accessLog = await prisma.accessLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more AccessLogs and only return the `id`
+     * const accessLogWithIdOnly = await prisma.accessLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AccessLogUpdateManyAndReturnArgs>(args: SelectSubset<T, AccessLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one AccessLog.
      * @param {AccessLogUpsertArgs} args - Arguments to update or create a AccessLog.
      * @example
@@ -10283,7 +11788,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends AccessLogUpsertArgs>(args: SelectSubset<T, AccessLogUpsertArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends AccessLogUpsertArgs>(args: SelectSubset<T, AccessLogUpsertArgs<ExtArgs>>): Prisma__AccessLogClient<$Result.GetResult<Prisma.$AccessLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -10423,9 +11928,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__AccessLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__AccessLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10453,7 +11958,7 @@ export namespace Prisma {
 
   /**
    * Fields of the AccessLog model
-   */ 
+   */
   interface AccessLogFieldRefs {
     readonly id: FieldRef<"AccessLog", 'String'>
     readonly userId: FieldRef<"AccessLog", 'String'>
@@ -10475,6 +11980,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AccessLogInclude<ExtArgs> | null
@@ -10493,6 +12002,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AccessLogInclude<ExtArgs> | null
@@ -10510,6 +12023,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AccessLog
      */
     select?: AccessLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -10559,6 +12076,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AccessLogInclude<ExtArgs> | null
@@ -10607,6 +12128,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AccessLogInclude<ExtArgs> | null
@@ -10650,6 +12175,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AccessLogInclude<ExtArgs> | null
@@ -10679,6 +12208,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * The data used to create many AccessLogs.
      */
     data: AccessLogCreateManyInput | AccessLogCreateManyInput[]
@@ -10697,6 +12230,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AccessLog
      */
     select?: AccessLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -10723,6 +12260,40 @@ export namespace Prisma {
      * Filter which AccessLogs to update
      */
     where?: AccessLogWhereInput
+    /**
+     * Limit how many AccessLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AccessLog updateManyAndReturn
+   */
+  export type AccessLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessLog
+     */
+    select?: AccessLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
+     * The data used to update AccessLogs.
+     */
+    data: XOR<AccessLogUpdateManyMutationInput, AccessLogUncheckedUpdateManyInput>
+    /**
+     * Filter which AccessLogs to update
+     */
+    where?: AccessLogWhereInput
+    /**
+     * Limit how many AccessLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessLogIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -10733,6 +12304,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AccessLog
      */
     select?: AccessLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -10760,6 +12335,10 @@ export namespace Prisma {
      */
     select?: AccessLogSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: AccessLogInclude<ExtArgs> | null
@@ -10777,6 +12356,10 @@ export namespace Prisma {
      * Filter which AccessLogs to delete
      */
     where?: AccessLogWhereInput
+    /**
+     * Limit how many AccessLogs to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -10787,6 +12370,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the AccessLog
      */
     select?: AccessLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AccessLog
+     */
+    omit?: AccessLogOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -11039,6 +12626,18 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["dailyActivity"]>
 
+  export type DailyActivitySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    date?: boolean
+    steps?: boolean
+    calories?: boolean
+    activeMinutes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["dailyActivity"]>
+
   export type DailyActivitySelectScalar = {
     id?: boolean
     userId?: boolean
@@ -11050,10 +12649,14 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
+  export type DailyActivityOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "date" | "steps" | "calories" | "activeMinutes" | "createdAt" | "updatedAt", ExtArgs["result"]["dailyActivity"]>
   export type DailyActivityInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
   export type DailyActivityIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type DailyActivityIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
 
@@ -11077,12 +12680,12 @@ export namespace Prisma {
 
   type DailyActivityGetPayload<S extends boolean | null | undefined | DailyActivityDefaultArgs> = $Result.GetResult<Prisma.$DailyActivityPayload, S>
 
-  type DailyActivityCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<DailyActivityFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type DailyActivityCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DailyActivityFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: DailyActivityCountAggregateInputType | true
     }
 
-  export interface DailyActivityDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface DailyActivityDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DailyActivity'], meta: { name: 'DailyActivity' } }
     /**
      * Find zero or one DailyActivity that matches the filter.
@@ -11095,10 +12698,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends DailyActivityFindUniqueArgs>(args: SelectSubset<T, DailyActivityFindUniqueArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends DailyActivityFindUniqueArgs>(args: SelectSubset<T, DailyActivityFindUniqueArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one DailyActivity that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one DailyActivity that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {DailyActivityFindUniqueOrThrowArgs} args - Arguments to find a DailyActivity
      * @example
@@ -11109,7 +12712,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends DailyActivityFindUniqueOrThrowArgs>(args: SelectSubset<T, DailyActivityFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends DailyActivityFindUniqueOrThrowArgs>(args: SelectSubset<T, DailyActivityFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first DailyActivity that matches the filter.
@@ -11124,7 +12727,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends DailyActivityFindFirstArgs>(args?: SelectSubset<T, DailyActivityFindFirstArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends DailyActivityFindFirstArgs>(args?: SelectSubset<T, DailyActivityFindFirstArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first DailyActivity that matches the filter or
@@ -11140,7 +12743,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends DailyActivityFindFirstOrThrowArgs>(args?: SelectSubset<T, DailyActivityFindFirstOrThrowArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends DailyActivityFindFirstOrThrowArgs>(args?: SelectSubset<T, DailyActivityFindFirstOrThrowArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more DailyActivities that matches the filter.
@@ -11158,7 +12761,7 @@ export namespace Prisma {
      * const dailyActivityWithIdOnly = await prisma.dailyActivity.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends DailyActivityFindManyArgs>(args?: SelectSubset<T, DailyActivityFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends DailyActivityFindManyArgs>(args?: SelectSubset<T, DailyActivityFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a DailyActivity.
@@ -11172,7 +12775,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends DailyActivityCreateArgs>(args: SelectSubset<T, DailyActivityCreateArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends DailyActivityCreateArgs>(args: SelectSubset<T, DailyActivityCreateArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many DailyActivities.
@@ -11200,7 +12803,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many DailyActivities and only return the `id`
-     * const dailyActivityWithIdOnly = await prisma.dailyActivity.createManyAndReturn({ 
+     * const dailyActivityWithIdOnly = await prisma.dailyActivity.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -11210,7 +12813,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends DailyActivityCreateManyAndReturnArgs>(args?: SelectSubset<T, DailyActivityCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends DailyActivityCreateManyAndReturnArgs>(args?: SelectSubset<T, DailyActivityCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a DailyActivity.
@@ -11224,7 +12827,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends DailyActivityDeleteArgs>(args: SelectSubset<T, DailyActivityDeleteArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends DailyActivityDeleteArgs>(args: SelectSubset<T, DailyActivityDeleteArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one DailyActivity.
@@ -11241,7 +12844,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends DailyActivityUpdateArgs>(args: SelectSubset<T, DailyActivityUpdateArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends DailyActivityUpdateArgs>(args: SelectSubset<T, DailyActivityUpdateArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more DailyActivities.
@@ -11277,6 +12880,36 @@ export namespace Prisma {
     updateMany<T extends DailyActivityUpdateManyArgs>(args: SelectSubset<T, DailyActivityUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more DailyActivities and returns the data updated in the database.
+     * @param {DailyActivityUpdateManyAndReturnArgs} args - Arguments to update many DailyActivities.
+     * @example
+     * // Update many DailyActivities
+     * const dailyActivity = await prisma.dailyActivity.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DailyActivities and only return the `id`
+     * const dailyActivityWithIdOnly = await prisma.dailyActivity.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DailyActivityUpdateManyAndReturnArgs>(args: SelectSubset<T, DailyActivityUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one DailyActivity.
      * @param {DailyActivityUpsertArgs} args - Arguments to update or create a DailyActivity.
      * @example
@@ -11293,7 +12926,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends DailyActivityUpsertArgs>(args: SelectSubset<T, DailyActivityUpsertArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends DailyActivityUpsertArgs>(args: SelectSubset<T, DailyActivityUpsertArgs<ExtArgs>>): Prisma__DailyActivityClient<$Result.GetResult<Prisma.$DailyActivityPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -11433,9 +13066,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__DailyActivityClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__DailyActivityClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11463,7 +13096,7 @@ export namespace Prisma {
 
   /**
    * Fields of the DailyActivity model
-   */ 
+   */
   interface DailyActivityFieldRefs {
     readonly id: FieldRef<"DailyActivity", 'String'>
     readonly userId: FieldRef<"DailyActivity", 'String'>
@@ -11486,6 +13119,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelect<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: DailyActivityInclude<ExtArgs> | null
@@ -11504,6 +13141,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelect<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: DailyActivityInclude<ExtArgs> | null
@@ -11521,6 +13162,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the DailyActivity
      */
     select?: DailyActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -11570,6 +13215,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelect<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: DailyActivityInclude<ExtArgs> | null
@@ -11618,6 +13267,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelect<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: DailyActivityInclude<ExtArgs> | null
@@ -11661,6 +13314,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelect<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: DailyActivityInclude<ExtArgs> | null
@@ -11690,6 +13347,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * The data used to create many DailyActivities.
      */
     data: DailyActivityCreateManyInput | DailyActivityCreateManyInput[]
@@ -11708,6 +13369,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the DailyActivity
      */
     select?: DailyActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -11734,6 +13399,40 @@ export namespace Prisma {
      * Filter which DailyActivities to update
      */
     where?: DailyActivityWhereInput
+    /**
+     * Limit how many DailyActivities to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DailyActivity updateManyAndReturn
+   */
+  export type DailyActivityUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyActivity
+     */
+    select?: DailyActivitySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
+     * The data used to update DailyActivities.
+     */
+    data: XOR<DailyActivityUpdateManyMutationInput, DailyActivityUncheckedUpdateManyInput>
+    /**
+     * Filter which DailyActivities to update
+     */
+    where?: DailyActivityWhereInput
+    /**
+     * Limit how many DailyActivities to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyActivityIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -11744,6 +13443,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the DailyActivity
      */
     select?: DailyActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -11771,6 +13474,10 @@ export namespace Prisma {
      */
     select?: DailyActivitySelect<ExtArgs> | null
     /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: DailyActivityInclude<ExtArgs> | null
@@ -11788,6 +13495,10 @@ export namespace Prisma {
      * Filter which DailyActivities to delete
      */
     where?: DailyActivityWhereInput
+    /**
+     * Limit how many DailyActivities to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -11798,6 +13509,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the DailyActivity
      */
     select?: DailyActivitySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DailyActivity
+     */
+    omit?: DailyActivityOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -12047,6 +13762,19 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["exerciseSubmission"]>
 
+  export type ExerciseSubmissionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    exerciseId?: boolean
+    videoUrl?: boolean
+    durationSeconds?: boolean
+    status?: boolean
+    aiFeedback?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["exerciseSubmission"]>
+
   export type ExerciseSubmissionSelectScalar = {
     id?: boolean
     userId?: boolean
@@ -12059,10 +13787,14 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
+  export type ExerciseSubmissionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "exerciseId" | "videoUrl" | "durationSeconds" | "status" | "aiFeedback" | "createdAt" | "updatedAt", ExtArgs["result"]["exerciseSubmission"]>
   export type ExerciseSubmissionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
   export type ExerciseSubmissionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ExerciseSubmissionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
 
@@ -12087,12 +13819,12 @@ export namespace Prisma {
 
   type ExerciseSubmissionGetPayload<S extends boolean | null | undefined | ExerciseSubmissionDefaultArgs> = $Result.GetResult<Prisma.$ExerciseSubmissionPayload, S>
 
-  type ExerciseSubmissionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<ExerciseSubmissionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+  type ExerciseSubmissionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ExerciseSubmissionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
       select?: ExerciseSubmissionCountAggregateInputType | true
     }
 
-  export interface ExerciseSubmissionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+  export interface ExerciseSubmissionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ExerciseSubmission'], meta: { name: 'ExerciseSubmission' } }
     /**
      * Find zero or one ExerciseSubmission that matches the filter.
@@ -12105,10 +13837,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends ExerciseSubmissionFindUniqueArgs>(args: SelectSubset<T, ExerciseSubmissionFindUniqueArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+    findUnique<T extends ExerciseSubmissionFindUniqueArgs>(args: SelectSubset<T, ExerciseSubmissionFindUniqueArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one ExerciseSubmission that matches the filter or throw an error with `error.code='P2025'` 
+     * Find one ExerciseSubmission that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
      * @param {ExerciseSubmissionFindUniqueOrThrowArgs} args - Arguments to find a ExerciseSubmission
      * @example
@@ -12119,7 +13851,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends ExerciseSubmissionFindUniqueOrThrowArgs>(args: SelectSubset<T, ExerciseSubmissionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends ExerciseSubmissionFindUniqueOrThrowArgs>(args: SelectSubset<T, ExerciseSubmissionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first ExerciseSubmission that matches the filter.
@@ -12134,7 +13866,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends ExerciseSubmissionFindFirstArgs>(args?: SelectSubset<T, ExerciseSubmissionFindFirstArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+    findFirst<T extends ExerciseSubmissionFindFirstArgs>(args?: SelectSubset<T, ExerciseSubmissionFindFirstArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find the first ExerciseSubmission that matches the filter or
@@ -12150,7 +13882,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends ExerciseSubmissionFindFirstOrThrowArgs>(args?: SelectSubset<T, ExerciseSubmissionFindFirstOrThrowArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+    findFirstOrThrow<T extends ExerciseSubmissionFindFirstOrThrowArgs>(args?: SelectSubset<T, ExerciseSubmissionFindFirstOrThrowArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Find zero or more ExerciseSubmissions that matches the filter.
@@ -12168,7 +13900,7 @@ export namespace Prisma {
      * const exerciseSubmissionWithIdOnly = await prisma.exerciseSubmission.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends ExerciseSubmissionFindManyArgs>(args?: SelectSubset<T, ExerciseSubmissionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findMany">>
+    findMany<T extends ExerciseSubmissionFindManyArgs>(args?: SelectSubset<T, ExerciseSubmissionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
      * Create a ExerciseSubmission.
@@ -12182,7 +13914,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends ExerciseSubmissionCreateArgs>(args: SelectSubset<T, ExerciseSubmissionCreateArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+    create<T extends ExerciseSubmissionCreateArgs>(args: SelectSubset<T, ExerciseSubmissionCreateArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Create many ExerciseSubmissions.
@@ -12210,7 +13942,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many ExerciseSubmissions and only return the `id`
-     * const exerciseSubmissionWithIdOnly = await prisma.exerciseSubmission.createManyAndReturn({ 
+     * const exerciseSubmissionWithIdOnly = await prisma.exerciseSubmission.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -12220,7 +13952,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends ExerciseSubmissionCreateManyAndReturnArgs>(args?: SelectSubset<T, ExerciseSubmissionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "createManyAndReturn">>
+    createManyAndReturn<T extends ExerciseSubmissionCreateManyAndReturnArgs>(args?: SelectSubset<T, ExerciseSubmissionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
      * Delete a ExerciseSubmission.
@@ -12234,7 +13966,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends ExerciseSubmissionDeleteArgs>(args: SelectSubset<T, ExerciseSubmissionDeleteArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+    delete<T extends ExerciseSubmissionDeleteArgs>(args: SelectSubset<T, ExerciseSubmissionDeleteArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Update one ExerciseSubmission.
@@ -12251,7 +13983,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends ExerciseSubmissionUpdateArgs>(args: SelectSubset<T, ExerciseSubmissionUpdateArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+    update<T extends ExerciseSubmissionUpdateArgs>(args: SelectSubset<T, ExerciseSubmissionUpdateArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
      * Delete zero or more ExerciseSubmissions.
@@ -12287,6 +14019,36 @@ export namespace Prisma {
     updateMany<T extends ExerciseSubmissionUpdateManyArgs>(args: SelectSubset<T, ExerciseSubmissionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Update zero or more ExerciseSubmissions and returns the data updated in the database.
+     * @param {ExerciseSubmissionUpdateManyAndReturnArgs} args - Arguments to update many ExerciseSubmissions.
+     * @example
+     * // Update many ExerciseSubmissions
+     * const exerciseSubmission = await prisma.exerciseSubmission.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ExerciseSubmissions and only return the `id`
+     * const exerciseSubmissionWithIdOnly = await prisma.exerciseSubmission.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ExerciseSubmissionUpdateManyAndReturnArgs>(args: SelectSubset<T, ExerciseSubmissionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
      * Create or update one ExerciseSubmission.
      * @param {ExerciseSubmissionUpsertArgs} args - Arguments to update or create a ExerciseSubmission.
      * @example
@@ -12303,7 +14065,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends ExerciseSubmissionUpsertArgs>(args: SelectSubset<T, ExerciseSubmissionUpsertArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+    upsert<T extends ExerciseSubmissionUpsertArgs>(args: SelectSubset<T, ExerciseSubmissionUpsertArgs<ExtArgs>>): Prisma__ExerciseSubmissionClient<$Result.GetResult<Prisma.$ExerciseSubmissionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
@@ -12443,9 +14205,9 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__ExerciseSubmissionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__ExerciseSubmissionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -12473,7 +14235,7 @@ export namespace Prisma {
 
   /**
    * Fields of the ExerciseSubmission model
-   */ 
+   */
   interface ExerciseSubmissionFieldRefs {
     readonly id: FieldRef<"ExerciseSubmission", 'String'>
     readonly userId: FieldRef<"ExerciseSubmission", 'String'>
@@ -12497,6 +14259,10 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ExerciseSubmissionInclude<ExtArgs> | null
@@ -12515,6 +14281,10 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ExerciseSubmissionInclude<ExtArgs> | null
@@ -12532,6 +14302,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ExerciseSubmission
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -12581,6 +14355,10 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ExerciseSubmissionInclude<ExtArgs> | null
@@ -12629,6 +14407,10 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ExerciseSubmissionInclude<ExtArgs> | null
@@ -12672,6 +14454,10 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ExerciseSubmissionInclude<ExtArgs> | null
@@ -12701,6 +14487,10 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelectCreateManyAndReturn<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * The data used to create many ExerciseSubmissions.
      */
     data: ExerciseSubmissionCreateManyInput | ExerciseSubmissionCreateManyInput[]
@@ -12719,6 +14509,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ExerciseSubmission
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -12745,6 +14539,40 @@ export namespace Prisma {
      * Filter which ExerciseSubmissions to update
      */
     where?: ExerciseSubmissionWhereInput
+    /**
+     * Limit how many ExerciseSubmissions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ExerciseSubmission updateManyAndReturn
+   */
+  export type ExerciseSubmissionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ExerciseSubmission
+     */
+    select?: ExerciseSubmissionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
+     * The data used to update ExerciseSubmissions.
+     */
+    data: XOR<ExerciseSubmissionUpdateManyMutationInput, ExerciseSubmissionUncheckedUpdateManyInput>
+    /**
+     * Filter which ExerciseSubmissions to update
+     */
+    where?: ExerciseSubmissionWhereInput
+    /**
+     * Limit how many ExerciseSubmissions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ExerciseSubmissionIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -12755,6 +14583,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ExerciseSubmission
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
@@ -12782,6 +14614,10 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ExerciseSubmissionInclude<ExtArgs> | null
@@ -12799,6 +14635,10 @@ export namespace Prisma {
      * Filter which ExerciseSubmissions to delete
      */
     where?: ExerciseSubmissionWhereInput
+    /**
+     * Limit how many ExerciseSubmissions to delete.
+     */
+    limit?: number
   }
 
   /**
@@ -12810,9 +14650,3491 @@ export namespace Prisma {
      */
     select?: ExerciseSubmissionSelect<ExtArgs> | null
     /**
+     * Omit specific fields from the ExerciseSubmission
+     */
+    omit?: ExerciseSubmissionOmit<ExtArgs> | null
+    /**
      * Choose, which related nodes to fetch as well
      */
     include?: ExerciseSubmissionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PhysicalMetric
+   */
+
+  export type AggregatePhysicalMetric = {
+    _count: PhysicalMetricCountAggregateOutputType | null
+    _avg: PhysicalMetricAvgAggregateOutputType | null
+    _sum: PhysicalMetricSumAggregateOutputType | null
+    _min: PhysicalMetricMinAggregateOutputType | null
+    _max: PhysicalMetricMaxAggregateOutputType | null
+  }
+
+  export type PhysicalMetricAvgAggregateOutputType = {
+    height: number | null
+    weight: number | null
+    bmi: number | null
+    heartRate: number | null
+    agilityScore: number | null
+    balanceScore: number | null
+    flexibilityScore: number | null
+    strengthScore: number | null
+    enduranceScore: number | null
+  }
+
+  export type PhysicalMetricSumAggregateOutputType = {
+    height: number | null
+    weight: number | null
+    bmi: number | null
+    heartRate: number | null
+    agilityScore: number | null
+    balanceScore: number | null
+    flexibilityScore: number | null
+    strengthScore: number | null
+    enduranceScore: number | null
+  }
+
+  export type PhysicalMetricMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    height: number | null
+    weight: number | null
+    bmi: number | null
+    heartRate: number | null
+    agilityScore: number | null
+    balanceScore: number | null
+    flexibilityScore: number | null
+    strengthScore: number | null
+    enduranceScore: number | null
+    date: Date | null
+  }
+
+  export type PhysicalMetricMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    height: number | null
+    weight: number | null
+    bmi: number | null
+    heartRate: number | null
+    agilityScore: number | null
+    balanceScore: number | null
+    flexibilityScore: number | null
+    strengthScore: number | null
+    enduranceScore: number | null
+    date: Date | null
+  }
+
+  export type PhysicalMetricCountAggregateOutputType = {
+    id: number
+    userId: number
+    height: number
+    weight: number
+    bmi: number
+    heartRate: number
+    agilityScore: number
+    balanceScore: number
+    flexibilityScore: number
+    strengthScore: number
+    enduranceScore: number
+    date: number
+    _all: number
+  }
+
+
+  export type PhysicalMetricAvgAggregateInputType = {
+    height?: true
+    weight?: true
+    bmi?: true
+    heartRate?: true
+    agilityScore?: true
+    balanceScore?: true
+    flexibilityScore?: true
+    strengthScore?: true
+    enduranceScore?: true
+  }
+
+  export type PhysicalMetricSumAggregateInputType = {
+    height?: true
+    weight?: true
+    bmi?: true
+    heartRate?: true
+    agilityScore?: true
+    balanceScore?: true
+    flexibilityScore?: true
+    strengthScore?: true
+    enduranceScore?: true
+  }
+
+  export type PhysicalMetricMinAggregateInputType = {
+    id?: true
+    userId?: true
+    height?: true
+    weight?: true
+    bmi?: true
+    heartRate?: true
+    agilityScore?: true
+    balanceScore?: true
+    flexibilityScore?: true
+    strengthScore?: true
+    enduranceScore?: true
+    date?: true
+  }
+
+  export type PhysicalMetricMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    height?: true
+    weight?: true
+    bmi?: true
+    heartRate?: true
+    agilityScore?: true
+    balanceScore?: true
+    flexibilityScore?: true
+    strengthScore?: true
+    enduranceScore?: true
+    date?: true
+  }
+
+  export type PhysicalMetricCountAggregateInputType = {
+    id?: true
+    userId?: true
+    height?: true
+    weight?: true
+    bmi?: true
+    heartRate?: true
+    agilityScore?: true
+    balanceScore?: true
+    flexibilityScore?: true
+    strengthScore?: true
+    enduranceScore?: true
+    date?: true
+    _all?: true
+  }
+
+  export type PhysicalMetricAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PhysicalMetric to aggregate.
+     */
+    where?: PhysicalMetricWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PhysicalMetrics to fetch.
+     */
+    orderBy?: PhysicalMetricOrderByWithRelationInput | PhysicalMetricOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PhysicalMetricWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PhysicalMetrics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PhysicalMetrics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PhysicalMetrics
+    **/
+    _count?: true | PhysicalMetricCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PhysicalMetricAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PhysicalMetricSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PhysicalMetricMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PhysicalMetricMaxAggregateInputType
+  }
+
+  export type GetPhysicalMetricAggregateType<T extends PhysicalMetricAggregateArgs> = {
+        [P in keyof T & keyof AggregatePhysicalMetric]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePhysicalMetric[P]>
+      : GetScalarType<T[P], AggregatePhysicalMetric[P]>
+  }
+
+
+
+
+  export type PhysicalMetricGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PhysicalMetricWhereInput
+    orderBy?: PhysicalMetricOrderByWithAggregationInput | PhysicalMetricOrderByWithAggregationInput[]
+    by: PhysicalMetricScalarFieldEnum[] | PhysicalMetricScalarFieldEnum
+    having?: PhysicalMetricScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PhysicalMetricCountAggregateInputType | true
+    _avg?: PhysicalMetricAvgAggregateInputType
+    _sum?: PhysicalMetricSumAggregateInputType
+    _min?: PhysicalMetricMinAggregateInputType
+    _max?: PhysicalMetricMaxAggregateInputType
+  }
+
+  export type PhysicalMetricGroupByOutputType = {
+    id: string
+    userId: string
+    height: number | null
+    weight: number | null
+    bmi: number | null
+    heartRate: number | null
+    agilityScore: number | null
+    balanceScore: number | null
+    flexibilityScore: number | null
+    strengthScore: number | null
+    enduranceScore: number | null
+    date: Date
+    _count: PhysicalMetricCountAggregateOutputType | null
+    _avg: PhysicalMetricAvgAggregateOutputType | null
+    _sum: PhysicalMetricSumAggregateOutputType | null
+    _min: PhysicalMetricMinAggregateOutputType | null
+    _max: PhysicalMetricMaxAggregateOutputType | null
+  }
+
+  type GetPhysicalMetricGroupByPayload<T extends PhysicalMetricGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PhysicalMetricGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PhysicalMetricGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PhysicalMetricGroupByOutputType[P]>
+            : GetScalarType<T[P], PhysicalMetricGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PhysicalMetricSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    height?: boolean
+    weight?: boolean
+    bmi?: boolean
+    heartRate?: boolean
+    agilityScore?: boolean
+    balanceScore?: boolean
+    flexibilityScore?: boolean
+    strengthScore?: boolean
+    enduranceScore?: boolean
+    date?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["physicalMetric"]>
+
+  export type PhysicalMetricSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    height?: boolean
+    weight?: boolean
+    bmi?: boolean
+    heartRate?: boolean
+    agilityScore?: boolean
+    balanceScore?: boolean
+    flexibilityScore?: boolean
+    strengthScore?: boolean
+    enduranceScore?: boolean
+    date?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["physicalMetric"]>
+
+  export type PhysicalMetricSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    height?: boolean
+    weight?: boolean
+    bmi?: boolean
+    heartRate?: boolean
+    agilityScore?: boolean
+    balanceScore?: boolean
+    flexibilityScore?: boolean
+    strengthScore?: boolean
+    enduranceScore?: boolean
+    date?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["physicalMetric"]>
+
+  export type PhysicalMetricSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    height?: boolean
+    weight?: boolean
+    bmi?: boolean
+    heartRate?: boolean
+    agilityScore?: boolean
+    balanceScore?: boolean
+    flexibilityScore?: boolean
+    strengthScore?: boolean
+    enduranceScore?: boolean
+    date?: boolean
+  }
+
+  export type PhysicalMetricOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "height" | "weight" | "bmi" | "heartRate" | "agilityScore" | "balanceScore" | "flexibilityScore" | "strengthScore" | "enduranceScore" | "date", ExtArgs["result"]["physicalMetric"]>
+  export type PhysicalMetricInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PhysicalMetricIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PhysicalMetricIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $PhysicalMetricPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PhysicalMetric"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      height: number | null
+      weight: number | null
+      bmi: number | null
+      heartRate: number | null
+      agilityScore: number | null
+      balanceScore: number | null
+      flexibilityScore: number | null
+      strengthScore: number | null
+      enduranceScore: number | null
+      date: Date
+    }, ExtArgs["result"]["physicalMetric"]>
+    composites: {}
+  }
+
+  type PhysicalMetricGetPayload<S extends boolean | null | undefined | PhysicalMetricDefaultArgs> = $Result.GetResult<Prisma.$PhysicalMetricPayload, S>
+
+  type PhysicalMetricCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PhysicalMetricFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PhysicalMetricCountAggregateInputType | true
+    }
+
+  export interface PhysicalMetricDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PhysicalMetric'], meta: { name: 'PhysicalMetric' } }
+    /**
+     * Find zero or one PhysicalMetric that matches the filter.
+     * @param {PhysicalMetricFindUniqueArgs} args - Arguments to find a PhysicalMetric
+     * @example
+     * // Get one PhysicalMetric
+     * const physicalMetric = await prisma.physicalMetric.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PhysicalMetricFindUniqueArgs>(args: SelectSubset<T, PhysicalMetricFindUniqueArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PhysicalMetric that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PhysicalMetricFindUniqueOrThrowArgs} args - Arguments to find a PhysicalMetric
+     * @example
+     * // Get one PhysicalMetric
+     * const physicalMetric = await prisma.physicalMetric.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PhysicalMetricFindUniqueOrThrowArgs>(args: SelectSubset<T, PhysicalMetricFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PhysicalMetric that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PhysicalMetricFindFirstArgs} args - Arguments to find a PhysicalMetric
+     * @example
+     * // Get one PhysicalMetric
+     * const physicalMetric = await prisma.physicalMetric.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PhysicalMetricFindFirstArgs>(args?: SelectSubset<T, PhysicalMetricFindFirstArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PhysicalMetric that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PhysicalMetricFindFirstOrThrowArgs} args - Arguments to find a PhysicalMetric
+     * @example
+     * // Get one PhysicalMetric
+     * const physicalMetric = await prisma.physicalMetric.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PhysicalMetricFindFirstOrThrowArgs>(args?: SelectSubset<T, PhysicalMetricFindFirstOrThrowArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PhysicalMetrics that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PhysicalMetricFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PhysicalMetrics
+     * const physicalMetrics = await prisma.physicalMetric.findMany()
+     * 
+     * // Get first 10 PhysicalMetrics
+     * const physicalMetrics = await prisma.physicalMetric.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const physicalMetricWithIdOnly = await prisma.physicalMetric.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PhysicalMetricFindManyArgs>(args?: SelectSubset<T, PhysicalMetricFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PhysicalMetric.
+     * @param {PhysicalMetricCreateArgs} args - Arguments to create a PhysicalMetric.
+     * @example
+     * // Create one PhysicalMetric
+     * const PhysicalMetric = await prisma.physicalMetric.create({
+     *   data: {
+     *     // ... data to create a PhysicalMetric
+     *   }
+     * })
+     * 
+     */
+    create<T extends PhysicalMetricCreateArgs>(args: SelectSubset<T, PhysicalMetricCreateArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PhysicalMetrics.
+     * @param {PhysicalMetricCreateManyArgs} args - Arguments to create many PhysicalMetrics.
+     * @example
+     * // Create many PhysicalMetrics
+     * const physicalMetric = await prisma.physicalMetric.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PhysicalMetricCreateManyArgs>(args?: SelectSubset<T, PhysicalMetricCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PhysicalMetrics and returns the data saved in the database.
+     * @param {PhysicalMetricCreateManyAndReturnArgs} args - Arguments to create many PhysicalMetrics.
+     * @example
+     * // Create many PhysicalMetrics
+     * const physicalMetric = await prisma.physicalMetric.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PhysicalMetrics and only return the `id`
+     * const physicalMetricWithIdOnly = await prisma.physicalMetric.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PhysicalMetricCreateManyAndReturnArgs>(args?: SelectSubset<T, PhysicalMetricCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PhysicalMetric.
+     * @param {PhysicalMetricDeleteArgs} args - Arguments to delete one PhysicalMetric.
+     * @example
+     * // Delete one PhysicalMetric
+     * const PhysicalMetric = await prisma.physicalMetric.delete({
+     *   where: {
+     *     // ... filter to delete one PhysicalMetric
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PhysicalMetricDeleteArgs>(args: SelectSubset<T, PhysicalMetricDeleteArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PhysicalMetric.
+     * @param {PhysicalMetricUpdateArgs} args - Arguments to update one PhysicalMetric.
+     * @example
+     * // Update one PhysicalMetric
+     * const physicalMetric = await prisma.physicalMetric.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PhysicalMetricUpdateArgs>(args: SelectSubset<T, PhysicalMetricUpdateArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PhysicalMetrics.
+     * @param {PhysicalMetricDeleteManyArgs} args - Arguments to filter PhysicalMetrics to delete.
+     * @example
+     * // Delete a few PhysicalMetrics
+     * const { count } = await prisma.physicalMetric.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PhysicalMetricDeleteManyArgs>(args?: SelectSubset<T, PhysicalMetricDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PhysicalMetrics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PhysicalMetricUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PhysicalMetrics
+     * const physicalMetric = await prisma.physicalMetric.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PhysicalMetricUpdateManyArgs>(args: SelectSubset<T, PhysicalMetricUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PhysicalMetrics and returns the data updated in the database.
+     * @param {PhysicalMetricUpdateManyAndReturnArgs} args - Arguments to update many PhysicalMetrics.
+     * @example
+     * // Update many PhysicalMetrics
+     * const physicalMetric = await prisma.physicalMetric.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PhysicalMetrics and only return the `id`
+     * const physicalMetricWithIdOnly = await prisma.physicalMetric.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PhysicalMetricUpdateManyAndReturnArgs>(args: SelectSubset<T, PhysicalMetricUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PhysicalMetric.
+     * @param {PhysicalMetricUpsertArgs} args - Arguments to update or create a PhysicalMetric.
+     * @example
+     * // Update or create a PhysicalMetric
+     * const physicalMetric = await prisma.physicalMetric.upsert({
+     *   create: {
+     *     // ... data to create a PhysicalMetric
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PhysicalMetric we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PhysicalMetricUpsertArgs>(args: SelectSubset<T, PhysicalMetricUpsertArgs<ExtArgs>>): Prisma__PhysicalMetricClient<$Result.GetResult<Prisma.$PhysicalMetricPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PhysicalMetrics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PhysicalMetricCountArgs} args - Arguments to filter PhysicalMetrics to count.
+     * @example
+     * // Count the number of PhysicalMetrics
+     * const count = await prisma.physicalMetric.count({
+     *   where: {
+     *     // ... the filter for the PhysicalMetrics we want to count
+     *   }
+     * })
+    **/
+    count<T extends PhysicalMetricCountArgs>(
+      args?: Subset<T, PhysicalMetricCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PhysicalMetricCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PhysicalMetric.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PhysicalMetricAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PhysicalMetricAggregateArgs>(args: Subset<T, PhysicalMetricAggregateArgs>): Prisma.PrismaPromise<GetPhysicalMetricAggregateType<T>>
+
+    /**
+     * Group by PhysicalMetric.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PhysicalMetricGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PhysicalMetricGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PhysicalMetricGroupByArgs['orderBy'] }
+        : { orderBy?: PhysicalMetricGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PhysicalMetricGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPhysicalMetricGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PhysicalMetric model
+   */
+  readonly fields: PhysicalMetricFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PhysicalMetric.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PhysicalMetricClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PhysicalMetric model
+   */
+  interface PhysicalMetricFieldRefs {
+    readonly id: FieldRef<"PhysicalMetric", 'String'>
+    readonly userId: FieldRef<"PhysicalMetric", 'String'>
+    readonly height: FieldRef<"PhysicalMetric", 'Float'>
+    readonly weight: FieldRef<"PhysicalMetric", 'Float'>
+    readonly bmi: FieldRef<"PhysicalMetric", 'Float'>
+    readonly heartRate: FieldRef<"PhysicalMetric", 'Int'>
+    readonly agilityScore: FieldRef<"PhysicalMetric", 'Int'>
+    readonly balanceScore: FieldRef<"PhysicalMetric", 'Int'>
+    readonly flexibilityScore: FieldRef<"PhysicalMetric", 'Int'>
+    readonly strengthScore: FieldRef<"PhysicalMetric", 'Int'>
+    readonly enduranceScore: FieldRef<"PhysicalMetric", 'Int'>
+    readonly date: FieldRef<"PhysicalMetric", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PhysicalMetric findUnique
+   */
+  export type PhysicalMetricFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * Filter, which PhysicalMetric to fetch.
+     */
+    where: PhysicalMetricWhereUniqueInput
+  }
+
+  /**
+   * PhysicalMetric findUniqueOrThrow
+   */
+  export type PhysicalMetricFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * Filter, which PhysicalMetric to fetch.
+     */
+    where: PhysicalMetricWhereUniqueInput
+  }
+
+  /**
+   * PhysicalMetric findFirst
+   */
+  export type PhysicalMetricFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * Filter, which PhysicalMetric to fetch.
+     */
+    where?: PhysicalMetricWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PhysicalMetrics to fetch.
+     */
+    orderBy?: PhysicalMetricOrderByWithRelationInput | PhysicalMetricOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PhysicalMetrics.
+     */
+    cursor?: PhysicalMetricWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PhysicalMetrics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PhysicalMetrics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PhysicalMetrics.
+     */
+    distinct?: PhysicalMetricScalarFieldEnum | PhysicalMetricScalarFieldEnum[]
+  }
+
+  /**
+   * PhysicalMetric findFirstOrThrow
+   */
+  export type PhysicalMetricFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * Filter, which PhysicalMetric to fetch.
+     */
+    where?: PhysicalMetricWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PhysicalMetrics to fetch.
+     */
+    orderBy?: PhysicalMetricOrderByWithRelationInput | PhysicalMetricOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PhysicalMetrics.
+     */
+    cursor?: PhysicalMetricWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PhysicalMetrics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PhysicalMetrics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PhysicalMetrics.
+     */
+    distinct?: PhysicalMetricScalarFieldEnum | PhysicalMetricScalarFieldEnum[]
+  }
+
+  /**
+   * PhysicalMetric findMany
+   */
+  export type PhysicalMetricFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * Filter, which PhysicalMetrics to fetch.
+     */
+    where?: PhysicalMetricWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PhysicalMetrics to fetch.
+     */
+    orderBy?: PhysicalMetricOrderByWithRelationInput | PhysicalMetricOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PhysicalMetrics.
+     */
+    cursor?: PhysicalMetricWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PhysicalMetrics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PhysicalMetrics.
+     */
+    skip?: number
+    distinct?: PhysicalMetricScalarFieldEnum | PhysicalMetricScalarFieldEnum[]
+  }
+
+  /**
+   * PhysicalMetric create
+   */
+  export type PhysicalMetricCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PhysicalMetric.
+     */
+    data: XOR<PhysicalMetricCreateInput, PhysicalMetricUncheckedCreateInput>
+  }
+
+  /**
+   * PhysicalMetric createMany
+   */
+  export type PhysicalMetricCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PhysicalMetrics.
+     */
+    data: PhysicalMetricCreateManyInput | PhysicalMetricCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PhysicalMetric createManyAndReturn
+   */
+  export type PhysicalMetricCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * The data used to create many PhysicalMetrics.
+     */
+    data: PhysicalMetricCreateManyInput | PhysicalMetricCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PhysicalMetric update
+   */
+  export type PhysicalMetricUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PhysicalMetric.
+     */
+    data: XOR<PhysicalMetricUpdateInput, PhysicalMetricUncheckedUpdateInput>
+    /**
+     * Choose, which PhysicalMetric to update.
+     */
+    where: PhysicalMetricWhereUniqueInput
+  }
+
+  /**
+   * PhysicalMetric updateMany
+   */
+  export type PhysicalMetricUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PhysicalMetrics.
+     */
+    data: XOR<PhysicalMetricUpdateManyMutationInput, PhysicalMetricUncheckedUpdateManyInput>
+    /**
+     * Filter which PhysicalMetrics to update
+     */
+    where?: PhysicalMetricWhereInput
+    /**
+     * Limit how many PhysicalMetrics to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PhysicalMetric updateManyAndReturn
+   */
+  export type PhysicalMetricUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * The data used to update PhysicalMetrics.
+     */
+    data: XOR<PhysicalMetricUpdateManyMutationInput, PhysicalMetricUncheckedUpdateManyInput>
+    /**
+     * Filter which PhysicalMetrics to update
+     */
+    where?: PhysicalMetricWhereInput
+    /**
+     * Limit how many PhysicalMetrics to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PhysicalMetric upsert
+   */
+  export type PhysicalMetricUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PhysicalMetric to update in case it exists.
+     */
+    where: PhysicalMetricWhereUniqueInput
+    /**
+     * In case the PhysicalMetric found by the `where` argument doesn't exist, create a new PhysicalMetric with this data.
+     */
+    create: XOR<PhysicalMetricCreateInput, PhysicalMetricUncheckedCreateInput>
+    /**
+     * In case the PhysicalMetric was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PhysicalMetricUpdateInput, PhysicalMetricUncheckedUpdateInput>
+  }
+
+  /**
+   * PhysicalMetric delete
+   */
+  export type PhysicalMetricDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+    /**
+     * Filter which PhysicalMetric to delete.
+     */
+    where: PhysicalMetricWhereUniqueInput
+  }
+
+  /**
+   * PhysicalMetric deleteMany
+   */
+  export type PhysicalMetricDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PhysicalMetrics to delete
+     */
+    where?: PhysicalMetricWhereInput
+    /**
+     * Limit how many PhysicalMetrics to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PhysicalMetric without action
+   */
+  export type PhysicalMetricDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PhysicalMetric
+     */
+    select?: PhysicalMetricSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PhysicalMetric
+     */
+    omit?: PhysicalMetricOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PhysicalMetricInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Goal
+   */
+
+  export type AggregateGoal = {
+    _count: GoalCountAggregateOutputType | null
+    _avg: GoalAvgAggregateOutputType | null
+    _sum: GoalSumAggregateOutputType | null
+    _min: GoalMinAggregateOutputType | null
+    _max: GoalMaxAggregateOutputType | null
+  }
+
+  export type GoalAvgAggregateOutputType = {
+    targetValue: number | null
+    currentValue: number | null
+  }
+
+  export type GoalSumAggregateOutputType = {
+    targetValue: number | null
+    currentValue: number | null
+  }
+
+  export type GoalMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    title: string | null
+    description: string | null
+    targetValue: number | null
+    currentValue: number | null
+    unit: string | null
+    isCompleted: boolean | null
+    deadline: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GoalMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    title: string | null
+    description: string | null
+    targetValue: number | null
+    currentValue: number | null
+    unit: string | null
+    isCompleted: boolean | null
+    deadline: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GoalCountAggregateOutputType = {
+    id: number
+    userId: number
+    title: number
+    description: number
+    targetValue: number
+    currentValue: number
+    unit: number
+    isCompleted: number
+    deadline: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GoalAvgAggregateInputType = {
+    targetValue?: true
+    currentValue?: true
+  }
+
+  export type GoalSumAggregateInputType = {
+    targetValue?: true
+    currentValue?: true
+  }
+
+  export type GoalMinAggregateInputType = {
+    id?: true
+    userId?: true
+    title?: true
+    description?: true
+    targetValue?: true
+    currentValue?: true
+    unit?: true
+    isCompleted?: true
+    deadline?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GoalMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    title?: true
+    description?: true
+    targetValue?: true
+    currentValue?: true
+    unit?: true
+    isCompleted?: true
+    deadline?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GoalCountAggregateInputType = {
+    id?: true
+    userId?: true
+    title?: true
+    description?: true
+    targetValue?: true
+    currentValue?: true
+    unit?: true
+    isCompleted?: true
+    deadline?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GoalAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Goal to aggregate.
+     */
+    where?: GoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Goals to fetch.
+     */
+    orderBy?: GoalOrderByWithRelationInput | GoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Goals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Goals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Goals
+    **/
+    _count?: true | GoalCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: GoalAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GoalSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GoalMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GoalMaxAggregateInputType
+  }
+
+  export type GetGoalAggregateType<T extends GoalAggregateArgs> = {
+        [P in keyof T & keyof AggregateGoal]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGoal[P]>
+      : GetScalarType<T[P], AggregateGoal[P]>
+  }
+
+
+
+
+  export type GoalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GoalWhereInput
+    orderBy?: GoalOrderByWithAggregationInput | GoalOrderByWithAggregationInput[]
+    by: GoalScalarFieldEnum[] | GoalScalarFieldEnum
+    having?: GoalScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GoalCountAggregateInputType | true
+    _avg?: GoalAvgAggregateInputType
+    _sum?: GoalSumAggregateInputType
+    _min?: GoalMinAggregateInputType
+    _max?: GoalMaxAggregateInputType
+  }
+
+  export type GoalGroupByOutputType = {
+    id: string
+    userId: string
+    title: string
+    description: string | null
+    targetValue: number | null
+    currentValue: number
+    unit: string | null
+    isCompleted: boolean
+    deadline: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: GoalCountAggregateOutputType | null
+    _avg: GoalAvgAggregateOutputType | null
+    _sum: GoalSumAggregateOutputType | null
+    _min: GoalMinAggregateOutputType | null
+    _max: GoalMaxAggregateOutputType | null
+  }
+
+  type GetGoalGroupByPayload<T extends GoalGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GoalGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GoalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GoalGroupByOutputType[P]>
+            : GetScalarType<T[P], GoalGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GoalSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    description?: boolean
+    targetValue?: boolean
+    currentValue?: boolean
+    unit?: boolean
+    isCompleted?: boolean
+    deadline?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["goal"]>
+
+  export type GoalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    description?: boolean
+    targetValue?: boolean
+    currentValue?: boolean
+    unit?: boolean
+    isCompleted?: boolean
+    deadline?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["goal"]>
+
+  export type GoalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    description?: boolean
+    targetValue?: boolean
+    currentValue?: boolean
+    unit?: boolean
+    isCompleted?: boolean
+    deadline?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["goal"]>
+
+  export type GoalSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    description?: boolean
+    targetValue?: boolean
+    currentValue?: boolean
+    unit?: boolean
+    isCompleted?: boolean
+    deadline?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type GoalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "title" | "description" | "targetValue" | "currentValue" | "unit" | "isCompleted" | "deadline" | "createdAt" | "updatedAt", ExtArgs["result"]["goal"]>
+  export type GoalInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GoalIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GoalIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $GoalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Goal"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      title: string
+      description: string | null
+      targetValue: number | null
+      currentValue: number
+      unit: string | null
+      isCompleted: boolean
+      deadline: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["goal"]>
+    composites: {}
+  }
+
+  type GoalGetPayload<S extends boolean | null | undefined | GoalDefaultArgs> = $Result.GetResult<Prisma.$GoalPayload, S>
+
+  type GoalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GoalFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GoalCountAggregateInputType | true
+    }
+
+  export interface GoalDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Goal'], meta: { name: 'Goal' } }
+    /**
+     * Find zero or one Goal that matches the filter.
+     * @param {GoalFindUniqueArgs} args - Arguments to find a Goal
+     * @example
+     * // Get one Goal
+     * const goal = await prisma.goal.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GoalFindUniqueArgs>(args: SelectSubset<T, GoalFindUniqueArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Goal that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GoalFindUniqueOrThrowArgs} args - Arguments to find a Goal
+     * @example
+     * // Get one Goal
+     * const goal = await prisma.goal.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GoalFindUniqueOrThrowArgs>(args: SelectSubset<T, GoalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Goal that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GoalFindFirstArgs} args - Arguments to find a Goal
+     * @example
+     * // Get one Goal
+     * const goal = await prisma.goal.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GoalFindFirstArgs>(args?: SelectSubset<T, GoalFindFirstArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Goal that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GoalFindFirstOrThrowArgs} args - Arguments to find a Goal
+     * @example
+     * // Get one Goal
+     * const goal = await prisma.goal.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GoalFindFirstOrThrowArgs>(args?: SelectSubset<T, GoalFindFirstOrThrowArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Goals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GoalFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Goals
+     * const goals = await prisma.goal.findMany()
+     * 
+     * // Get first 10 Goals
+     * const goals = await prisma.goal.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const goalWithIdOnly = await prisma.goal.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GoalFindManyArgs>(args?: SelectSubset<T, GoalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Goal.
+     * @param {GoalCreateArgs} args - Arguments to create a Goal.
+     * @example
+     * // Create one Goal
+     * const Goal = await prisma.goal.create({
+     *   data: {
+     *     // ... data to create a Goal
+     *   }
+     * })
+     * 
+     */
+    create<T extends GoalCreateArgs>(args: SelectSubset<T, GoalCreateArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Goals.
+     * @param {GoalCreateManyArgs} args - Arguments to create many Goals.
+     * @example
+     * // Create many Goals
+     * const goal = await prisma.goal.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GoalCreateManyArgs>(args?: SelectSubset<T, GoalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Goals and returns the data saved in the database.
+     * @param {GoalCreateManyAndReturnArgs} args - Arguments to create many Goals.
+     * @example
+     * // Create many Goals
+     * const goal = await prisma.goal.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Goals and only return the `id`
+     * const goalWithIdOnly = await prisma.goal.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GoalCreateManyAndReturnArgs>(args?: SelectSubset<T, GoalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Goal.
+     * @param {GoalDeleteArgs} args - Arguments to delete one Goal.
+     * @example
+     * // Delete one Goal
+     * const Goal = await prisma.goal.delete({
+     *   where: {
+     *     // ... filter to delete one Goal
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GoalDeleteArgs>(args: SelectSubset<T, GoalDeleteArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Goal.
+     * @param {GoalUpdateArgs} args - Arguments to update one Goal.
+     * @example
+     * // Update one Goal
+     * const goal = await prisma.goal.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GoalUpdateArgs>(args: SelectSubset<T, GoalUpdateArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Goals.
+     * @param {GoalDeleteManyArgs} args - Arguments to filter Goals to delete.
+     * @example
+     * // Delete a few Goals
+     * const { count } = await prisma.goal.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GoalDeleteManyArgs>(args?: SelectSubset<T, GoalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Goals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GoalUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Goals
+     * const goal = await prisma.goal.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GoalUpdateManyArgs>(args: SelectSubset<T, GoalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Goals and returns the data updated in the database.
+     * @param {GoalUpdateManyAndReturnArgs} args - Arguments to update many Goals.
+     * @example
+     * // Update many Goals
+     * const goal = await prisma.goal.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Goals and only return the `id`
+     * const goalWithIdOnly = await prisma.goal.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GoalUpdateManyAndReturnArgs>(args: SelectSubset<T, GoalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Goal.
+     * @param {GoalUpsertArgs} args - Arguments to update or create a Goal.
+     * @example
+     * // Update or create a Goal
+     * const goal = await prisma.goal.upsert({
+     *   create: {
+     *     // ... data to create a Goal
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Goal we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GoalUpsertArgs>(args: SelectSubset<T, GoalUpsertArgs<ExtArgs>>): Prisma__GoalClient<$Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Goals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GoalCountArgs} args - Arguments to filter Goals to count.
+     * @example
+     * // Count the number of Goals
+     * const count = await prisma.goal.count({
+     *   where: {
+     *     // ... the filter for the Goals we want to count
+     *   }
+     * })
+    **/
+    count<T extends GoalCountArgs>(
+      args?: Subset<T, GoalCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GoalCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Goal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GoalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GoalAggregateArgs>(args: Subset<T, GoalAggregateArgs>): Prisma.PrismaPromise<GetGoalAggregateType<T>>
+
+    /**
+     * Group by Goal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GoalGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GoalGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GoalGroupByArgs['orderBy'] }
+        : { orderBy?: GoalGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GoalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGoalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Goal model
+   */
+  readonly fields: GoalFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Goal.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GoalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Goal model
+   */
+  interface GoalFieldRefs {
+    readonly id: FieldRef<"Goal", 'String'>
+    readonly userId: FieldRef<"Goal", 'String'>
+    readonly title: FieldRef<"Goal", 'String'>
+    readonly description: FieldRef<"Goal", 'String'>
+    readonly targetValue: FieldRef<"Goal", 'Float'>
+    readonly currentValue: FieldRef<"Goal", 'Float'>
+    readonly unit: FieldRef<"Goal", 'String'>
+    readonly isCompleted: FieldRef<"Goal", 'Boolean'>
+    readonly deadline: FieldRef<"Goal", 'DateTime'>
+    readonly createdAt: FieldRef<"Goal", 'DateTime'>
+    readonly updatedAt: FieldRef<"Goal", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Goal findUnique
+   */
+  export type GoalFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * Filter, which Goal to fetch.
+     */
+    where: GoalWhereUniqueInput
+  }
+
+  /**
+   * Goal findUniqueOrThrow
+   */
+  export type GoalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * Filter, which Goal to fetch.
+     */
+    where: GoalWhereUniqueInput
+  }
+
+  /**
+   * Goal findFirst
+   */
+  export type GoalFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * Filter, which Goal to fetch.
+     */
+    where?: GoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Goals to fetch.
+     */
+    orderBy?: GoalOrderByWithRelationInput | GoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Goals.
+     */
+    cursor?: GoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Goals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Goals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Goals.
+     */
+    distinct?: GoalScalarFieldEnum | GoalScalarFieldEnum[]
+  }
+
+  /**
+   * Goal findFirstOrThrow
+   */
+  export type GoalFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * Filter, which Goal to fetch.
+     */
+    where?: GoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Goals to fetch.
+     */
+    orderBy?: GoalOrderByWithRelationInput | GoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Goals.
+     */
+    cursor?: GoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Goals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Goals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Goals.
+     */
+    distinct?: GoalScalarFieldEnum | GoalScalarFieldEnum[]
+  }
+
+  /**
+   * Goal findMany
+   */
+  export type GoalFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * Filter, which Goals to fetch.
+     */
+    where?: GoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Goals to fetch.
+     */
+    orderBy?: GoalOrderByWithRelationInput | GoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Goals.
+     */
+    cursor?: GoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Goals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Goals.
+     */
+    skip?: number
+    distinct?: GoalScalarFieldEnum | GoalScalarFieldEnum[]
+  }
+
+  /**
+   * Goal create
+   */
+  export type GoalCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Goal.
+     */
+    data: XOR<GoalCreateInput, GoalUncheckedCreateInput>
+  }
+
+  /**
+   * Goal createMany
+   */
+  export type GoalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Goals.
+     */
+    data: GoalCreateManyInput | GoalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Goal createManyAndReturn
+   */
+  export type GoalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * The data used to create many Goals.
+     */
+    data: GoalCreateManyInput | GoalCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Goal update
+   */
+  export type GoalUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Goal.
+     */
+    data: XOR<GoalUpdateInput, GoalUncheckedUpdateInput>
+    /**
+     * Choose, which Goal to update.
+     */
+    where: GoalWhereUniqueInput
+  }
+
+  /**
+   * Goal updateMany
+   */
+  export type GoalUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Goals.
+     */
+    data: XOR<GoalUpdateManyMutationInput, GoalUncheckedUpdateManyInput>
+    /**
+     * Filter which Goals to update
+     */
+    where?: GoalWhereInput
+    /**
+     * Limit how many Goals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Goal updateManyAndReturn
+   */
+  export type GoalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * The data used to update Goals.
+     */
+    data: XOR<GoalUpdateManyMutationInput, GoalUncheckedUpdateManyInput>
+    /**
+     * Filter which Goals to update
+     */
+    where?: GoalWhereInput
+    /**
+     * Limit how many Goals to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Goal upsert
+   */
+  export type GoalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Goal to update in case it exists.
+     */
+    where: GoalWhereUniqueInput
+    /**
+     * In case the Goal found by the `where` argument doesn't exist, create a new Goal with this data.
+     */
+    create: XOR<GoalCreateInput, GoalUncheckedCreateInput>
+    /**
+     * In case the Goal was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GoalUpdateInput, GoalUncheckedUpdateInput>
+  }
+
+  /**
+   * Goal delete
+   */
+  export type GoalDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+    /**
+     * Filter which Goal to delete.
+     */
+    where: GoalWhereUniqueInput
+  }
+
+  /**
+   * Goal deleteMany
+   */
+  export type GoalDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Goals to delete
+     */
+    where?: GoalWhereInput
+    /**
+     * Limit how many Goals to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Goal without action
+   */
+  export type GoalDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Goal
+     */
+    select?: GoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Goal
+     */
+    omit?: GoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GoalInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Competition
+   */
+
+  export type AggregateCompetition = {
+    _count: CompetitionCountAggregateOutputType | null
+    _avg: CompetitionAvgAggregateOutputType | null
+    _sum: CompetitionSumAggregateOutputType | null
+    _min: CompetitionMinAggregateOutputType | null
+    _max: CompetitionMaxAggregateOutputType | null
+  }
+
+  export type CompetitionAvgAggregateOutputType = {
+    rewardXp: number | null
+    rewardCoins: number | null
+    participants: number | null
+  }
+
+  export type CompetitionSumAggregateOutputType = {
+    rewardXp: number | null
+    rewardCoins: number | null
+    participants: number | null
+  }
+
+  export type CompetitionMinAggregateOutputType = {
+    id: string | null
+    title: string | null
+    description: string | null
+    type: string | null
+    rewardXp: number | null
+    rewardCoins: number | null
+    participants: number | null
+    endDate: Date | null
+    createdAt: Date | null
+  }
+
+  export type CompetitionMaxAggregateOutputType = {
+    id: string | null
+    title: string | null
+    description: string | null
+    type: string | null
+    rewardXp: number | null
+    rewardCoins: number | null
+    participants: number | null
+    endDate: Date | null
+    createdAt: Date | null
+  }
+
+  export type CompetitionCountAggregateOutputType = {
+    id: number
+    title: number
+    description: number
+    type: number
+    rewardXp: number
+    rewardCoins: number
+    participants: number
+    endDate: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CompetitionAvgAggregateInputType = {
+    rewardXp?: true
+    rewardCoins?: true
+    participants?: true
+  }
+
+  export type CompetitionSumAggregateInputType = {
+    rewardXp?: true
+    rewardCoins?: true
+    participants?: true
+  }
+
+  export type CompetitionMinAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    type?: true
+    rewardXp?: true
+    rewardCoins?: true
+    participants?: true
+    endDate?: true
+    createdAt?: true
+  }
+
+  export type CompetitionMaxAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    type?: true
+    rewardXp?: true
+    rewardCoins?: true
+    participants?: true
+    endDate?: true
+    createdAt?: true
+  }
+
+  export type CompetitionCountAggregateInputType = {
+    id?: true
+    title?: true
+    description?: true
+    type?: true
+    rewardXp?: true
+    rewardCoins?: true
+    participants?: true
+    endDate?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CompetitionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Competition to aggregate.
+     */
+    where?: CompetitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Competitions to fetch.
+     */
+    orderBy?: CompetitionOrderByWithRelationInput | CompetitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CompetitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Competitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Competitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Competitions
+    **/
+    _count?: true | CompetitionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CompetitionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CompetitionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CompetitionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CompetitionMaxAggregateInputType
+  }
+
+  export type GetCompetitionAggregateType<T extends CompetitionAggregateArgs> = {
+        [P in keyof T & keyof AggregateCompetition]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCompetition[P]>
+      : GetScalarType<T[P], AggregateCompetition[P]>
+  }
+
+
+
+
+  export type CompetitionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CompetitionWhereInput
+    orderBy?: CompetitionOrderByWithAggregationInput | CompetitionOrderByWithAggregationInput[]
+    by: CompetitionScalarFieldEnum[] | CompetitionScalarFieldEnum
+    having?: CompetitionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CompetitionCountAggregateInputType | true
+    _avg?: CompetitionAvgAggregateInputType
+    _sum?: CompetitionSumAggregateInputType
+    _min?: CompetitionMinAggregateInputType
+    _max?: CompetitionMaxAggregateInputType
+  }
+
+  export type CompetitionGroupByOutputType = {
+    id: string
+    title: string
+    description: string | null
+    type: string
+    rewardXp: number
+    rewardCoins: number
+    participants: number
+    endDate: Date
+    createdAt: Date
+    _count: CompetitionCountAggregateOutputType | null
+    _avg: CompetitionAvgAggregateOutputType | null
+    _sum: CompetitionSumAggregateOutputType | null
+    _min: CompetitionMinAggregateOutputType | null
+    _max: CompetitionMaxAggregateOutputType | null
+  }
+
+  type GetCompetitionGroupByPayload<T extends CompetitionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CompetitionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CompetitionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CompetitionGroupByOutputType[P]>
+            : GetScalarType<T[P], CompetitionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CompetitionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    type?: boolean
+    rewardXp?: boolean
+    rewardCoins?: boolean
+    participants?: boolean
+    endDate?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["competition"]>
+
+  export type CompetitionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    type?: boolean
+    rewardXp?: boolean
+    rewardCoins?: boolean
+    participants?: boolean
+    endDate?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["competition"]>
+
+  export type CompetitionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    type?: boolean
+    rewardXp?: boolean
+    rewardCoins?: boolean
+    participants?: boolean
+    endDate?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["competition"]>
+
+  export type CompetitionSelectScalar = {
+    id?: boolean
+    title?: boolean
+    description?: boolean
+    type?: boolean
+    rewardXp?: boolean
+    rewardCoins?: boolean
+    participants?: boolean
+    endDate?: boolean
+    createdAt?: boolean
+  }
+
+  export type CompetitionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "type" | "rewardXp" | "rewardCoins" | "participants" | "endDate" | "createdAt", ExtArgs["result"]["competition"]>
+
+  export type $CompetitionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Competition"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      title: string
+      description: string | null
+      type: string
+      rewardXp: number
+      rewardCoins: number
+      participants: number
+      endDate: Date
+      createdAt: Date
+    }, ExtArgs["result"]["competition"]>
+    composites: {}
+  }
+
+  type CompetitionGetPayload<S extends boolean | null | undefined | CompetitionDefaultArgs> = $Result.GetResult<Prisma.$CompetitionPayload, S>
+
+  type CompetitionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CompetitionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CompetitionCountAggregateInputType | true
+    }
+
+  export interface CompetitionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Competition'], meta: { name: 'Competition' } }
+    /**
+     * Find zero or one Competition that matches the filter.
+     * @param {CompetitionFindUniqueArgs} args - Arguments to find a Competition
+     * @example
+     * // Get one Competition
+     * const competition = await prisma.competition.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CompetitionFindUniqueArgs>(args: SelectSubset<T, CompetitionFindUniqueArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Competition that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CompetitionFindUniqueOrThrowArgs} args - Arguments to find a Competition
+     * @example
+     * // Get one Competition
+     * const competition = await prisma.competition.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CompetitionFindUniqueOrThrowArgs>(args: SelectSubset<T, CompetitionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Competition that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompetitionFindFirstArgs} args - Arguments to find a Competition
+     * @example
+     * // Get one Competition
+     * const competition = await prisma.competition.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CompetitionFindFirstArgs>(args?: SelectSubset<T, CompetitionFindFirstArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Competition that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompetitionFindFirstOrThrowArgs} args - Arguments to find a Competition
+     * @example
+     * // Get one Competition
+     * const competition = await prisma.competition.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CompetitionFindFirstOrThrowArgs>(args?: SelectSubset<T, CompetitionFindFirstOrThrowArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Competitions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompetitionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Competitions
+     * const competitions = await prisma.competition.findMany()
+     * 
+     * // Get first 10 Competitions
+     * const competitions = await prisma.competition.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const competitionWithIdOnly = await prisma.competition.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CompetitionFindManyArgs>(args?: SelectSubset<T, CompetitionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Competition.
+     * @param {CompetitionCreateArgs} args - Arguments to create a Competition.
+     * @example
+     * // Create one Competition
+     * const Competition = await prisma.competition.create({
+     *   data: {
+     *     // ... data to create a Competition
+     *   }
+     * })
+     * 
+     */
+    create<T extends CompetitionCreateArgs>(args: SelectSubset<T, CompetitionCreateArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Competitions.
+     * @param {CompetitionCreateManyArgs} args - Arguments to create many Competitions.
+     * @example
+     * // Create many Competitions
+     * const competition = await prisma.competition.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CompetitionCreateManyArgs>(args?: SelectSubset<T, CompetitionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Competitions and returns the data saved in the database.
+     * @param {CompetitionCreateManyAndReturnArgs} args - Arguments to create many Competitions.
+     * @example
+     * // Create many Competitions
+     * const competition = await prisma.competition.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Competitions and only return the `id`
+     * const competitionWithIdOnly = await prisma.competition.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CompetitionCreateManyAndReturnArgs>(args?: SelectSubset<T, CompetitionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Competition.
+     * @param {CompetitionDeleteArgs} args - Arguments to delete one Competition.
+     * @example
+     * // Delete one Competition
+     * const Competition = await prisma.competition.delete({
+     *   where: {
+     *     // ... filter to delete one Competition
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CompetitionDeleteArgs>(args: SelectSubset<T, CompetitionDeleteArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Competition.
+     * @param {CompetitionUpdateArgs} args - Arguments to update one Competition.
+     * @example
+     * // Update one Competition
+     * const competition = await prisma.competition.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CompetitionUpdateArgs>(args: SelectSubset<T, CompetitionUpdateArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Competitions.
+     * @param {CompetitionDeleteManyArgs} args - Arguments to filter Competitions to delete.
+     * @example
+     * // Delete a few Competitions
+     * const { count } = await prisma.competition.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CompetitionDeleteManyArgs>(args?: SelectSubset<T, CompetitionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Competitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompetitionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Competitions
+     * const competition = await prisma.competition.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CompetitionUpdateManyArgs>(args: SelectSubset<T, CompetitionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Competitions and returns the data updated in the database.
+     * @param {CompetitionUpdateManyAndReturnArgs} args - Arguments to update many Competitions.
+     * @example
+     * // Update many Competitions
+     * const competition = await prisma.competition.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Competitions and only return the `id`
+     * const competitionWithIdOnly = await prisma.competition.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CompetitionUpdateManyAndReturnArgs>(args: SelectSubset<T, CompetitionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Competition.
+     * @param {CompetitionUpsertArgs} args - Arguments to update or create a Competition.
+     * @example
+     * // Update or create a Competition
+     * const competition = await prisma.competition.upsert({
+     *   create: {
+     *     // ... data to create a Competition
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Competition we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CompetitionUpsertArgs>(args: SelectSubset<T, CompetitionUpsertArgs<ExtArgs>>): Prisma__CompetitionClient<$Result.GetResult<Prisma.$CompetitionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Competitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompetitionCountArgs} args - Arguments to filter Competitions to count.
+     * @example
+     * // Count the number of Competitions
+     * const count = await prisma.competition.count({
+     *   where: {
+     *     // ... the filter for the Competitions we want to count
+     *   }
+     * })
+    **/
+    count<T extends CompetitionCountArgs>(
+      args?: Subset<T, CompetitionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CompetitionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Competition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompetitionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CompetitionAggregateArgs>(args: Subset<T, CompetitionAggregateArgs>): Prisma.PrismaPromise<GetCompetitionAggregateType<T>>
+
+    /**
+     * Group by Competition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompetitionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CompetitionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CompetitionGroupByArgs['orderBy'] }
+        : { orderBy?: CompetitionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CompetitionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCompetitionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Competition model
+   */
+  readonly fields: CompetitionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Competition.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CompetitionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Competition model
+   */
+  interface CompetitionFieldRefs {
+    readonly id: FieldRef<"Competition", 'String'>
+    readonly title: FieldRef<"Competition", 'String'>
+    readonly description: FieldRef<"Competition", 'String'>
+    readonly type: FieldRef<"Competition", 'String'>
+    readonly rewardXp: FieldRef<"Competition", 'Int'>
+    readonly rewardCoins: FieldRef<"Competition", 'Int'>
+    readonly participants: FieldRef<"Competition", 'Int'>
+    readonly endDate: FieldRef<"Competition", 'DateTime'>
+    readonly createdAt: FieldRef<"Competition", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Competition findUnique
+   */
+  export type CompetitionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * Filter, which Competition to fetch.
+     */
+    where: CompetitionWhereUniqueInput
+  }
+
+  /**
+   * Competition findUniqueOrThrow
+   */
+  export type CompetitionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * Filter, which Competition to fetch.
+     */
+    where: CompetitionWhereUniqueInput
+  }
+
+  /**
+   * Competition findFirst
+   */
+  export type CompetitionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * Filter, which Competition to fetch.
+     */
+    where?: CompetitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Competitions to fetch.
+     */
+    orderBy?: CompetitionOrderByWithRelationInput | CompetitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Competitions.
+     */
+    cursor?: CompetitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Competitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Competitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Competitions.
+     */
+    distinct?: CompetitionScalarFieldEnum | CompetitionScalarFieldEnum[]
+  }
+
+  /**
+   * Competition findFirstOrThrow
+   */
+  export type CompetitionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * Filter, which Competition to fetch.
+     */
+    where?: CompetitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Competitions to fetch.
+     */
+    orderBy?: CompetitionOrderByWithRelationInput | CompetitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Competitions.
+     */
+    cursor?: CompetitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Competitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Competitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Competitions.
+     */
+    distinct?: CompetitionScalarFieldEnum | CompetitionScalarFieldEnum[]
+  }
+
+  /**
+   * Competition findMany
+   */
+  export type CompetitionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * Filter, which Competitions to fetch.
+     */
+    where?: CompetitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Competitions to fetch.
+     */
+    orderBy?: CompetitionOrderByWithRelationInput | CompetitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Competitions.
+     */
+    cursor?: CompetitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Competitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Competitions.
+     */
+    skip?: number
+    distinct?: CompetitionScalarFieldEnum | CompetitionScalarFieldEnum[]
+  }
+
+  /**
+   * Competition create
+   */
+  export type CompetitionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * The data needed to create a Competition.
+     */
+    data: XOR<CompetitionCreateInput, CompetitionUncheckedCreateInput>
+  }
+
+  /**
+   * Competition createMany
+   */
+  export type CompetitionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Competitions.
+     */
+    data: CompetitionCreateManyInput | CompetitionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Competition createManyAndReturn
+   */
+  export type CompetitionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * The data used to create many Competitions.
+     */
+    data: CompetitionCreateManyInput | CompetitionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Competition update
+   */
+  export type CompetitionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * The data needed to update a Competition.
+     */
+    data: XOR<CompetitionUpdateInput, CompetitionUncheckedUpdateInput>
+    /**
+     * Choose, which Competition to update.
+     */
+    where: CompetitionWhereUniqueInput
+  }
+
+  /**
+   * Competition updateMany
+   */
+  export type CompetitionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Competitions.
+     */
+    data: XOR<CompetitionUpdateManyMutationInput, CompetitionUncheckedUpdateManyInput>
+    /**
+     * Filter which Competitions to update
+     */
+    where?: CompetitionWhereInput
+    /**
+     * Limit how many Competitions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Competition updateManyAndReturn
+   */
+  export type CompetitionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * The data used to update Competitions.
+     */
+    data: XOR<CompetitionUpdateManyMutationInput, CompetitionUncheckedUpdateManyInput>
+    /**
+     * Filter which Competitions to update
+     */
+    where?: CompetitionWhereInput
+    /**
+     * Limit how many Competitions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Competition upsert
+   */
+  export type CompetitionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * The filter to search for the Competition to update in case it exists.
+     */
+    where: CompetitionWhereUniqueInput
+    /**
+     * In case the Competition found by the `where` argument doesn't exist, create a new Competition with this data.
+     */
+    create: XOR<CompetitionCreateInput, CompetitionUncheckedCreateInput>
+    /**
+     * In case the Competition was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CompetitionUpdateInput, CompetitionUncheckedUpdateInput>
+  }
+
+  /**
+   * Competition delete
+   */
+  export type CompetitionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
+    /**
+     * Filter which Competition to delete.
+     */
+    where: CompetitionWhereUniqueInput
+  }
+
+  /**
+   * Competition deleteMany
+   */
+  export type CompetitionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Competitions to delete
+     */
+    where?: CompetitionWhereInput
+    /**
+     * Limit how many Competitions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Competition without action
+   */
+  export type CompetitionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Competition
+     */
+    select?: CompetitionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Competition
+     */
+    omit?: CompetitionOmit<ExtArgs> | null
   }
 
 
@@ -12969,6 +18291,56 @@ export namespace Prisma {
   export type ExerciseSubmissionScalarFieldEnum = (typeof ExerciseSubmissionScalarFieldEnum)[keyof typeof ExerciseSubmissionScalarFieldEnum]
 
 
+  export const PhysicalMetricScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    height: 'height',
+    weight: 'weight',
+    bmi: 'bmi',
+    heartRate: 'heartRate',
+    agilityScore: 'agilityScore',
+    balanceScore: 'balanceScore',
+    flexibilityScore: 'flexibilityScore',
+    strengthScore: 'strengthScore',
+    enduranceScore: 'enduranceScore',
+    date: 'date'
+  };
+
+  export type PhysicalMetricScalarFieldEnum = (typeof PhysicalMetricScalarFieldEnum)[keyof typeof PhysicalMetricScalarFieldEnum]
+
+
+  export const GoalScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    title: 'title',
+    description: 'description',
+    targetValue: 'targetValue',
+    currentValue: 'currentValue',
+    unit: 'unit',
+    isCompleted: 'isCompleted',
+    deadline: 'deadline',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GoalScalarFieldEnum = (typeof GoalScalarFieldEnum)[keyof typeof GoalScalarFieldEnum]
+
+
+  export const CompetitionScalarFieldEnum: {
+    id: 'id',
+    title: 'title',
+    description: 'description',
+    type: 'type',
+    rewardXp: 'rewardXp',
+    rewardCoins: 'rewardCoins',
+    participants: 'participants',
+    endDate: 'endDate',
+    createdAt: 'createdAt'
+  };
+
+  export type CompetitionScalarFieldEnum = (typeof CompetitionScalarFieldEnum)[keyof typeof CompetitionScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -13011,7 +18383,7 @@ export namespace Prisma {
 
 
   /**
-   * Field references 
+   * Field references
    */
 
 
@@ -13114,6 +18486,13 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
    * Reference to a field of type 'SubmissionStatus'
    */
   export type EnumSubmissionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubmissionStatus'>
@@ -13147,14 +18526,16 @@ export namespace Prisma {
     playCoins?: IntFilter<"User"> | number
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
-    profile?: XOR<ProfileNullableRelationFilter, ProfileWhereInput> | null
-    student?: XOR<StudentNullableRelationFilter, StudentWhereInput> | null
-    parent?: XOR<ParentNullableRelationFilter, ParentWhereInput> | null
-    coach?: XOR<CoachNullableRelationFilter, CoachWhereInput> | null
+    profile?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
+    student?: XOR<StudentNullableScalarRelationFilter, StudentWhereInput> | null
+    parent?: XOR<ParentNullableScalarRelationFilter, ParentWhereInput> | null
+    coach?: XOR<CoachNullableScalarRelationFilter, CoachWhereInput> | null
     auditLogs?: AuditLogListRelationFilter
     dailyActivities?: DailyActivityListRelationFilter
     exerciseSubmissions?: ExerciseSubmissionListRelationFilter
     accessLogs?: AccessLogListRelationFilter
+    physicalMetrics?: PhysicalMetricListRelationFilter
+    goals?: GoalListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -13179,6 +18560,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityOrderByRelationAggregateInput
     exerciseSubmissions?: ExerciseSubmissionOrderByRelationAggregateInput
     accessLogs?: AccessLogOrderByRelationAggregateInput
+    physicalMetrics?: PhysicalMetricOrderByRelationAggregateInput
+    goals?: GoalOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -13198,14 +18581,16 @@ export namespace Prisma {
     playCoins?: IntFilter<"User"> | number
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
-    profile?: XOR<ProfileNullableRelationFilter, ProfileWhereInput> | null
-    student?: XOR<StudentNullableRelationFilter, StudentWhereInput> | null
-    parent?: XOR<ParentNullableRelationFilter, ParentWhereInput> | null
-    coach?: XOR<CoachNullableRelationFilter, CoachWhereInput> | null
+    profile?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
+    student?: XOR<StudentNullableScalarRelationFilter, StudentWhereInput> | null
+    parent?: XOR<ParentNullableScalarRelationFilter, ParentWhereInput> | null
+    coach?: XOR<CoachNullableScalarRelationFilter, CoachWhereInput> | null
     auditLogs?: AuditLogListRelationFilter
     dailyActivities?: DailyActivityListRelationFilter
     exerciseSubmissions?: ExerciseSubmissionListRelationFilter
     accessLogs?: AccessLogListRelationFilter
+    physicalMetrics?: PhysicalMetricListRelationFilter
+    goals?: GoalListRelationFilter
   }, "id" | "email" | "digitalId" | "qrToken">
 
   export type UserOrderByWithAggregationInput = {
@@ -13254,22 +18639,22 @@ export namespace Prisma {
     NOT?: ProfileWhereInput | ProfileWhereInput[]
     id?: StringFilter<"Profile"> | string
     userId?: StringFilter<"Profile"> | string
-    firstName?: StringFilter<"Profile"> | string
-    lastName?: StringFilter<"Profile"> | string
+    firstName?: StringNullableFilter<"Profile"> | string | null
+    lastName?: StringNullableFilter<"Profile"> | string | null
     avatarUrl?: StringNullableFilter<"Profile"> | string | null
     bio?: StringNullableFilter<"Profile"> | string | null
     height?: FloatNullableFilter<"Profile"> | number | null
     weight?: FloatNullableFilter<"Profile"> | number | null
     bloodType?: StringNullableFilter<"Profile"> | string | null
     athleticGoal?: StringNullableFilter<"Profile"> | string | null
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type ProfileOrderByWithRelationInput = {
     id?: SortOrder
     userId?: SortOrder
-    firstName?: SortOrder
-    lastName?: SortOrder
+    firstName?: SortOrderInput | SortOrder
+    lastName?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     bio?: SortOrderInput | SortOrder
     height?: SortOrderInput | SortOrder
@@ -13285,22 +18670,22 @@ export namespace Prisma {
     AND?: ProfileWhereInput | ProfileWhereInput[]
     OR?: ProfileWhereInput[]
     NOT?: ProfileWhereInput | ProfileWhereInput[]
-    firstName?: StringFilter<"Profile"> | string
-    lastName?: StringFilter<"Profile"> | string
+    firstName?: StringNullableFilter<"Profile"> | string | null
+    lastName?: StringNullableFilter<"Profile"> | string | null
     avatarUrl?: StringNullableFilter<"Profile"> | string | null
     bio?: StringNullableFilter<"Profile"> | string | null
     height?: FloatNullableFilter<"Profile"> | number | null
     weight?: FloatNullableFilter<"Profile"> | number | null
     bloodType?: StringNullableFilter<"Profile"> | string | null
     athleticGoal?: StringNullableFilter<"Profile"> | string | null
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id" | "userId">
 
   export type ProfileOrderByWithAggregationInput = {
     id?: SortOrder
     userId?: SortOrder
-    firstName?: SortOrder
-    lastName?: SortOrder
+    firstName?: SortOrderInput | SortOrder
+    lastName?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     bio?: SortOrderInput | SortOrder
     height?: SortOrderInput | SortOrder
@@ -13320,8 +18705,8 @@ export namespace Prisma {
     NOT?: ProfileScalarWhereWithAggregatesInput | ProfileScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Profile"> | string
     userId?: StringWithAggregatesFilter<"Profile"> | string
-    firstName?: StringWithAggregatesFilter<"Profile"> | string
-    lastName?: StringWithAggregatesFilter<"Profile"> | string
+    firstName?: StringNullableWithAggregatesFilter<"Profile"> | string | null
+    lastName?: StringNullableWithAggregatesFilter<"Profile"> | string | null
     avatarUrl?: StringNullableWithAggregatesFilter<"Profile"> | string | null
     bio?: StringNullableWithAggregatesFilter<"Profile"> | string | null
     height?: FloatNullableWithAggregatesFilter<"Profile"> | number | null
@@ -13338,8 +18723,8 @@ export namespace Prisma {
     userId?: StringFilter<"Student"> | string
     gradeLevel?: StringFilter<"Student"> | string
     parentId?: StringNullableFilter<"Student"> | string | null
-    user?: XOR<UserRelationFilter, UserWhereInput>
-    parent?: XOR<ParentNullableRelationFilter, ParentWhereInput> | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    parent?: XOR<ParentNullableScalarRelationFilter, ParentWhereInput> | null
     attendance?: AttendanceListRelationFilter
     grades?: GradeListRelationFilter
   }
@@ -13363,8 +18748,8 @@ export namespace Prisma {
     NOT?: StudentWhereInput | StudentWhereInput[]
     gradeLevel?: StringFilter<"Student"> | string
     parentId?: StringNullableFilter<"Student"> | string | null
-    user?: XOR<UserRelationFilter, UserWhereInput>
-    parent?: XOR<ParentNullableRelationFilter, ParentWhereInput> | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    parent?: XOR<ParentNullableScalarRelationFilter, ParentWhereInput> | null
     attendance?: AttendanceListRelationFilter
     grades?: GradeListRelationFilter
   }, "id" | "userId">
@@ -13396,7 +18781,7 @@ export namespace Prisma {
     id?: StringFilter<"Parent"> | string
     userId?: StringFilter<"Parent"> | string
     phoneNumber?: StringNullableFilter<"Parent"> | string | null
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
     students?: StudentListRelationFilter
   }
 
@@ -13415,7 +18800,7 @@ export namespace Prisma {
     OR?: ParentWhereInput[]
     NOT?: ParentWhereInput | ParentWhereInput[]
     phoneNumber?: StringNullableFilter<"Parent"> | string | null
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
     students?: StudentListRelationFilter
   }, "id" | "userId">
 
@@ -13444,7 +18829,7 @@ export namespace Prisma {
     id?: StringFilter<"Coach"> | string
     userId?: StringFilter<"Coach"> | string
     specialization?: StringFilter<"Coach"> | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type CoachOrderByWithRelationInput = {
@@ -13461,7 +18846,7 @@ export namespace Prisma {
     OR?: CoachWhereInput[]
     NOT?: CoachWhereInput | CoachWhereInput[]
     specialization?: StringFilter<"Coach"> | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id" | "userId">
 
   export type CoachOrderByWithAggregationInput = {
@@ -13490,7 +18875,7 @@ export namespace Prisma {
     studentId?: StringFilter<"Attendance"> | string
     date?: DateTimeFilter<"Attendance"> | Date | string
     status?: StringFilter<"Attendance"> | string
-    student?: XOR<StudentRelationFilter, StudentWhereInput>
+    student?: XOR<StudentScalarRelationFilter, StudentWhereInput>
   }
 
   export type AttendanceOrderByWithRelationInput = {
@@ -13509,7 +18894,7 @@ export namespace Prisma {
     studentId?: StringFilter<"Attendance"> | string
     date?: DateTimeFilter<"Attendance"> | Date | string
     status?: StringFilter<"Attendance"> | string
-    student?: XOR<StudentRelationFilter, StudentWhereInput>
+    student?: XOR<StudentScalarRelationFilter, StudentWhereInput>
   }, "id">
 
   export type AttendanceOrderByWithAggregationInput = {
@@ -13541,7 +18926,7 @@ export namespace Prisma {
     subject?: StringFilter<"Grade"> | string
     score?: FloatFilter<"Grade"> | number
     date?: DateTimeFilter<"Grade"> | Date | string
-    student?: XOR<StudentRelationFilter, StudentWhereInput>
+    student?: XOR<StudentScalarRelationFilter, StudentWhereInput>
   }
 
   export type GradeOrderByWithRelationInput = {
@@ -13562,7 +18947,7 @@ export namespace Prisma {
     subject?: StringFilter<"Grade"> | string
     score?: FloatFilter<"Grade"> | number
     date?: DateTimeFilter<"Grade"> | Date | string
-    student?: XOR<StudentRelationFilter, StudentWhereInput>
+    student?: XOR<StudentScalarRelationFilter, StudentWhereInput>
   }, "id">
 
   export type GradeOrderByWithAggregationInput = {
@@ -13600,7 +18985,7 @@ export namespace Prisma {
     details?: JsonNullableFilter<"AuditLog">
     ipAddress?: StringNullableFilter<"AuditLog"> | string | null
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-    user?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type AuditLogOrderByWithRelationInput = {
@@ -13625,7 +19010,7 @@ export namespace Prisma {
     details?: JsonNullableFilter<"AuditLog">
     ipAddress?: StringNullableFilter<"AuditLog"> | string | null
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-    user?: XOR<UserNullableRelationFilter, UserWhereInput> | null
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
   export type AuditLogOrderByWithAggregationInput = {
@@ -13665,7 +19050,7 @@ export namespace Prisma {
     status?: StringFilter<"AccessLog"> | string
     reason?: StringNullableFilter<"AccessLog"> | string | null
     createdAt?: DateTimeFilter<"AccessLog"> | Date | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type AccessLogOrderByWithRelationInput = {
@@ -13690,7 +19075,7 @@ export namespace Prisma {
     status?: StringFilter<"AccessLog"> | string
     reason?: StringNullableFilter<"AccessLog"> | string | null
     createdAt?: DateTimeFilter<"AccessLog"> | Date | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
   export type AccessLogOrderByWithAggregationInput = {
@@ -13731,7 +19116,7 @@ export namespace Prisma {
     activeMinutes?: IntFilter<"DailyActivity"> | number
     createdAt?: DateTimeFilter<"DailyActivity"> | Date | string
     updatedAt?: DateTimeFilter<"DailyActivity"> | Date | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type DailyActivityOrderByWithRelationInput = {
@@ -13759,7 +19144,7 @@ export namespace Prisma {
     activeMinutes?: IntFilter<"DailyActivity"> | number
     createdAt?: DateTimeFilter<"DailyActivity"> | Date | string
     updatedAt?: DateTimeFilter<"DailyActivity"> | Date | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id" | "userId_date">
 
   export type DailyActivityOrderByWithAggregationInput = {
@@ -13805,7 +19190,7 @@ export namespace Prisma {
     aiFeedback?: JsonNullableFilter<"ExerciseSubmission">
     createdAt?: DateTimeFilter<"ExerciseSubmission"> | Date | string
     updatedAt?: DateTimeFilter<"ExerciseSubmission"> | Date | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type ExerciseSubmissionOrderByWithRelationInput = {
@@ -13834,7 +19219,7 @@ export namespace Prisma {
     aiFeedback?: JsonNullableFilter<"ExerciseSubmission">
     createdAt?: DateTimeFilter<"ExerciseSubmission"> | Date | string
     updatedAt?: DateTimeFilter<"ExerciseSubmission"> | Date | string
-    user?: XOR<UserRelationFilter, UserWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
   export type ExerciseSubmissionOrderByWithAggregationInput = {
@@ -13869,6 +19254,259 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"ExerciseSubmission"> | Date | string
   }
 
+  export type PhysicalMetricWhereInput = {
+    AND?: PhysicalMetricWhereInput | PhysicalMetricWhereInput[]
+    OR?: PhysicalMetricWhereInput[]
+    NOT?: PhysicalMetricWhereInput | PhysicalMetricWhereInput[]
+    id?: StringFilter<"PhysicalMetric"> | string
+    userId?: StringFilter<"PhysicalMetric"> | string
+    height?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    weight?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    bmi?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    heartRate?: IntNullableFilter<"PhysicalMetric"> | number | null
+    agilityScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    balanceScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    flexibilityScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    strengthScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    enduranceScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    date?: DateTimeFilter<"PhysicalMetric"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type PhysicalMetricOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    height?: SortOrderInput | SortOrder
+    weight?: SortOrderInput | SortOrder
+    bmi?: SortOrderInput | SortOrder
+    heartRate?: SortOrderInput | SortOrder
+    agilityScore?: SortOrderInput | SortOrder
+    balanceScore?: SortOrderInput | SortOrder
+    flexibilityScore?: SortOrderInput | SortOrder
+    strengthScore?: SortOrderInput | SortOrder
+    enduranceScore?: SortOrderInput | SortOrder
+    date?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type PhysicalMetricWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: PhysicalMetricWhereInput | PhysicalMetricWhereInput[]
+    OR?: PhysicalMetricWhereInput[]
+    NOT?: PhysicalMetricWhereInput | PhysicalMetricWhereInput[]
+    userId?: StringFilter<"PhysicalMetric"> | string
+    height?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    weight?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    bmi?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    heartRate?: IntNullableFilter<"PhysicalMetric"> | number | null
+    agilityScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    balanceScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    flexibilityScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    strengthScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    enduranceScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    date?: DateTimeFilter<"PhysicalMetric"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type PhysicalMetricOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    height?: SortOrderInput | SortOrder
+    weight?: SortOrderInput | SortOrder
+    bmi?: SortOrderInput | SortOrder
+    heartRate?: SortOrderInput | SortOrder
+    agilityScore?: SortOrderInput | SortOrder
+    balanceScore?: SortOrderInput | SortOrder
+    flexibilityScore?: SortOrderInput | SortOrder
+    strengthScore?: SortOrderInput | SortOrder
+    enduranceScore?: SortOrderInput | SortOrder
+    date?: SortOrder
+    _count?: PhysicalMetricCountOrderByAggregateInput
+    _avg?: PhysicalMetricAvgOrderByAggregateInput
+    _max?: PhysicalMetricMaxOrderByAggregateInput
+    _min?: PhysicalMetricMinOrderByAggregateInput
+    _sum?: PhysicalMetricSumOrderByAggregateInput
+  }
+
+  export type PhysicalMetricScalarWhereWithAggregatesInput = {
+    AND?: PhysicalMetricScalarWhereWithAggregatesInput | PhysicalMetricScalarWhereWithAggregatesInput[]
+    OR?: PhysicalMetricScalarWhereWithAggregatesInput[]
+    NOT?: PhysicalMetricScalarWhereWithAggregatesInput | PhysicalMetricScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PhysicalMetric"> | string
+    userId?: StringWithAggregatesFilter<"PhysicalMetric"> | string
+    height?: FloatNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    weight?: FloatNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    bmi?: FloatNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    heartRate?: IntNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    agilityScore?: IntNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    balanceScore?: IntNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    flexibilityScore?: IntNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    strengthScore?: IntNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    enduranceScore?: IntNullableWithAggregatesFilter<"PhysicalMetric"> | number | null
+    date?: DateTimeWithAggregatesFilter<"PhysicalMetric"> | Date | string
+  }
+
+  export type GoalWhereInput = {
+    AND?: GoalWhereInput | GoalWhereInput[]
+    OR?: GoalWhereInput[]
+    NOT?: GoalWhereInput | GoalWhereInput[]
+    id?: StringFilter<"Goal"> | string
+    userId?: StringFilter<"Goal"> | string
+    title?: StringFilter<"Goal"> | string
+    description?: StringNullableFilter<"Goal"> | string | null
+    targetValue?: FloatNullableFilter<"Goal"> | number | null
+    currentValue?: FloatFilter<"Goal"> | number
+    unit?: StringNullableFilter<"Goal"> | string | null
+    isCompleted?: BoolFilter<"Goal"> | boolean
+    deadline?: DateTimeNullableFilter<"Goal"> | Date | string | null
+    createdAt?: DateTimeFilter<"Goal"> | Date | string
+    updatedAt?: DateTimeFilter<"Goal"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type GoalOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    targetValue?: SortOrderInput | SortOrder
+    currentValue?: SortOrder
+    unit?: SortOrderInput | SortOrder
+    isCompleted?: SortOrder
+    deadline?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type GoalWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: GoalWhereInput | GoalWhereInput[]
+    OR?: GoalWhereInput[]
+    NOT?: GoalWhereInput | GoalWhereInput[]
+    userId?: StringFilter<"Goal"> | string
+    title?: StringFilter<"Goal"> | string
+    description?: StringNullableFilter<"Goal"> | string | null
+    targetValue?: FloatNullableFilter<"Goal"> | number | null
+    currentValue?: FloatFilter<"Goal"> | number
+    unit?: StringNullableFilter<"Goal"> | string | null
+    isCompleted?: BoolFilter<"Goal"> | boolean
+    deadline?: DateTimeNullableFilter<"Goal"> | Date | string | null
+    createdAt?: DateTimeFilter<"Goal"> | Date | string
+    updatedAt?: DateTimeFilter<"Goal"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type GoalOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    targetValue?: SortOrderInput | SortOrder
+    currentValue?: SortOrder
+    unit?: SortOrderInput | SortOrder
+    isCompleted?: SortOrder
+    deadline?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GoalCountOrderByAggregateInput
+    _avg?: GoalAvgOrderByAggregateInput
+    _max?: GoalMaxOrderByAggregateInput
+    _min?: GoalMinOrderByAggregateInput
+    _sum?: GoalSumOrderByAggregateInput
+  }
+
+  export type GoalScalarWhereWithAggregatesInput = {
+    AND?: GoalScalarWhereWithAggregatesInput | GoalScalarWhereWithAggregatesInput[]
+    OR?: GoalScalarWhereWithAggregatesInput[]
+    NOT?: GoalScalarWhereWithAggregatesInput | GoalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Goal"> | string
+    userId?: StringWithAggregatesFilter<"Goal"> | string
+    title?: StringWithAggregatesFilter<"Goal"> | string
+    description?: StringNullableWithAggregatesFilter<"Goal"> | string | null
+    targetValue?: FloatNullableWithAggregatesFilter<"Goal"> | number | null
+    currentValue?: FloatWithAggregatesFilter<"Goal"> | number
+    unit?: StringNullableWithAggregatesFilter<"Goal"> | string | null
+    isCompleted?: BoolWithAggregatesFilter<"Goal"> | boolean
+    deadline?: DateTimeNullableWithAggregatesFilter<"Goal"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Goal"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Goal"> | Date | string
+  }
+
+  export type CompetitionWhereInput = {
+    AND?: CompetitionWhereInput | CompetitionWhereInput[]
+    OR?: CompetitionWhereInput[]
+    NOT?: CompetitionWhereInput | CompetitionWhereInput[]
+    id?: StringFilter<"Competition"> | string
+    title?: StringFilter<"Competition"> | string
+    description?: StringNullableFilter<"Competition"> | string | null
+    type?: StringFilter<"Competition"> | string
+    rewardXp?: IntFilter<"Competition"> | number
+    rewardCoins?: IntFilter<"Competition"> | number
+    participants?: IntFilter<"Competition"> | number
+    endDate?: DateTimeFilter<"Competition"> | Date | string
+    createdAt?: DateTimeFilter<"Competition"> | Date | string
+  }
+
+  export type CompetitionOrderByWithRelationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    type?: SortOrder
+    rewardXp?: SortOrder
+    rewardCoins?: SortOrder
+    participants?: SortOrder
+    endDate?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CompetitionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CompetitionWhereInput | CompetitionWhereInput[]
+    OR?: CompetitionWhereInput[]
+    NOT?: CompetitionWhereInput | CompetitionWhereInput[]
+    title?: StringFilter<"Competition"> | string
+    description?: StringNullableFilter<"Competition"> | string | null
+    type?: StringFilter<"Competition"> | string
+    rewardXp?: IntFilter<"Competition"> | number
+    rewardCoins?: IntFilter<"Competition"> | number
+    participants?: IntFilter<"Competition"> | number
+    endDate?: DateTimeFilter<"Competition"> | Date | string
+    createdAt?: DateTimeFilter<"Competition"> | Date | string
+  }, "id">
+
+  export type CompetitionOrderByWithAggregationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrderInput | SortOrder
+    type?: SortOrder
+    rewardXp?: SortOrder
+    rewardCoins?: SortOrder
+    participants?: SortOrder
+    endDate?: SortOrder
+    createdAt?: SortOrder
+    _count?: CompetitionCountOrderByAggregateInput
+    _avg?: CompetitionAvgOrderByAggregateInput
+    _max?: CompetitionMaxOrderByAggregateInput
+    _min?: CompetitionMinOrderByAggregateInput
+    _sum?: CompetitionSumOrderByAggregateInput
+  }
+
+  export type CompetitionScalarWhereWithAggregatesInput = {
+    AND?: CompetitionScalarWhereWithAggregatesInput | CompetitionScalarWhereWithAggregatesInput[]
+    OR?: CompetitionScalarWhereWithAggregatesInput[]
+    NOT?: CompetitionScalarWhereWithAggregatesInput | CompetitionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Competition"> | string
+    title?: StringWithAggregatesFilter<"Competition"> | string
+    description?: StringNullableWithAggregatesFilter<"Competition"> | string | null
+    type?: StringWithAggregatesFilter<"Competition"> | string
+    rewardXp?: IntWithAggregatesFilter<"Competition"> | number
+    rewardCoins?: IntWithAggregatesFilter<"Competition"> | number
+    participants?: IntWithAggregatesFilter<"Competition"> | number
+    endDate?: DateTimeWithAggregatesFilter<"Competition"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"Competition"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -13891,6 +19529,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -13915,6 +19555,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -13939,6 +19581,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -13963,6 +19607,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -14015,8 +19661,8 @@ export namespace Prisma {
 
   export type ProfileCreateInput = {
     id?: string
-    firstName: string
-    lastName: string
+    firstName?: string | null
+    lastName?: string | null
     avatarUrl?: string | null
     bio?: string | null
     height?: number | null
@@ -14029,8 +19675,8 @@ export namespace Prisma {
   export type ProfileUncheckedCreateInput = {
     id?: string
     userId: string
-    firstName: string
-    lastName: string
+    firstName?: string | null
+    lastName?: string | null
     avatarUrl?: string | null
     bio?: string | null
     height?: number | null
@@ -14041,8 +19687,8 @@ export namespace Prisma {
 
   export type ProfileUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    firstName?: StringFieldUpdateOperationsInput | string
-    lastName?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     height?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -14055,8 +19701,8 @@ export namespace Prisma {
   export type ProfileUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    firstName?: StringFieldUpdateOperationsInput | string
-    lastName?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     height?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -14068,8 +19714,8 @@ export namespace Prisma {
   export type ProfileCreateManyInput = {
     id?: string
     userId: string
-    firstName: string
-    lastName: string
+    firstName?: string | null
+    lastName?: string | null
     avatarUrl?: string | null
     bio?: string | null
     height?: number | null
@@ -14080,8 +19726,8 @@ export namespace Prisma {
 
   export type ProfileUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    firstName?: StringFieldUpdateOperationsInput | string
-    lastName?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     height?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -14093,8 +19739,8 @@ export namespace Prisma {
   export type ProfileUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    firstName?: StringFieldUpdateOperationsInput | string
-    lastName?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     height?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -14644,6 +20290,291 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PhysicalMetricCreateInput = {
+    id?: string
+    height?: number | null
+    weight?: number | null
+    bmi?: number | null
+    heartRate?: number | null
+    agilityScore?: number | null
+    balanceScore?: number | null
+    flexibilityScore?: number | null
+    strengthScore?: number | null
+    enduranceScore?: number | null
+    date?: Date | string
+    user: UserCreateNestedOneWithoutPhysicalMetricsInput
+  }
+
+  export type PhysicalMetricUncheckedCreateInput = {
+    id?: string
+    userId: string
+    height?: number | null
+    weight?: number | null
+    bmi?: number | null
+    heartRate?: number | null
+    agilityScore?: number | null
+    balanceScore?: number | null
+    flexibilityScore?: number | null
+    strengthScore?: number | null
+    enduranceScore?: number | null
+    date?: Date | string
+  }
+
+  export type PhysicalMetricUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    height?: NullableFloatFieldUpdateOperationsInput | number | null
+    weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    bmi?: NullableFloatFieldUpdateOperationsInput | number | null
+    heartRate?: NullableIntFieldUpdateOperationsInput | number | null
+    agilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    balanceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    flexibilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    strengthScore?: NullableIntFieldUpdateOperationsInput | number | null
+    enduranceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutPhysicalMetricsNestedInput
+  }
+
+  export type PhysicalMetricUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    height?: NullableFloatFieldUpdateOperationsInput | number | null
+    weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    bmi?: NullableFloatFieldUpdateOperationsInput | number | null
+    heartRate?: NullableIntFieldUpdateOperationsInput | number | null
+    agilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    balanceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    flexibilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    strengthScore?: NullableIntFieldUpdateOperationsInput | number | null
+    enduranceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PhysicalMetricCreateManyInput = {
+    id?: string
+    userId: string
+    height?: number | null
+    weight?: number | null
+    bmi?: number | null
+    heartRate?: number | null
+    agilityScore?: number | null
+    balanceScore?: number | null
+    flexibilityScore?: number | null
+    strengthScore?: number | null
+    enduranceScore?: number | null
+    date?: Date | string
+  }
+
+  export type PhysicalMetricUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    height?: NullableFloatFieldUpdateOperationsInput | number | null
+    weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    bmi?: NullableFloatFieldUpdateOperationsInput | number | null
+    heartRate?: NullableIntFieldUpdateOperationsInput | number | null
+    agilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    balanceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    flexibilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    strengthScore?: NullableIntFieldUpdateOperationsInput | number | null
+    enduranceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PhysicalMetricUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    height?: NullableFloatFieldUpdateOperationsInput | number | null
+    weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    bmi?: NullableFloatFieldUpdateOperationsInput | number | null
+    heartRate?: NullableIntFieldUpdateOperationsInput | number | null
+    agilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    balanceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    flexibilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    strengthScore?: NullableIntFieldUpdateOperationsInput | number | null
+    enduranceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GoalCreateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    targetValue?: number | null
+    currentValue?: number
+    unit?: string | null
+    isCompleted?: boolean
+    deadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGoalsInput
+  }
+
+  export type GoalUncheckedCreateInput = {
+    id?: string
+    userId: string
+    title: string
+    description?: string | null
+    targetValue?: number | null
+    currentValue?: number
+    unit?: string | null
+    isCompleted?: boolean
+    deadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GoalUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    targetValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    currentValue?: FloatFieldUpdateOperationsInput | number
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isCompleted?: BoolFieldUpdateOperationsInput | boolean
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGoalsNestedInput
+  }
+
+  export type GoalUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    targetValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    currentValue?: FloatFieldUpdateOperationsInput | number
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isCompleted?: BoolFieldUpdateOperationsInput | boolean
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GoalCreateManyInput = {
+    id?: string
+    userId: string
+    title: string
+    description?: string | null
+    targetValue?: number | null
+    currentValue?: number
+    unit?: string | null
+    isCompleted?: boolean
+    deadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GoalUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    targetValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    currentValue?: FloatFieldUpdateOperationsInput | number
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isCompleted?: BoolFieldUpdateOperationsInput | boolean
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GoalUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    targetValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    currentValue?: FloatFieldUpdateOperationsInput | number
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isCompleted?: BoolFieldUpdateOperationsInput | boolean
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompetitionCreateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    type: string
+    rewardXp?: number
+    rewardCoins?: number
+    participants?: number
+    endDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type CompetitionUncheckedCreateInput = {
+    id?: string
+    title: string
+    description?: string | null
+    type: string
+    rewardXp?: number
+    rewardCoins?: number
+    participants?: number
+    endDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type CompetitionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    rewardXp?: IntFieldUpdateOperationsInput | number
+    rewardCoins?: IntFieldUpdateOperationsInput | number
+    participants?: IntFieldUpdateOperationsInput | number
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompetitionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    rewardXp?: IntFieldUpdateOperationsInput | number
+    rewardCoins?: IntFieldUpdateOperationsInput | number
+    participants?: IntFieldUpdateOperationsInput | number
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompetitionCreateManyInput = {
+    id?: string
+    title: string
+    description?: string | null
+    type: string
+    rewardXp?: number
+    rewardCoins?: number
+    participants?: number
+    endDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type CompetitionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    rewardXp?: IntFieldUpdateOperationsInput | number
+    rewardCoins?: IntFieldUpdateOperationsInput | number
+    participants?: IntFieldUpdateOperationsInput | number
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompetitionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: StringFieldUpdateOperationsInput | string
+    rewardXp?: IntFieldUpdateOperationsInput | number
+    rewardCoins?: IntFieldUpdateOperationsInput | number
+    participants?: IntFieldUpdateOperationsInput | number
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -14715,22 +20646,22 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type ProfileNullableRelationFilter = {
+  export type ProfileNullableScalarRelationFilter = {
     is?: ProfileWhereInput | null
     isNot?: ProfileWhereInput | null
   }
 
-  export type StudentNullableRelationFilter = {
+  export type StudentNullableScalarRelationFilter = {
     is?: StudentWhereInput | null
     isNot?: StudentWhereInput | null
   }
 
-  export type ParentNullableRelationFilter = {
+  export type ParentNullableScalarRelationFilter = {
     is?: ParentWhereInput | null
     isNot?: ParentWhereInput | null
   }
 
-  export type CoachNullableRelationFilter = {
+  export type CoachNullableScalarRelationFilter = {
     is?: CoachWhereInput | null
     isNot?: CoachWhereInput | null
   }
@@ -14759,6 +20690,18 @@ export namespace Prisma {
     none?: AccessLogWhereInput
   }
 
+  export type PhysicalMetricListRelationFilter = {
+    every?: PhysicalMetricWhereInput
+    some?: PhysicalMetricWhereInput
+    none?: PhysicalMetricWhereInput
+  }
+
+  export type GoalListRelationFilter = {
+    every?: GoalWhereInput
+    some?: GoalWhereInput
+    none?: GoalWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -14777,6 +20720,14 @@ export namespace Prisma {
   }
 
   export type AccessLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PhysicalMetricOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GoalOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -14945,7 +20896,7 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
-  export type UserRelationFilter = {
+  export type UserScalarRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
   }
@@ -15102,7 +21053,7 @@ export namespace Prisma {
     specialization?: SortOrder
   }
 
-  export type StudentRelationFilter = {
+  export type StudentScalarRelationFilter = {
     is?: StudentWhereInput
     isNot?: StudentWhereInput
   }
@@ -15186,7 +21137,7 @@ export namespace Prisma {
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
   }
-  export type JsonNullableFilter<$PrismaModel = never> = 
+  export type JsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
         Required<JsonNullableFilterBase<$PrismaModel>>
@@ -15196,12 +21147,13 @@ export namespace Prisma {
   export type JsonNullableFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
     path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
     string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
@@ -15209,7 +21161,7 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
-  export type UserNullableRelationFilter = {
+  export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
   }
@@ -15241,7 +21193,7 @@ export namespace Prisma {
     ipAddress?: SortOrder
     createdAt?: SortOrder
   }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> = 
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
         Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
@@ -15251,12 +21203,13 @@ export namespace Prisma {
   export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
     path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
     string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
@@ -15406,6 +21359,227 @@ export namespace Prisma {
     _max?: NestedEnumSubmissionStatusFilter<$PrismaModel>
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type PhysicalMetricCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    height?: SortOrder
+    weight?: SortOrder
+    bmi?: SortOrder
+    heartRate?: SortOrder
+    agilityScore?: SortOrder
+    balanceScore?: SortOrder
+    flexibilityScore?: SortOrder
+    strengthScore?: SortOrder
+    enduranceScore?: SortOrder
+    date?: SortOrder
+  }
+
+  export type PhysicalMetricAvgOrderByAggregateInput = {
+    height?: SortOrder
+    weight?: SortOrder
+    bmi?: SortOrder
+    heartRate?: SortOrder
+    agilityScore?: SortOrder
+    balanceScore?: SortOrder
+    flexibilityScore?: SortOrder
+    strengthScore?: SortOrder
+    enduranceScore?: SortOrder
+  }
+
+  export type PhysicalMetricMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    height?: SortOrder
+    weight?: SortOrder
+    bmi?: SortOrder
+    heartRate?: SortOrder
+    agilityScore?: SortOrder
+    balanceScore?: SortOrder
+    flexibilityScore?: SortOrder
+    strengthScore?: SortOrder
+    enduranceScore?: SortOrder
+    date?: SortOrder
+  }
+
+  export type PhysicalMetricMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    height?: SortOrder
+    weight?: SortOrder
+    bmi?: SortOrder
+    heartRate?: SortOrder
+    agilityScore?: SortOrder
+    balanceScore?: SortOrder
+    flexibilityScore?: SortOrder
+    strengthScore?: SortOrder
+    enduranceScore?: SortOrder
+    date?: SortOrder
+  }
+
+  export type PhysicalMetricSumOrderByAggregateInput = {
+    height?: SortOrder
+    weight?: SortOrder
+    bmi?: SortOrder
+    heartRate?: SortOrder
+    agilityScore?: SortOrder
+    balanceScore?: SortOrder
+    flexibilityScore?: SortOrder
+    strengthScore?: SortOrder
+    enduranceScore?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type GoalCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    targetValue?: SortOrder
+    currentValue?: SortOrder
+    unit?: SortOrder
+    isCompleted?: SortOrder
+    deadline?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GoalAvgOrderByAggregateInput = {
+    targetValue?: SortOrder
+    currentValue?: SortOrder
+  }
+
+  export type GoalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    targetValue?: SortOrder
+    currentValue?: SortOrder
+    unit?: SortOrder
+    isCompleted?: SortOrder
+    deadline?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GoalMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    targetValue?: SortOrder
+    currentValue?: SortOrder
+    unit?: SortOrder
+    isCompleted?: SortOrder
+    deadline?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GoalSumOrderByAggregateInput = {
+    targetValue?: SortOrder
+    currentValue?: SortOrder
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type CompetitionCountOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    type?: SortOrder
+    rewardXp?: SortOrder
+    rewardCoins?: SortOrder
+    participants?: SortOrder
+    endDate?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CompetitionAvgOrderByAggregateInput = {
+    rewardXp?: SortOrder
+    rewardCoins?: SortOrder
+    participants?: SortOrder
+  }
+
+  export type CompetitionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    type?: SortOrder
+    rewardXp?: SortOrder
+    rewardCoins?: SortOrder
+    participants?: SortOrder
+    endDate?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CompetitionMinOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
+    type?: SortOrder
+    rewardXp?: SortOrder
+    rewardCoins?: SortOrder
+    participants?: SortOrder
+    endDate?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CompetitionSumOrderByAggregateInput = {
+    rewardXp?: SortOrder
+    rewardCoins?: SortOrder
+    participants?: SortOrder
+  }
+
   export type ProfileCreateNestedOneWithoutUserInput = {
     create?: XOR<ProfileCreateWithoutUserInput, ProfileUncheckedCreateWithoutUserInput>
     connectOrCreate?: ProfileCreateOrConnectWithoutUserInput
@@ -15458,6 +21632,20 @@ export namespace Prisma {
     connect?: AccessLogWhereUniqueInput | AccessLogWhereUniqueInput[]
   }
 
+  export type PhysicalMetricCreateNestedManyWithoutUserInput = {
+    create?: XOR<PhysicalMetricCreateWithoutUserInput, PhysicalMetricUncheckedCreateWithoutUserInput> | PhysicalMetricCreateWithoutUserInput[] | PhysicalMetricUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PhysicalMetricCreateOrConnectWithoutUserInput | PhysicalMetricCreateOrConnectWithoutUserInput[]
+    createMany?: PhysicalMetricCreateManyUserInputEnvelope
+    connect?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+  }
+
+  export type GoalCreateNestedManyWithoutUserInput = {
+    create?: XOR<GoalCreateWithoutUserInput, GoalUncheckedCreateWithoutUserInput> | GoalCreateWithoutUserInput[] | GoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GoalCreateOrConnectWithoutUserInput | GoalCreateOrConnectWithoutUserInput[]
+    createMany?: GoalCreateManyUserInputEnvelope
+    connect?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+  }
+
   export type ProfileUncheckedCreateNestedOneWithoutUserInput = {
     create?: XOR<ProfileCreateWithoutUserInput, ProfileUncheckedCreateWithoutUserInput>
     connectOrCreate?: ProfileCreateOrConnectWithoutUserInput
@@ -15508,6 +21696,20 @@ export namespace Prisma {
     connectOrCreate?: AccessLogCreateOrConnectWithoutUserInput | AccessLogCreateOrConnectWithoutUserInput[]
     createMany?: AccessLogCreateManyUserInputEnvelope
     connect?: AccessLogWhereUniqueInput | AccessLogWhereUniqueInput[]
+  }
+
+  export type PhysicalMetricUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<PhysicalMetricCreateWithoutUserInput, PhysicalMetricUncheckedCreateWithoutUserInput> | PhysicalMetricCreateWithoutUserInput[] | PhysicalMetricUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PhysicalMetricCreateOrConnectWithoutUserInput | PhysicalMetricCreateOrConnectWithoutUserInput[]
+    createMany?: PhysicalMetricCreateManyUserInputEnvelope
+    connect?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+  }
+
+  export type GoalUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<GoalCreateWithoutUserInput, GoalUncheckedCreateWithoutUserInput> | GoalCreateWithoutUserInput[] | GoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GoalCreateOrConnectWithoutUserInput | GoalCreateOrConnectWithoutUserInput[]
+    createMany?: GoalCreateManyUserInputEnvelope
+    connect?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -15638,6 +21840,34 @@ export namespace Prisma {
     deleteMany?: AccessLogScalarWhereInput | AccessLogScalarWhereInput[]
   }
 
+  export type PhysicalMetricUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PhysicalMetricCreateWithoutUserInput, PhysicalMetricUncheckedCreateWithoutUserInput> | PhysicalMetricCreateWithoutUserInput[] | PhysicalMetricUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PhysicalMetricCreateOrConnectWithoutUserInput | PhysicalMetricCreateOrConnectWithoutUserInput[]
+    upsert?: PhysicalMetricUpsertWithWhereUniqueWithoutUserInput | PhysicalMetricUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PhysicalMetricCreateManyUserInputEnvelope
+    set?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    disconnect?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    delete?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    connect?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    update?: PhysicalMetricUpdateWithWhereUniqueWithoutUserInput | PhysicalMetricUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PhysicalMetricUpdateManyWithWhereWithoutUserInput | PhysicalMetricUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PhysicalMetricScalarWhereInput | PhysicalMetricScalarWhereInput[]
+  }
+
+  export type GoalUpdateManyWithoutUserNestedInput = {
+    create?: XOR<GoalCreateWithoutUserInput, GoalUncheckedCreateWithoutUserInput> | GoalCreateWithoutUserInput[] | GoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GoalCreateOrConnectWithoutUserInput | GoalCreateOrConnectWithoutUserInput[]
+    upsert?: GoalUpsertWithWhereUniqueWithoutUserInput | GoalUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: GoalCreateManyUserInputEnvelope
+    set?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    disconnect?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    delete?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    connect?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    update?: GoalUpdateWithWhereUniqueWithoutUserInput | GoalUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: GoalUpdateManyWithWhereWithoutUserInput | GoalUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: GoalScalarWhereInput | GoalScalarWhereInput[]
+  }
+
   export type ProfileUncheckedUpdateOneWithoutUserNestedInput = {
     create?: XOR<ProfileCreateWithoutUserInput, ProfileUncheckedCreateWithoutUserInput>
     connectOrCreate?: ProfileCreateOrConnectWithoutUserInput
@@ -15732,6 +21962,34 @@ export namespace Prisma {
     update?: AccessLogUpdateWithWhereUniqueWithoutUserInput | AccessLogUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: AccessLogUpdateManyWithWhereWithoutUserInput | AccessLogUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: AccessLogScalarWhereInput | AccessLogScalarWhereInput[]
+  }
+
+  export type PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PhysicalMetricCreateWithoutUserInput, PhysicalMetricUncheckedCreateWithoutUserInput> | PhysicalMetricCreateWithoutUserInput[] | PhysicalMetricUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PhysicalMetricCreateOrConnectWithoutUserInput | PhysicalMetricCreateOrConnectWithoutUserInput[]
+    upsert?: PhysicalMetricUpsertWithWhereUniqueWithoutUserInput | PhysicalMetricUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PhysicalMetricCreateManyUserInputEnvelope
+    set?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    disconnect?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    delete?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    connect?: PhysicalMetricWhereUniqueInput | PhysicalMetricWhereUniqueInput[]
+    update?: PhysicalMetricUpdateWithWhereUniqueWithoutUserInput | PhysicalMetricUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PhysicalMetricUpdateManyWithWhereWithoutUserInput | PhysicalMetricUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PhysicalMetricScalarWhereInput | PhysicalMetricScalarWhereInput[]
+  }
+
+  export type GoalUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<GoalCreateWithoutUserInput, GoalUncheckedCreateWithoutUserInput> | GoalCreateWithoutUserInput[] | GoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GoalCreateOrConnectWithoutUserInput | GoalCreateOrConnectWithoutUserInput[]
+    upsert?: GoalUpsertWithWhereUniqueWithoutUserInput | GoalUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: GoalCreateManyUserInputEnvelope
+    set?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    disconnect?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    delete?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    connect?: GoalWhereUniqueInput | GoalWhereUniqueInput[]
+    update?: GoalUpdateWithWhereUniqueWithoutUserInput | GoalUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: GoalUpdateManyWithWhereWithoutUserInput | GoalUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: GoalScalarWhereInput | GoalScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutProfileInput = {
@@ -16038,6 +22296,46 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutExerciseSubmissionsInput, UserUpdateWithoutExerciseSubmissionsInput>, UserUncheckedUpdateWithoutExerciseSubmissionsInput>
   }
 
+  export type UserCreateNestedOneWithoutPhysicalMetricsInput = {
+    create?: XOR<UserCreateWithoutPhysicalMetricsInput, UserUncheckedCreateWithoutPhysicalMetricsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPhysicalMetricsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UserUpdateOneRequiredWithoutPhysicalMetricsNestedInput = {
+    create?: XOR<UserCreateWithoutPhysicalMetricsInput, UserUncheckedCreateWithoutPhysicalMetricsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPhysicalMetricsInput
+    upsert?: UserUpsertWithoutPhysicalMetricsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPhysicalMetricsInput, UserUpdateWithoutPhysicalMetricsInput>, UserUncheckedUpdateWithoutPhysicalMetricsInput>
+  }
+
+  export type UserCreateNestedOneWithoutGoalsInput = {
+    create?: XOR<UserCreateWithoutGoalsInput, UserUncheckedCreateWithoutGoalsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutGoalsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
+  export type UserUpdateOneRequiredWithoutGoalsNestedInput = {
+    create?: XOR<UserCreateWithoutGoalsInput, UserUncheckedCreateWithoutGoalsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutGoalsInput
+    upsert?: UserUpsertWithoutGoalsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutGoalsInput, UserUpdateWithoutGoalsInput>, UserUncheckedUpdateWithoutGoalsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -16263,7 +22561,7 @@ export namespace Prisma {
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
   }
-  export type NestedJsonNullableFilter<$PrismaModel = never> = 
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
         Required<NestedJsonNullableFilterBase<$PrismaModel>>
@@ -16273,12 +22571,13 @@ export namespace Prisma {
   export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
     path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
     string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
@@ -16303,10 +22602,51 @@ export namespace Prisma {
     _max?: NestedEnumSubmissionStatusFilter<$PrismaModel>
   }
 
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type ProfileCreateWithoutUserInput = {
     id?: string
-    firstName: string
-    lastName: string
+    firstName?: string | null
+    lastName?: string | null
     avatarUrl?: string | null
     bio?: string | null
     height?: number | null
@@ -16317,8 +22657,8 @@ export namespace Prisma {
 
   export type ProfileUncheckedCreateWithoutUserInput = {
     id?: string
-    firstName: string
-    lastName: string
+    firstName?: string | null
+    lastName?: string | null
     avatarUrl?: string | null
     bio?: string | null
     height?: number | null
@@ -16503,6 +22843,80 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PhysicalMetricCreateWithoutUserInput = {
+    id?: string
+    height?: number | null
+    weight?: number | null
+    bmi?: number | null
+    heartRate?: number | null
+    agilityScore?: number | null
+    balanceScore?: number | null
+    flexibilityScore?: number | null
+    strengthScore?: number | null
+    enduranceScore?: number | null
+    date?: Date | string
+  }
+
+  export type PhysicalMetricUncheckedCreateWithoutUserInput = {
+    id?: string
+    height?: number | null
+    weight?: number | null
+    bmi?: number | null
+    heartRate?: number | null
+    agilityScore?: number | null
+    balanceScore?: number | null
+    flexibilityScore?: number | null
+    strengthScore?: number | null
+    enduranceScore?: number | null
+    date?: Date | string
+  }
+
+  export type PhysicalMetricCreateOrConnectWithoutUserInput = {
+    where: PhysicalMetricWhereUniqueInput
+    create: XOR<PhysicalMetricCreateWithoutUserInput, PhysicalMetricUncheckedCreateWithoutUserInput>
+  }
+
+  export type PhysicalMetricCreateManyUserInputEnvelope = {
+    data: PhysicalMetricCreateManyUserInput | PhysicalMetricCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type GoalCreateWithoutUserInput = {
+    id?: string
+    title: string
+    description?: string | null
+    targetValue?: number | null
+    currentValue?: number
+    unit?: string | null
+    isCompleted?: boolean
+    deadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GoalUncheckedCreateWithoutUserInput = {
+    id?: string
+    title: string
+    description?: string | null
+    targetValue?: number | null
+    currentValue?: number
+    unit?: string | null
+    isCompleted?: boolean
+    deadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GoalCreateOrConnectWithoutUserInput = {
+    where: GoalWhereUniqueInput
+    create: XOR<GoalCreateWithoutUserInput, GoalUncheckedCreateWithoutUserInput>
+  }
+
+  export type GoalCreateManyUserInputEnvelope = {
+    data: GoalCreateManyUserInput | GoalCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProfileUpsertWithoutUserInput = {
     update: XOR<ProfileUpdateWithoutUserInput, ProfileUncheckedUpdateWithoutUserInput>
     create: XOR<ProfileCreateWithoutUserInput, ProfileUncheckedCreateWithoutUserInput>
@@ -16516,8 +22930,8 @@ export namespace Prisma {
 
   export type ProfileUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    firstName?: StringFieldUpdateOperationsInput | string
-    lastName?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     height?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -16528,8 +22942,8 @@ export namespace Prisma {
 
   export type ProfileUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    firstName?: StringFieldUpdateOperationsInput | string
-    lastName?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     bio?: NullableStringFieldUpdateOperationsInput | string | null
     height?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -16728,6 +23142,73 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AccessLog"> | Date | string
   }
 
+  export type PhysicalMetricUpsertWithWhereUniqueWithoutUserInput = {
+    where: PhysicalMetricWhereUniqueInput
+    update: XOR<PhysicalMetricUpdateWithoutUserInput, PhysicalMetricUncheckedUpdateWithoutUserInput>
+    create: XOR<PhysicalMetricCreateWithoutUserInput, PhysicalMetricUncheckedCreateWithoutUserInput>
+  }
+
+  export type PhysicalMetricUpdateWithWhereUniqueWithoutUserInput = {
+    where: PhysicalMetricWhereUniqueInput
+    data: XOR<PhysicalMetricUpdateWithoutUserInput, PhysicalMetricUncheckedUpdateWithoutUserInput>
+  }
+
+  export type PhysicalMetricUpdateManyWithWhereWithoutUserInput = {
+    where: PhysicalMetricScalarWhereInput
+    data: XOR<PhysicalMetricUpdateManyMutationInput, PhysicalMetricUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type PhysicalMetricScalarWhereInput = {
+    AND?: PhysicalMetricScalarWhereInput | PhysicalMetricScalarWhereInput[]
+    OR?: PhysicalMetricScalarWhereInput[]
+    NOT?: PhysicalMetricScalarWhereInput | PhysicalMetricScalarWhereInput[]
+    id?: StringFilter<"PhysicalMetric"> | string
+    userId?: StringFilter<"PhysicalMetric"> | string
+    height?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    weight?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    bmi?: FloatNullableFilter<"PhysicalMetric"> | number | null
+    heartRate?: IntNullableFilter<"PhysicalMetric"> | number | null
+    agilityScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    balanceScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    flexibilityScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    strengthScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    enduranceScore?: IntNullableFilter<"PhysicalMetric"> | number | null
+    date?: DateTimeFilter<"PhysicalMetric"> | Date | string
+  }
+
+  export type GoalUpsertWithWhereUniqueWithoutUserInput = {
+    where: GoalWhereUniqueInput
+    update: XOR<GoalUpdateWithoutUserInput, GoalUncheckedUpdateWithoutUserInput>
+    create: XOR<GoalCreateWithoutUserInput, GoalUncheckedCreateWithoutUserInput>
+  }
+
+  export type GoalUpdateWithWhereUniqueWithoutUserInput = {
+    where: GoalWhereUniqueInput
+    data: XOR<GoalUpdateWithoutUserInput, GoalUncheckedUpdateWithoutUserInput>
+  }
+
+  export type GoalUpdateManyWithWhereWithoutUserInput = {
+    where: GoalScalarWhereInput
+    data: XOR<GoalUpdateManyMutationInput, GoalUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type GoalScalarWhereInput = {
+    AND?: GoalScalarWhereInput | GoalScalarWhereInput[]
+    OR?: GoalScalarWhereInput[]
+    NOT?: GoalScalarWhereInput | GoalScalarWhereInput[]
+    id?: StringFilter<"Goal"> | string
+    userId?: StringFilter<"Goal"> | string
+    title?: StringFilter<"Goal"> | string
+    description?: StringNullableFilter<"Goal"> | string | null
+    targetValue?: FloatNullableFilter<"Goal"> | number | null
+    currentValue?: FloatFilter<"Goal"> | number
+    unit?: StringNullableFilter<"Goal"> | string | null
+    isCompleted?: BoolFilter<"Goal"> | boolean
+    deadline?: DateTimeNullableFilter<"Goal"> | Date | string | null
+    createdAt?: DateTimeFilter<"Goal"> | Date | string
+    updatedAt?: DateTimeFilter<"Goal"> | Date | string
+  }
+
   export type UserCreateWithoutProfileInput = {
     id?: string
     email: string
@@ -16749,6 +23230,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutProfileInput = {
@@ -16772,6 +23255,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutProfileInput = {
@@ -16811,6 +23296,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProfileInput = {
@@ -16834,6 +23321,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutStudentInput = {
@@ -16857,6 +23346,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutStudentInput = {
@@ -16880,6 +23371,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutStudentInput = {
@@ -16982,6 +23475,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStudentInput = {
@@ -17005,6 +23500,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ParentUpsertWithoutStudentsInput = {
@@ -17104,6 +23601,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutParentInput = {
@@ -17127,6 +23626,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutParentInput = {
@@ -17192,6 +23693,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutParentInput = {
@@ -17215,6 +23718,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type StudentUpsertWithWhereUniqueWithoutParentInput = {
@@ -17264,6 +23769,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCoachInput = {
@@ -17287,6 +23794,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCoachInput = {
@@ -17326,6 +23835,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCoachInput = {
@@ -17349,6 +23860,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type StudentCreateWithoutAttendanceInput = {
@@ -17468,6 +23981,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -17491,6 +24006,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -17530,6 +24047,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -17553,6 +24072,8 @@ export namespace Prisma {
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutAccessLogsInput = {
@@ -17576,6 +24097,8 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccessLogsInput = {
@@ -17599,6 +24122,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccessLogsInput = {
@@ -17638,6 +24163,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccessLogsInput = {
@@ -17661,6 +24188,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutDailyActivitiesInput = {
@@ -17684,6 +24213,8 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDailyActivitiesInput = {
@@ -17707,6 +24238,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDailyActivitiesInput = {
@@ -17746,6 +24279,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDailyActivitiesInput = {
@@ -17769,6 +24304,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutExerciseSubmissionsInput = {
@@ -17792,6 +24329,8 @@ export namespace Prisma {
     auditLogs?: AuditLogCreateNestedManyWithoutUserInput
     dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutExerciseSubmissionsInput = {
@@ -17815,6 +24354,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
     dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
     accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutExerciseSubmissionsInput = {
@@ -17854,6 +24395,8 @@ export namespace Prisma {
     auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
     dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutExerciseSubmissionsInput = {
@@ -17877,6 +24420,240 @@ export namespace Prisma {
     auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
     dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
     accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutPhysicalMetricsInput = {
+    id?: string
+    email: string
+    password: string
+    role?: $Enums.UserRole
+    isActive?: boolean
+    digitalId?: string | null
+    qrToken?: string | null
+    subscriptionStatus?: $Enums.SubscriptionStatus
+    xp?: number
+    level?: number
+    playCoins?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    profile?: ProfileCreateNestedOneWithoutUserInput
+    student?: StudentCreateNestedOneWithoutUserInput
+    parent?: ParentCreateNestedOneWithoutUserInput
+    coach?: CoachCreateNestedOneWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput
+    dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
+    exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
+    accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    goals?: GoalCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutPhysicalMetricsInput = {
+    id?: string
+    email: string
+    password: string
+    role?: $Enums.UserRole
+    isActive?: boolean
+    digitalId?: string | null
+    qrToken?: string | null
+    subscriptionStatus?: $Enums.SubscriptionStatus
+    xp?: number
+    level?: number
+    playCoins?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    profile?: ProfileUncheckedCreateNestedOneWithoutUserInput
+    student?: StudentUncheckedCreateNestedOneWithoutUserInput
+    parent?: ParentUncheckedCreateNestedOneWithoutUserInput
+    coach?: CoachUncheckedCreateNestedOneWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
+    exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
+    accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    goals?: GoalUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutPhysicalMetricsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPhysicalMetricsInput, UserUncheckedCreateWithoutPhysicalMetricsInput>
+  }
+
+  export type UserUpsertWithoutPhysicalMetricsInput = {
+    update: XOR<UserUpdateWithoutPhysicalMetricsInput, UserUncheckedUpdateWithoutPhysicalMetricsInput>
+    create: XOR<UserCreateWithoutPhysicalMetricsInput, UserUncheckedCreateWithoutPhysicalMetricsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPhysicalMetricsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPhysicalMetricsInput, UserUncheckedUpdateWithoutPhysicalMetricsInput>
+  }
+
+  export type UserUpdateWithoutPhysicalMetricsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    digitalId?: NullableStringFieldUpdateOperationsInput | string | null
+    qrToken?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStatus?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    xp?: IntFieldUpdateOperationsInput | number
+    level?: IntFieldUpdateOperationsInput | number
+    playCoins?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    profile?: ProfileUpdateOneWithoutUserNestedInput
+    student?: StudentUpdateOneWithoutUserNestedInput
+    parent?: ParentUpdateOneWithoutUserNestedInput
+    coach?: CoachUpdateOneWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
+    dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
+    exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
+    accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    goals?: GoalUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPhysicalMetricsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    digitalId?: NullableStringFieldUpdateOperationsInput | string | null
+    qrToken?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStatus?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    xp?: IntFieldUpdateOperationsInput | number
+    level?: IntFieldUpdateOperationsInput | number
+    playCoins?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    profile?: ProfileUncheckedUpdateOneWithoutUserNestedInput
+    student?: StudentUncheckedUpdateOneWithoutUserNestedInput
+    parent?: ParentUncheckedUpdateOneWithoutUserNestedInput
+    coach?: CoachUncheckedUpdateOneWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
+    exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    goals?: GoalUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutGoalsInput = {
+    id?: string
+    email: string
+    password: string
+    role?: $Enums.UserRole
+    isActive?: boolean
+    digitalId?: string | null
+    qrToken?: string | null
+    subscriptionStatus?: $Enums.SubscriptionStatus
+    xp?: number
+    level?: number
+    playCoins?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    profile?: ProfileCreateNestedOneWithoutUserInput
+    student?: StudentCreateNestedOneWithoutUserInput
+    parent?: ParentCreateNestedOneWithoutUserInput
+    coach?: CoachCreateNestedOneWithoutUserInput
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput
+    dailyActivities?: DailyActivityCreateNestedManyWithoutUserInput
+    exerciseSubmissions?: ExerciseSubmissionCreateNestedManyWithoutUserInput
+    accessLogs?: AccessLogCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutGoalsInput = {
+    id?: string
+    email: string
+    password: string
+    role?: $Enums.UserRole
+    isActive?: boolean
+    digitalId?: string | null
+    qrToken?: string | null
+    subscriptionStatus?: $Enums.SubscriptionStatus
+    xp?: number
+    level?: number
+    playCoins?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    profile?: ProfileUncheckedCreateNestedOneWithoutUserInput
+    student?: StudentUncheckedCreateNestedOneWithoutUserInput
+    parent?: ParentUncheckedCreateNestedOneWithoutUserInput
+    coach?: CoachUncheckedCreateNestedOneWithoutUserInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    dailyActivities?: DailyActivityUncheckedCreateNestedManyWithoutUserInput
+    exerciseSubmissions?: ExerciseSubmissionUncheckedCreateNestedManyWithoutUserInput
+    accessLogs?: AccessLogUncheckedCreateNestedManyWithoutUserInput
+    physicalMetrics?: PhysicalMetricUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutGoalsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutGoalsInput, UserUncheckedCreateWithoutGoalsInput>
+  }
+
+  export type UserUpsertWithoutGoalsInput = {
+    update: XOR<UserUpdateWithoutGoalsInput, UserUncheckedUpdateWithoutGoalsInput>
+    create: XOR<UserCreateWithoutGoalsInput, UserUncheckedCreateWithoutGoalsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutGoalsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutGoalsInput, UserUncheckedUpdateWithoutGoalsInput>
+  }
+
+  export type UserUpdateWithoutGoalsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    digitalId?: NullableStringFieldUpdateOperationsInput | string | null
+    qrToken?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStatus?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    xp?: IntFieldUpdateOperationsInput | number
+    level?: IntFieldUpdateOperationsInput | number
+    playCoins?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    profile?: ProfileUpdateOneWithoutUserNestedInput
+    student?: StudentUpdateOneWithoutUserNestedInput
+    parent?: ParentUpdateOneWithoutUserNestedInput
+    coach?: CoachUpdateOneWithoutUserNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput
+    dailyActivities?: DailyActivityUpdateManyWithoutUserNestedInput
+    exerciseSubmissions?: ExerciseSubmissionUpdateManyWithoutUserNestedInput
+    accessLogs?: AccessLogUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutGoalsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    digitalId?: NullableStringFieldUpdateOperationsInput | string | null
+    qrToken?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptionStatus?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    xp?: IntFieldUpdateOperationsInput | number
+    level?: IntFieldUpdateOperationsInput | number
+    playCoins?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    profile?: ProfileUncheckedUpdateOneWithoutUserNestedInput
+    student?: StudentUncheckedUpdateOneWithoutUserNestedInput
+    parent?: ParentUncheckedUpdateOneWithoutUserNestedInput
+    coach?: CoachUncheckedUpdateOneWithoutUserNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    dailyActivities?: DailyActivityUncheckedUpdateManyWithoutUserNestedInput
+    exerciseSubmissions?: ExerciseSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    accessLogs?: AccessLogUncheckedUpdateManyWithoutUserNestedInput
+    physicalMetrics?: PhysicalMetricUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AuditLogCreateManyUserInput = {
@@ -17916,6 +24693,33 @@ export namespace Prisma {
     status: string
     reason?: string | null
     createdAt?: Date | string
+  }
+
+  export type PhysicalMetricCreateManyUserInput = {
+    id?: string
+    height?: number | null
+    weight?: number | null
+    bmi?: number | null
+    heartRate?: number | null
+    agilityScore?: number | null
+    balanceScore?: number | null
+    flexibilityScore?: number | null
+    strengthScore?: number | null
+    enduranceScore?: number | null
+    date?: Date | string
+  }
+
+  export type GoalCreateManyUserInput = {
+    id?: string
+    title: string
+    description?: string | null
+    targetValue?: number | null
+    currentValue?: number
+    unit?: string | null
+    isCompleted?: boolean
+    deadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AuditLogUpdateWithoutUserInput = {
@@ -18035,6 +24839,87 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PhysicalMetricUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    height?: NullableFloatFieldUpdateOperationsInput | number | null
+    weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    bmi?: NullableFloatFieldUpdateOperationsInput | number | null
+    heartRate?: NullableIntFieldUpdateOperationsInput | number | null
+    agilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    balanceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    flexibilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    strengthScore?: NullableIntFieldUpdateOperationsInput | number | null
+    enduranceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PhysicalMetricUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    height?: NullableFloatFieldUpdateOperationsInput | number | null
+    weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    bmi?: NullableFloatFieldUpdateOperationsInput | number | null
+    heartRate?: NullableIntFieldUpdateOperationsInput | number | null
+    agilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    balanceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    flexibilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    strengthScore?: NullableIntFieldUpdateOperationsInput | number | null
+    enduranceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PhysicalMetricUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    height?: NullableFloatFieldUpdateOperationsInput | number | null
+    weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    bmi?: NullableFloatFieldUpdateOperationsInput | number | null
+    heartRate?: NullableIntFieldUpdateOperationsInput | number | null
+    agilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    balanceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    flexibilityScore?: NullableIntFieldUpdateOperationsInput | number | null
+    strengthScore?: NullableIntFieldUpdateOperationsInput | number | null
+    enduranceScore?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GoalUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    targetValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    currentValue?: FloatFieldUpdateOperationsInput | number
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isCompleted?: BoolFieldUpdateOperationsInput | boolean
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GoalUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    targetValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    currentValue?: FloatFieldUpdateOperationsInput | number
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isCompleted?: BoolFieldUpdateOperationsInput | boolean
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GoalUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    targetValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    currentValue?: FloatFieldUpdateOperationsInput | number
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    isCompleted?: BoolFieldUpdateOperationsInput | boolean
+    deadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AttendanceCreateManyStudentInput = {
     id?: string
     date: Date | string
@@ -18116,66 +25001,6 @@ export namespace Prisma {
   }
 
 
-
-  /**
-   * Aliases for legacy arg types
-   */
-    /**
-     * @deprecated Use UserCountOutputTypeDefaultArgs instead
-     */
-    export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use StudentCountOutputTypeDefaultArgs instead
-     */
-    export type StudentCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StudentCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use ParentCountOutputTypeDefaultArgs instead
-     */
-    export type ParentCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ParentCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use UserDefaultArgs instead
-     */
-    export type UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use ProfileDefaultArgs instead
-     */
-    export type ProfileArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ProfileDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use StudentDefaultArgs instead
-     */
-    export type StudentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StudentDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use ParentDefaultArgs instead
-     */
-    export type ParentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ParentDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use CoachDefaultArgs instead
-     */
-    export type CoachArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CoachDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use AttendanceDefaultArgs instead
-     */
-    export type AttendanceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AttendanceDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use GradeDefaultArgs instead
-     */
-    export type GradeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = GradeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use AuditLogDefaultArgs instead
-     */
-    export type AuditLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AuditLogDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use AccessLogDefaultArgs instead
-     */
-    export type AccessLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccessLogDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use DailyActivityDefaultArgs instead
-     */
-    export type DailyActivityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DailyActivityDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use ExerciseSubmissionDefaultArgs instead
-     */
-    export type ExerciseSubmissionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ExerciseSubmissionDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

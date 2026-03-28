@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface AIPersonalizationBannerProps {
     className?: string;
@@ -11,29 +12,32 @@ interface AIPersonalizationBannerProps {
 export function AIPersonalizationBanner({ className, isSimplified = false }: AIPersonalizationBannerProps) {
     return (
         <div className={cn(
-            "relative overflow-hidden rounded-lg bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-1",
+            "relative overflow-hidden rounded-[2rem] bg-slate-900 text-white shadow-lg border border-slate-800",
             className
         )}>
-            <div className="absolute top-0 right-0 p-2 opacity-10">
-                <Sparkles className="w-24 h-24" />
-            </div>
+            {/* Subtle background glow */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
 
-            <div className={cn("bg-white/10 backdrop-blur-sm rounded-md flex items-center justify-between gap-3", isSimplified ? "p-4" : "p-2 sm:p-3")}>
-                <div className="flex items-center gap-3">
-                    <div className={cn("bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse", isSimplified ? "w-12 h-12" : "w-8 h-8")}>
-                        <Wand2 className={cn("text-yellow-300", isSimplified ? "w-6 h-6" : "w-4 h-4")} />
+            <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10", isSimplified ? "p-6" : "p-4 px-5")}>
+                <div className="flex items-center gap-4">
+                    <div className={cn("bg-orange-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20 group", isSimplified ? "w-14 h-14" : "w-10 h-10")}>
+                        <Wand2 className={cn("text-white group-hover:rotate-12 transition-transform duration-500", isSimplified ? "w-7 h-7" : "w-5 h-5")} />
                     </div>
                     <div>
-                        <p className={cn("font-medium text-white leading-tight", isSimplified ? "text-lg" : "text-xs sm:text-sm")}>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Badge className="bg-white/10 text-orange-400 border-none text-[10px] font-black uppercase tracking-widest px-2 py-0">ذكاء اصطناعي</Badge>
+                            {isSimplified && <span className="text-slate-400 font-bold text-[10px] uppercase">تخصيص مباشر</span>}
+                        </div>
+                        <p className={cn("font-black text-white leading-tight tracking-tight", isSimplified ? "text-xl" : "text-sm")}>
                             تم تخصيص برنامجك اليوم بناءً على نتائج الأمس
                         </p>
-                        {isSimplified && <p className="text-white/80 text-sm mt-1">نظام ذكي يساعدك على التحسن</p>}
+                        {isSimplified && <p className="text-slate-400 font-medium text-sm mt-1">نظام Haraka الذكي يرافقك خطوة بخطوة</p>}
                     </div>
                 </div>
 
                 {!isSimplified && (
-                    <Button variant="ghost" size="sm" className="text-xs text-white hover:bg-white/20 h-7 px-2">
-                        عرض التفاصيل
+                    <Button variant="outline" size="sm" className="text-xs w-full sm:w-auto font-bold text-slate-300 border-slate-700 bg-transparent hover:bg-slate-800 hover:text-white rounded-xl h-9 px-4 transition-colors">
+                        عرض التفاصيل والمقاييس
                     </Button>
                 )}
             </div>

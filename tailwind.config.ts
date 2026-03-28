@@ -137,7 +137,8 @@ const config = {
         "slide-in": "slide-in 0.3s ease-out",
       },
       fontFamily: {
-        arabic: ['Cairo', 'Tajawal', 'sans-serif'],
+        sans: ['Tajawal', 'Cairo', 'Almarai', 'sans-serif'],
+        arabic: ['Tajawal', 'Cairo', 'sans-serif'],
         english: ['Inter', 'system-ui', 'sans-serif'],
       },
       spacing: {

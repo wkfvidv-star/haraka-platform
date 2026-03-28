@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  haraka-node:
+    build:
+      context: ./server
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          memory: 512M
+    # Hardening: Read-Only root filesystem
+    read_only: true
+    tmpfs:
+      - /tmp
+    # Security: Drop unnecessary capabilities
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - haraka-internal
+
+  vision-service:
+    build:
+      context: ./vision_service
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0' # YOLOv8 needs more CPU/GPU
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+    networks:
+      - haraka-internal
+
+  fraud-engine:
+    build:
+      context: ./fraud_engine
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+    networks:
+      - haraka-internal
+
+networks:
+  haraka-internal:
+    driver: bridge
+    internal: true # Isolates services from external internet access

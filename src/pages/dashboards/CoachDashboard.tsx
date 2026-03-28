@@ -1,550 +1,263 @@
-import React, { useState, useEffect } from 'react';
-import { coachService } from '@/services/coachService';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { StatsCard } from '@/components/ui/stats-card';
-import { ClientManagement } from '@/components/coach/ClientManagement';
-import { SessionScheduling } from '@/components/coach/SessionScheduling';
-import { ProgressReports } from '@/components/coach/ProgressReports';
-import { TrainingPrograms } from '@/components/coach/TrainingPrograms';
-import { ClientNotifications } from '@/components/coach/ClientNotifications';
-import VideoAnalysisReview from '@/components/coach/VideoAnalysisReview';
-import { useTranslation } from '@/contexts/ThemeContext';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
-import { TeamPulseWidget } from '@/components/dashboard/TeamPulseWidget';
-import { QuickNudgeCenter } from '@/components/dashboard/QuickNudgeCenter';
-import { InteractiveTimeline } from '@/components/dashboard/InteractiveTimeline';
-import { PriorityInbox } from '@/components/dashboard/PriorityInbox';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import {
-  Users,
-  Calendar,
-  Bell,
-  TrendingUp,
-  Target,
-  Activity,
-  CheckCircle,
-  Zap,
-  Heart,
-  BarChart3,
-  Home,
-  LogOut,
-  User,
-  Dumbbell,
-  Video
+  LayoutDashboard, Users, Activity, Target, Flame, Calendar,
+  Bell, Navigation, Play, Plus, Zap, HeartPulse, Search, Menu, AlertCircle, Bot, Sparkles, CheckCircle2, Apple, LineChart, MessageSquare, Video, LogOut, Star, MessageCircle
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { getCoachStats } from '@/data/mockCoachData';
+import CoachOverviewPanel from '@/components/coach-dashboard/CoachOverviewPanel';
+import CoachClientsManager from '@/components/coach-dashboard/CoachClientsManager';
+import CoachPrograms from '@/components/coach-dashboard/CoachPrograms';
+import CoachSchedule from '@/components/coach-dashboard/CoachSchedule';
+import CoachNutrition from '@/components/coach-dashboard/CoachNutrition';
+import CoachAnalytics from '@/components/coach-dashboard/CoachAnalytics';
+import CoachMessages from '@/components/coach-dashboard/CoachMessages';
+import CoachVideoReview from '@/components/coach-dashboard/CoachVideoReview';
+import { CoachOnboarding } from '@/components/coach-dashboard/CoachOnboarding';
+import { CoachDashboardContext, useCoachDashboard } from '@/contexts/CoachDashboardContext';
+import { RatingSystem } from '@/components/shared/RatingSystem';
+import { ChatSystem } from '@/components/shared/ChatSystem';
 
-interface QuickStats {
-  todayClients: number;
-  todaySessions: number;
-  completedSessions: number;
-  pendingNotifications: number;
-  weeklyRevenue: number;
-  clientSatisfaction: number;
-  activePrograms: number;
-  newBookings: number;
-}
+const TABS = [
+  { id: 'overview',    label: 'اللوحة الرئيسية',  icon: LayoutDashboard },
+  { id: 'clients',     label: 'المتدربين',        icon: Users },
+  { id: 'video-review',label: 'تحليل الفيديو',   icon: Video },
+  { id: 'programs',    label: 'البرامج',           icon: Target },
+  { id: 'schedule',    label: 'الجدول',            icon: Calendar },
+  { id: 'nutrition',   label: 'الأنظمة الغذائية', icon: Apple },
+  { id: 'analytics',   label: 'التحليلات والنمو', icon: LineChart },
+  { id: 'messages',    label: 'صندوق الرسائل',  icon: MessageSquare },
+  { id: 'ratings',     label: 'تقييم المتدربين',  icon: Star },
+  { id: 'chat',        label: 'غرفة المدربين',  icon: MessageCircle },
+];
 
-interface PerformanceMetric {
-  label: string;
-  value: number;
-  target: number;
-  trend: number;
-  color: string;
-}
-
-export default function CoachDashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const { t, language } = useTranslation();
+const CoachDashboardContent = () => {
+  const { activeTab, setActiveTab } = useCoachDashboard();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user, logout } = useAuth();
-  const isRTL = language === 'ar';
-
-  const [quickStats, setQuickStats] = useState<QuickStats>({
-    todayClients: 0,
-    todaySessions: 0,
-    completedSessions: 0,
-    pendingNotifications: 0,
-    weeklyRevenue: 0,
-    clientSatisfaction: 0,
-    activePrograms: 0,
-    newBookings: 0
-  });
-
-  useEffect(() => {
-    const fetchCoachStats = async () => {
-      if (user?.id) {
-        try {
-          const groups = await coachService.getGroups(user.id);
-          const totalStudents = groups.reduce((acc, g) => acc + g.memberCount, 0);
-
-          setQuickStats(prev => ({
-            ...prev,
-            todayClients: totalStudents, // For now, using total students as today's clients
-            activePrograms: groups.length,
-            clientSatisfaction: 98 // Placeholder
-          }));
-        } catch (error) {
-          console.error("Error fetching coach stats:", error);
-        }
-      }
-    };
-    fetchCoachStats();
-  }, [user]);
-
-  const [performanceMetrics] = useState<PerformanceMetric[]>([
-    {
-      label: 'معدل الحضور',
-      value: 92,
-      target: 90,
-      trend: 5,
-      color: 'green'
-    },
-    {
-      label: 'رضا العملاء',
-      value: 96,
-      target: 95,
-      trend: 2,
-      color: 'blue'
-    },
-    {
-      label: 'إنجاز الأهداف',
-      value: 87,
-      target: 85,
-      trend: 8,
-      color: 'purple'
-    },
-    {
-      label: 'الحجوزات الجديدة',
-      value: 15,
-      target: 12,
-      trend: 25,
-      color: 'orange'
-    }
-  ]);
-
-  const navigationTabs = [
-    { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
-    { id: 'clients', label: 'العملاء', icon: Users },
-    { id: 'scheduling', label: 'الجدولة', icon: Calendar },
-    { id: 'programs', label: 'البرامج', icon: Target },
-    { id: 'video-analysis', label: 'تحليل الأداء', icon: Video },
-    { id: 'reports', label: 'التقارير', icon: BarChart3 },
-    { id: 'notifications', label: 'الإشعارات', icon: Bell }
+  const navigate = useNavigate();
+  
+  const ATHLETE_TARGETS = [
+    { id: 'ath1', name: 'رحيم بوعلام', role: 'متدرب - مالتيديسك' },
+    { id: 'ath2', name: 'عبدالله سعيد', role: 'متدرب - تحمل أثقال' },
+    { id: 'ath3', name: 'غسان مراد', role: 'متدرب - كروسفيت' },
   ];
-
-  const renderDashboard = () => (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      {/* Welcome Header */}
-      <Card className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-none shadow-lg">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
-            <Dumbbell className="h-6 w-6" />
-            مرحباً كابتن أحمد الرياضي
-          </CardTitle>
-          <CardDescription className="text-purple-100">
-            لوحة تحكم احترافية لإدارة العملاء والجلسات التدريبية
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-              <div className="text-2xl font-bold">{quickStats.todayClients}</div>
-              <div className="text-xs sm:text-sm text-purple-100">عملاء اليوم</div>
-            </div>
-            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-              <div className="text-2xl font-bold">{quickStats.todaySessions}</div>
-              <div className="text-xs sm:text-sm text-purple-100">جلسات اليوم</div>
-            </div>
-            <div className="text-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-              <div className="text-2xl font-bold">{quickStats.clientSatisfaction}%</div>
-              <div className="text-xs sm:text-sm text-purple-100">رضا العملاء</div>
-            </div>
-            <div className="text-center p-3 bg-white/10 rounded-lg relative backdrop-blur-sm">
-              <div className="text-2xl font-bold">{quickStats.pendingNotifications}</div>
-              <div className="text-xs sm:text-sm text-purple-100">إشعارات</div>
-              {quickStats.pendingNotifications > 0 && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Team Pulse & Quick Nudge */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TeamPulseWidget />
-        <QuickNudgeCenter />
-      </div>
-
-      {/* Timeline & Inbox */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <InteractiveTimeline />
-        </div>
-        <div>
-          <PriorityInbox />
-        </div>
-      </div>
-
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatsCard
-          title="الجلسات المكتملة"
-          value={`${quickStats.completedSessions}/${quickStats.todaySessions}`}
-          description="معدل الإنجاز 75%"
-          icon={CheckCircle}
-          color="green"
-          trend={{ value: 12, isPositive: true }}
-        />
-        <StatsCard
-          title="الإيرادات الأسبوعية"
-          value={`${quickStats.weeklyRevenue} ر.س`}
-          description="زيادة عن الأسبوع الماضي"
-          icon={TrendingUp}
-          color="blue"
-          trend={{ value: 8, isPositive: true }}
-        />
-        <StatsCard
-          title="البرامج النشطة"
-          value={quickStats.activePrograms.toString()}
-          description="برامج تدريبية متنوعة"
-          icon={Target}
-          color="purple"
-        />
-        <StatsCard
-          title="حجوزات جديدة"
-          value={quickStats.newBookings.toString()}
-          description="اليوم"
-          icon={Calendar}
-          color="orange"
-          trend={{ value: 50, isPositive: true }}
-        />
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Zap className="h-5 w-5 text-yellow-500" />
-            الإجراءات السريعة
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <Button
-              variant="outline"
-              className="h-16 sm:h-20 flex-col gap-2 text-xs sm:text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => setActiveTab('clients')}
-            >
-              <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-              إدارة العملاء
-            </Button>
-            <Button
-              variant="outline"
-              className="h-16 sm:h-20 flex-col gap-2 text-xs sm:text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => setActiveTab('scheduling')}
-            >
-              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
-              جدولة جلسة
-            </Button>
-            <Button
-              variant="outline"
-              className="h-16 sm:h-20 flex-col gap-2 text-xs sm:text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => setActiveTab('video-analysis')}
-            >
-              <Video className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
-              تحليل الأداء
-            </Button>
-            <Button
-              variant="outline"
-              className="h-16 sm:h-20 flex-col gap-2 relative text-xs sm:text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => setActiveTab('notifications')}
-            >
-              <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
-              الإشعارات
-              {quickStats.pendingNotifications > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-red-500 text-xs animate-bounce">
-                  {quickStats.pendingNotifications}
-                </Badge>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Performance Metrics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <BarChart3 className="h-5 w-5 text-blue-500" />
-            مؤشرات الأداء الاحترافية
-          </CardTitle>
-          <CardDescription>
-            تقييم شامل لأدائك كمدرب محترف
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {performanceMetrics.map((metric, index) => (
-              <div key={index} className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-sm">{metric.label}</span>
-                  <Badge className={`bg-${metric.color}-100 text-${metric.color}-800`}>
-                    +{metric.trend}%
-                  </Badge>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>الحالي: {metric.value}%</span>
-                    <span className="text-gray-500">الهدف: {metric.target}%</span>
-                  </div>
-                  <Progress value={metric.value} className="h-3" />
-                </div>
-                <div className={`text-xs text-${metric.color}-600 font-medium`}>
-                  {metric.value >= metric.target ? '✓ تم تحقيق الهدف' : `باقي ${metric.target - metric.value}% للهدف`}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderPrograms = () => (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <Card className="bg-gradient-to-r from-green-600 to-teal-600 text-white">
-        <CardHeader>
-          <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
-            <Target className="h-6 w-6" />
-            البرامج التدريبية
-          </CardTitle>
-          <CardDescription className="text-green-100">
-            إدارة وتطوير البرامج التدريبية المتخصصة
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {/* Programs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Dumbbell className="h-5 w-5 text-blue-500" />
-              برنامج بناء العضلات
-            </CardTitle>
-            <CardDescription>برنامج متخصص لزيادة الكتلة العضلية</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                  <div className="text-lg font-bold text-blue-600">12</div>
-                  <div className="text-xs text-gray-500">عميل</div>
-                </div>
-                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                  <div className="text-lg font-bold text-green-600">8</div>
-                  <div className="text-xs text-gray-500">أسابيع</div>
-                </div>
-              </div>
-              <Button className="w-full" variant="outline" size="sm">
-                عرض التفاصيل
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500" />
-              برنامج اللياقة القلبية
-            </CardTitle>
-            <CardDescription>تحسين صحة القلب والأوعية الدموية</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                  <div className="text-lg font-bold text-red-600">8</div>
-                  <div className="text-xs text-gray-500">عميل</div>
-                </div>
-                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                  <div className="text-lg font-bold text-green-600">6</div>
-                  <div className="text-xs text-gray-500">أسابيع</div>
-                </div>
-              </div>
-              <Button className="w-full" variant="outline" size="sm">
-                عرض التفاصيل
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5 text-purple-500" />
-              برنامج فقدان الوزن
-            </CardTitle>
-            <CardDescription>برنامج شامل لإنقاص الوزن بطريقة صحية</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
-                  <div className="text-lg font-bold text-purple-600">15</div>
-                  <div className="text-xs text-gray-500">عميل</div>
-                </div>
-                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                  <div className="text-lg font-bold text-green-600">12</div>
-                  <div className="text-xs text-gray-500">أسابيع</div>
-                </div>
-              </div>
-              <Button className="w-full" variant="outline" size="sm">
-                عرض التفاصيل
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Programs Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <BarChart3 className="h-5 w-5 text-blue-500" />
-            ملخص البرامج
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{quickStats.activePrograms}</div>
-              <div className="text-sm text-gray-600">برامج نشطة</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">35</div>
-              <div className="text-sm text-gray-600">عملاء مسجلين</div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">89%</div>
-              <div className="text-sm text-gray-600">معدل الإكمال</div>
-            </div>
-            <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">4.8</div>
-              <div className="text-sm text-gray-600">تقييم البرامج</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return renderDashboard();
-      case 'clients': return <ClientManagement />;
-      case 'scheduling': return <SessionScheduling />;
-      case 'programs': return renderPrograms();
-      case 'video-analysis': return <VideoAnalysisReview />;
-      case 'reports': return <ProgressReports />;
-      case 'notifications': return <ClientNotifications />;
-      default: return renderDashboard();
+      case 'overview': return <CoachOverviewPanel />;
+      case 'clients': return <CoachClientsManager />;
+      case 'video-review': return <CoachVideoReview />;
+      case 'programs': return <CoachPrograms />;
+      case 'schedule': return <CoachSchedule />;
+      case 'nutrition': return <CoachNutrition />;
+      case 'analytics': return <CoachAnalytics />;
+      case 'messages': return <CoachMessages />;
+      case 'ratings': return (
+        <div className="space-y-6 p-2" dir="rtl">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 mb-1">⭐ تقييم المتدربين</h2>
+            <p className="text-slate-500 font-medium">سجّل تقدم متدربيك وأداءهم الرياضي</p>
+          </div>
+          <RatingSystem
+            raterRole="مدرب"
+            raterName={user?.name || 'المدرب'}
+            targets={ATHLETE_TARGETS}
+            mode="rate"
+          />
+        </div>
+      );
+      case 'chat': return (
+        <div className="space-y-4 p-2" dir="rtl">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 mb-1">💬 غرفة المدربين</h2>
+            <p className="text-slate-500 font-medium">تبادل الخبرات مع زملائك المدربين</p>
+          </div>
+          <ChatSystem userRole="coach" userName={user?.name || 'المدرب'} inline defaultOpen />
+        </div>
+      );
+      default: return <CoachOverviewPanel />;
     }
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${isRTL ? 'rtl' : 'ltr'}`}>
-      {/* Top Header */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo and Title */}
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                <Dumbbell className="h-5 w-5 text-white" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                منصة الحركة - المدرب
-              </h1>
-            </div>
-
-            {/* User Info and Controls */}
-            <div className="flex items-center gap-4">
-              <LanguageSwitcher />
-
-              {/* User Profile */}
+    <div className="flex h-screen bg-slate-50/50 overflow-hidden text-slate-900 font-sans" dir="rtl">
+      
+      {/* SIDEBAR */}
+      <AnimatePresence mode="wait">
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 280, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            className="h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-20 shrink-0 shadow-2xl relative"
+          >
+            <div className="p-6 border-b border-slate-800/50 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
+                <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-xl shadow-lg shadow-blue-900/20">
+                  {user?.name?.charAt(0) || 'م'}
                 </div>
-                <div className="hidden md:block">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user?.name}
-                  </div>
-                  <div className="text-xs text-gray-500">مدرب</div>
+                <div>
+                  <h2 className="font-extrabold text-lg text-white">المدرب المحترف</h2>
+                  <p className="text-sm font-semibold text-slate-400">Haraka Pro</p>
                 </div>
               </div>
+            </div>
 
-              {/* Logout Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logout}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            <ScrollArea className="flex-1 py-6 px-4">
+              <div className="space-y-2">
+                {TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-base font-bold ${
+                        activeTab === tab.id
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                      }`}
+                    >
+                      <Icon className={`w-6 h-6 ${activeTab === tab.id ? 'opacity-100' : 'opacity-70'}`} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+            
+            <div className="p-4 border-t border-slate-800/50 mt-auto shrink-0">
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/auth');
+                  toast.success('تم تسجيل الخروج بنجاح');
+                }}
+                className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-base font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300"
               >
-                <LogOut className="h-4 w-4" />
-              </Button>
+                <LogOut className="w-5 h-5" />
+                تسجيل الخروج
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MAIN CONTENT */}
+      <div className="flex-1 flex flex-col min-w-0">
+        
+        {/* TOPBAR */}
+        <header className="h-20 bg-white border-b border-slate-200 px-6 lg:px-10 flex items-center justify-between shrink-0 sticky top-0 z-10 shadow-sm">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2.5 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">{TABS.find(t => t.id === activeTab)?.label}</h1>
+              <p className="text-sm font-semibold text-slate-500">متصل الآن بالنظام الموحد</p>
             </div>
           </div>
-        </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50 font-bold h-12 px-6 rounded-xl hidden md:flex items-center gap-2">
+              <Plus className="w-5 h-5" /> إضافة متدرب
+            </Button>
+            <Popover>
+              <PopoverTrigger className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors relative border-none outline-none focus:ring-2 focus:ring-blue-500">
+                   <Bell className="w-6 h-6" />
+                   <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 rounded-2xl border border-slate-200 shadow-2xl z-[100]" align="end" dir="rtl">
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-2xl">
+                  <h3 className="font-bold text-slate-900 text-base">الإشعارات</h3>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-bold shadow-sm">2 جديد</Badge>
+                </div>
+                <div className="max-h-80 overflow-y-auto p-2 space-y-1">
+                  <div className="p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-200 shadow-sm hover:shadow-md">
+                    <div className="flex gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
+                        <Video className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-900">رحيم قد رفع فيديو جديد</p>
+                        <p className="text-xs text-slate-500 mt-1 font-medium bg-slate-100 inline-block px-2 py-0.5 rounded-md">تمرين الرفعة الميتة (Deadlift)</p>
+                        <span className="text-[10px] text-slate-400 mt-2 block font-medium">منذ 10 دقائق</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-200 shadow-sm hover:shadow-md">
+                    <div className="flex gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                        <Calendar className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-900">طلب موعد جديد</p>
+                        <p className="text-xs text-slate-500 mt-1 leading-snug">عبدالله طلب موعداً لجلسة تقييم غداً</p>
+                        <span className="text-[10px] text-slate-400 mt-2 block font-medium">منذ ساعتين</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-3 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+                  <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-xl font-bold">تعيين الكل كمقروء</Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </header>
 
-        {/* Navigation Tabs */}
-        <div className="border-t border-gray-200 dark:border-gray-700">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <nav className="flex space-x-8 rtl:space-x-reverse overflow-x-auto">
-              {navigationTabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
+        {/* SCROLLABLE CONTENT */}
+        <div className="flex-1 overflow-auto rounded-xl">
+          <div className="max-w-[1600px] mx-auto p-6 lg:p-10">
+            {/* Header Mobile */}
+            <header className="lg:hidden flex items-center justify-between mb-8 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <h1 className="text-xl font-bold">Haraka Coach</h1>
+              <Button variant="ghost" size="icon"><Menu className="w-6 h-6" /></Button>
+            </header>
 
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                      transition-colors duration-200 relative
-                      ${isActive
-                        ? 'border-purple-600 text-purple-600 dark:text-purple-400'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                      }
-                    `}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                    {tab.id === 'notifications' && quickStats.pendingNotifications > 0 && (
-                      <Badge className="ml-1 bg-red-500 text-xs px-1 py-0 min-w-[16px] h-4">
-                        {quickStats.pendingNotifications}
-                      </Badge>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
+            <main className="relative">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
+                >
+                  {renderContent()}
+                </motion.div>
+              </AnimatePresence>
+            </main>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1">
-        <div className="px-4 sm:px-6 lg:px-8 py-6 animate-in">
-          {renderContent()}
-        </div>
-      </main>
+      </div>
     </div>
+  );
+};
+
+export default function CoachDashboard() {
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  return (
+    <CoachDashboardContext.Provider value={{ activeTab, setActiveTab }}>
+      {showOnboarding ? (
+        <CoachOnboarding onComplete={() => setShowOnboarding(false)} />
+      ) : (
+        <CoachDashboardContent />
+      )}
+    </CoachDashboardContext.Provider>
   );
 }

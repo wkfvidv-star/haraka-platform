@@ -24,9 +24,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface SmartAccessModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-export const SmartAccessModal: React.FC<SmartAccessModalProps> = ({ isOpen, onClose }) => {
+export const SmartAccessModal: React.FC<SmartAccessModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useAuth();
     const { language } = useTranslation();
     const [status, setStatus] = useState<'idle' | 'scanning' | 'granted' | 'denied'>('idle');
@@ -132,7 +133,10 @@ export const SmartAccessModal: React.FC<SmartAccessModalProps> = ({ isOpen, onCl
                                     <p className="text-white/60 text-sm">{message}</p>
                                 </div>
                                 <Button
-                                    onClick={onClose}
+                                    onClick={() => {
+                                        onClose();
+                                        if (onSuccess) onSuccess();
+                                    }}
                                     className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl px-8"
                                 >
                                     {isRTL ? 'إغلاق' : 'Close'}

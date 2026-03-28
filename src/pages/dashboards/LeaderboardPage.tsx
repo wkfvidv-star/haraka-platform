@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Trophy, Medal, Crown } from "lucide-react";
+import { useEffect } from "react";
 
 interface User {
   id: string;
@@ -15,28 +16,42 @@ interface User {
   avatar?: string;
 }
 
-const users: User[] = [
-  { id: "1", name: "أحمد", role: "تلميذ", points: 850, level: 12 },
-  { id: "2", name: "سارة", role: "معلم", points: 920, level: 15 },
-  { id: "3", name: "يوسف", role: "مدرب", points: 780, level: 10 },
-  { id: "4", name: "ليلى", role: "ولي أمر", points: 500, level: 5 },
-  { id: "5", name: "محمد", role: "تلميذ", points: 900, level: 14 },
-  { id: "6", name: "خالد", role: "مدير", points: 1000, level: 18 },
-  { id: "7", name: "نور", role: "شباب", points: 670, level: 8 },
-  { id: "8", name: "هدى", role: "معلم", points: 880, level: 13 },
-];
+// Mock data removed in favor of real API
 
 export function LeaderboardPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<null | string>(null);
   const [chatUser, setChatUser] = useState<User | null>(null);
   const [chatMessages, setChatMessages] = useState<{ user: string; message: string }[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
-  const roles = ["الكل", "تلميذ", "معلم", "مدير", "ولي أمر", "شباب", "مدرب"];
+  const roles = ["الكل", "STUDENT", "COACH", "PARENT", "TEACHER", "YOUTH"];
 
-  const filteredUsers = selectedRole && selectedRole !== "الكل"
-    ? users.filter(u => u.role === selectedRole)
-    : users;
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setLoading(true);
+        const url = selectedRole && selectedRole !== "الكل"
+          ? `http://localhost:3001/api/gamification/leaderboard?role=${selectedRole}`
+          : 'http://localhost:3001/api/gamification/leaderboard';
+
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.success) {
+          setUsers(data.leaderboard);
+        }
+      } catch (error) {
+        console.error("Failed to fetch leaderboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, [selectedRole]);
+
+  const filteredUsers = users;
 
   const handleSendMessage = () => {
     if (chatUser && newMessage.trim() !== "") {
@@ -64,22 +79,52 @@ export function LeaderboardPage() {
         </div>
 
         {/* Users Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredUsers.sort((a, b) => b.points - a.points).map(user => (
-            <Card key={user.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setChatUser(user)}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {user.name}
-                  <Badge>{user.role}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-gray-500 mb-2">نقاط الأداء: {user.points}</div>
-                <div className="text-sm text-gray-500">المستوى: {user.level}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredUsers.map((user, index) => (
+              <Card
+                key={user.id}
+                className={`relative overflow-hidden transition-all hover:scale-[1.02] cursor-pointer border-none shadow-md hover:shadow-xl ${index === 0 ? 'bg-gradient-to-br from-yellow-50 to-white dark:from-yellow-900/10' :
+                    index === 1 ? 'bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10' :
+                      'bg-white dark:bg-gray-800/50'
+                  }`}
+                onClick={() => setChatUser(user)}
+              >
+                {index < 3 && (
+                  <div className="absolute top-2 left-2">
+                    {index === 0 ? <Crown className="w-5 h-5 text-yellow-500" /> :
+                      index === 1 ? <Medal className="w-5 h-5 text-blue-500" /> :
+                        <Medal className="w-5 h-5 text-orange-500" />}
+                  </div>
+                )}
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center justify-between text-lg font-black">
+                    <span className="truncate">{user.name}</span>
+                    <Badge variant="outline" className="text-[10px] font-bold">{user.role}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">نقاط الأداء</div>
+                      <div className="text-xl font-black text-blue-600 dark:text-blue-400">{user.points} XP</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">المستوى</div>
+                      <div className="text-lg font-black text-slate-700 dark:text-slate-300">{user.level}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Chat Sidebar */}

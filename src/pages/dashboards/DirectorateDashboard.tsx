@@ -13,6 +13,9 @@ import { useTranslation } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { DirectorateOnboarding } from '@/components/directorate-dashboard/DirectorateOnboarding';
+import { RatingSystem } from '@/components/shared/RatingSystem';
+import { ChatSystem } from '@/components/shared/ChatSystem';
 import {
   Building2,
   Users,
@@ -39,7 +42,9 @@ import {
   User,
   Settings,
   Lightbulb,
-  Globe
+  Globe,
+  Menu,
+  PlayCircle
 } from 'lucide-react';
 
 interface Province {
@@ -85,9 +90,24 @@ export default function DirectorateDashboard() {
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedSchool, setSelectedSchool] = useState<SchoolSummary | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { t, language } = useTranslation();
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
+
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+    const hasSeen = localStorage.getItem('haraka_directorate_onboarding_seen');
+    return !hasSeen;
+  });
+
+  const handleCompleteOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('haraka_directorate_onboarding_seen', 'true');
+  };
+
+  const handleReplayOnboarding = () => {
+    setShowOnboarding(true);
+  };
 
   const [provinceOverview] = useState<ProvinceOverview>({
     totalSchools: selectedProvince?.schools || 125,
@@ -122,12 +142,13 @@ export default function DirectorateDashboard() {
   ]);
 
   const navigationTabs = [
-    { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
-    { id: 'schools', label: 'المدارس', icon: School },
-    { id: 'reports', label: 'التقارير', icon: BarChart3 },
-    { id: 'competitions', label: 'المسابقات', icon: Trophy },
-    { id: 'strategy', label: 'الاستراتيجية', icon: Target },
-    { id: 'notifications', label: 'الإشعارات', icon: Bell }
+    { id: 'dashboard',     label: 'لوحة التحكم',   icon: Home },
+    { id: 'schools',       label: 'المدارس',       icon: School },
+    { id: 'reports',       label: 'التقارير',       icon: BarChart3 },
+    { id: 'competitions',  label: 'المسابقات',    icon: Trophy },
+    { id: 'strategy',      label: 'الاستراتيجية',  icon: Target },
+    { id: 'notifications', label: 'الإشعارات',     icon: Bell },
+    { id: 'ratings',       label: '⭐ التقييم',         icon: Award },
   ];
 
   const handleProvinceSelect = (province: Province) => {
@@ -224,6 +245,27 @@ export default function DirectorateDashboard() {
       case 'competitions': return <DirectorateCompetitions selectedProvince={selectedProvince} />;
       case 'strategy': return <DirectorateStrategy selectedProvince={selectedProvince} />;
       case 'notifications': return <DirectorateNotifications selectedProvince={selectedProvince} />;
+      case 'ratings': return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" dir="rtl">
+          <div>
+            <h3 className="text-xl font-black text-white mb-4">⭐ تقييم المدارس والمدربين</h3>
+            <RatingSystem
+              raterRole="مديرية"
+              raterName={user?.name || 'المديرية'}
+              targets={[
+                { id: 'sch1', name: 'متوسطة الشهيد بوضياف', role: 'مدير: أحمد بن علي' },
+                { id: 'sch2', name: 'ثانوية الأمير عبد القادر', role: 'مدير: سامية قاسمي' },
+                { id: 'coa1', name: 'المدرب كريم معروف', role: 'مدرب رياضة بدنية' },
+              ]}
+              mode="rate"
+            />
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-white mb-4">💬 غرفة المديريات</h3>
+            <ChatSystem userRole="directorate" userName={user?.name || 'المديرية'} inline defaultOpen />
+          </div>
+        </div>
+      );
       default: return renderDashboard();
     }
   };
@@ -240,7 +282,15 @@ export default function DirectorateDashboard() {
 
   return (
     <ErrorBoundary>
-      <div className={`expert-dashboard-root selection:bg-blue-500/30 ${isRTL ? 'rtl' : 'ltr'}`}>
+      <div className={`expert-dashboard-root selection:bg-blue-500/30 relative text-right`} dir={isRTL ? 'rtl' : 'ltr'}>
+
+        {showOnboarding && (
+          <DirectorateOnboarding
+            onComplete={handleCompleteOnboarding}
+            onSkip={handleCompleteOnboarding}
+          />
+        )}
+
         {/* Background Image with Deep Overlay */}
         <div
           className="expert-bg-image"
@@ -248,72 +298,124 @@ export default function DirectorateDashboard() {
         />
         <div className="expert-bg-overlay" />
 
-        <div className="relative z-10 font-arabic">
-          <header className="expert-header">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-[#3b82f6]/10 rounded-2xl border border-[#3b82f6]/20">
-                    <Building2 className="h-8 w-8 text-[#3b82f6]" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-black tracking-tight text-white">مركز مديرية التربية والتعليم</h1>
-                    <p className="text-sm text-slate-400 font-medium">
-                      ولاية {selectedProvince.arabicName} — إدارة المتابعة والقرار الاستراتيجي
-                    </p>
-                  </div>
-                </div>
+        {/* Main Content Container border-t border-l */}
+        <div className="relative z-10 flex h-screen overflow-hidden font-cairo">
+
+          {/* Sidebar */}
+          <aside className={`
+            ${isSidebarOpen ? 'w-72' : 'w-20'} 
+            transition-all duration-300 ease-in-out shrink-0
+            bg-slate-950/80 backdrop-blur-xl border-l border-white/5 
+            flex flex-col z-40
+          `}>
+            <div className="p-6 flex items-center justify-between border-b border-white/5">
+              {isSidebarOpen && (
                 <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    onClick={handleBackToSelection}
-                    size="sm"
-                    className="rounded-xl font-black text-slate-300 hover:bg-white/5"
-                  >
-                    <MapPin className="h-4 w-4 ml-2 text-[#3b82f6]" />
-                    تغيير الولاية
-                  </Button>
-                  <Button variant="ghost" size="icon" className="rounded-full text-slate-300 hover:bg-white/5">
-                    <Bell className="h-4 w-4" />
-                  </Button>
-                  <div className="h-8 w-[1px] bg-white/10 mx-2" />
-                  <Button
-                    variant="ghost"
-                    onClick={logout}
-                    className="text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors font-bold"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    تسجيل الخروج
-                  </Button>
+                  <div className="p-2 bg-[#3b82f6]/10 rounded-xl border border-[#3b82f6]/20">
+                    <Building2 className="h-6 w-6 text-[#3b82f6]" />
+                  </div>
+                  <span className="text-xl font-black text-white tracking-wide">المديرية</span>
                 </div>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white mx-auto">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2 custom-scrollbar">
+              {navigationTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group
+                      ${isActive
+                        ? 'bg-[#3b82f6] text-white shadow-lg shadow-blue-500/20'
+                        : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}
+                    `}
+                  >
+                    <tab.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`} />
+                    {isSidebarOpen && (
+                      <span className="font-bold text-sm tracking-wide text-right flex-1">{tab.label}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="p-4 border-t border-white/5 space-y-2">
+              {isSidebarOpen && (
+                <div className="px-4 py-3 bg-white/5 rounded-2xl mb-4 border border-white/5 text-right">
+                  <p className="text-xs text-slate-400 font-medium">حساب المديرية</p>
+                  <p className="text-sm text-white font-bold truncate">{user?.name}</p>
+                </div>
+              )}
+              <button
+                onClick={logout}
+                className={`
+                  w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all
+                  text-rose-400 border border-transparent hover:border-rose-500/30 hover:bg-rose-500/10
+                  ${!isSidebarOpen && 'justify-center'}
+                `}
+              >
+                <LogOut className="h-5 w-5" />
+                {isSidebarOpen && <span className="font-bold text-sm">تسجيل الخروج</span>}
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col h-screen overflow-hidden text-right">
+
+            {/* Header */}
+            <header className="h-20 bg-slate-950/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 shrink-0">
+              <div>
+                <h1 className="text-2xl font-black text-white">مركز مديرية التربية والتعليم</h1>
+                <p className="text-xs font-bold text-slate-400 mt-0.5 tracking-wide">
+                  ولاية {selectedProvince.arabicName} — إدارة المتابعة والقرار الاستراتيجي
+                </p>
               </div>
 
-              <div className="expert-nav-tabs-container p-1.5 rounded-3xl">
-                <div className="flex gap-2 overflow-x-auto justify-center">
-                  {navigationTabs.map((tab) => (
-                    <Button
-                      key={tab.id}
-                      variant="ghost"
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`rounded-2xl px-6 flex gap-2 font-black transition-all ${activeTab === tab.id
-                        ? "bg-[#3b82f6] text-white shadow-lg shadow-blue-900/40"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
-                        }`}
-                    >
-                      <tab.icon className="h-4 w-4" />
-                      {tab.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </header>
+              <div className="flex items-center gap-4" dir="ltr">
+                <Button variant="ghost" size="icon" className="rounded-full text-slate-300 hover:bg-white/10 relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-slate-900 border-2" />
+                </Button>
 
-          <main className="expert-container">
-            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-              {renderContent()}
-            </div>
-          </main>
+                <div className="h-8 w-[1px] bg-white/10 mx-2" />
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBackToSelection}
+                  className="bg-white/5 border-white/10 text-slate-300 hover:text-[#3b82f6] hover:bg-white/10 transition-all rounded-xl gap-2 h-10 px-4 group hidden md:flex"
+                >
+                  <MapPin className="h-4 w-4 ml-2 group-hover:text-[#3b82f6] transition-colors" />
+                  <span className="font-cairo font-bold">تغيير الولاية</span>
+                </Button>
+
+                {/* Replay Tour Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReplayOnboarding}
+                  className="bg-white/5 border-white/10 text-slate-300 hover:text-[#3b82f6] hover:bg-white/10 transition-all rounded-xl gap-2 h-10 px-4 group hidden md:flex"
+                >
+                  <PlayCircle className="w-4 h-4 group-hover:text-[#3b82f6] transition-colors" />
+                  <span className="font-cairo font-bold">إعادة الجولة</span>
+                </Button>
+              </div>
+            </header>
+
+            {/* Scrollable Page Content */}
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                {renderContent()}
+              </div>
+            </main>
+          </div>
         </div>
       </div>
     </ErrorBoundary>

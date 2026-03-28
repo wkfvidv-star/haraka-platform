@@ -1,560 +1,290 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  Clock,
-  Target,
-  Activity,
-  Users,
-  Filter,
-  Download,
-  RefreshCw,
-  CheckCircle,
-  AlertTriangle,
-  Trophy,
-  Zap
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-interface WorkoutSession {
-  id: string;
-  userId: string;
-  userType: 'student' | 'youth' | 'coach';
-  exercise: string;
-  exerciseAr: string;
-  date: Date;
-  duration: number; // بالدقائق
-  correctReps: number;
-  totalAttempts: number;
-  accuracy: number;
-  errors: string[];
-  environment: 'school' | 'community';
+// Simple, visual, Arabic-first Vital Metrics Dashboard
+// No technical jargon — designed like Fitbit/Apple Health simplified
+
+const tips = {
+  great: { label: 'ممتاز', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  good: { label: 'جيد', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  avg: { label: 'متوسط', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+  low: { label: 'يحتاج تحسين', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
+};
+
+interface MetricCard {
+  emoji: string;
+  title: string;
+  value: string;
+  unit: string;
+  desc: string;
+  tip: string;
+  status: keyof typeof tips;
+  pct: number;
+  color: string;
 }
 
-interface UserMetrics {
-  userId: string;
-  userName: string;
-  userType: 'student' | 'youth' | 'coach';
-  environment: 'school' | 'community';
-  totalSessions: number;
-  totalDuration: number; // بالدقائق
-  averageAccuracy: number;
-  improvementRate: number;
-  lastSessionDate: Date;
-  consistencyScore: number;
-  favoriteExercises: string[];
-  commonErrors: string[];
-}
+const metrics: MetricCard[] = [
+  {
+    emoji: '❤️',
+    title: 'نبضات القلب',
+    value: '72',
+    unit: 'نبضة/دقيقة',
+    desc: 'معدلك أثناء الراحة',
+    tip: 'المعدل الطبيعي: 60-100 نبضة. كلما كان أقل، كان قلبك أكثر لياقة.',
+    status: 'great',
+    pct: 72,
+    color: '#ef4444',
+  },
+  {
+    emoji: '👟',
+    title: 'خطوات اليوم',
+    value: '7,240',
+    unit: 'خطوة',
+    desc: 'الهدف اليومي: 10,000 خطوة',
+    tip: 'أنت وصلت 72% من هدفك! مشي 15 دقيقة إضافية سيكملك.',
+    status: 'good',
+    pct: 72,
+    color: '#3b82f6',
+  },
+  {
+    emoji: '🔥',
+    title: 'السعرات المحروقة',
+    value: '480',
+    unit: 'سعرة حرارية',
+    desc: 'منذ الاستيقاظ حتى الآن',
+    tip: 'جلسة تدريب 30 دقيقة تحرق 200-400 سعرة إضافية.',
+    status: 'good',
+    pct: 64,
+    color: '#f97316',
+  },
+  {
+    emoji: '😴',
+    title: 'نوم البارحة',
+    value: '6.5',
+    unit: 'ساعة',
+    desc: 'الموصى به: 7-9 ساعات',
+    tip: 'تحتاج نصف ساعة إضافية. حاول النوم مبكراً بـ 30 دقيقة الليلة.',
+    status: 'avg',
+    pct: 72,
+    color: '#8b5cf6',
+  },
+  {
+    emoji: '💧',
+    title: 'الترطيب',
+    value: '1.2',
+    unit: 'لتر',
+    desc: 'الهدف: 2.5-3 لتر يومياً',
+    tip: 'اشرب كوب ماء كل ساعة. جسمك يحتاج سوائل أكثر أثناء التدريب.',
+    status: 'low',
+    pct: 40,
+    color: '#06b6d4',
+  },
+  {
+    emoji: '🫁',
+    title: 'مستوى الأكسجين',
+    value: '98',
+    unit: '%',
+    desc: 'مستوى SpO2 في الدم',
+    tip: 'مستوى طبيعي ممتاز. 95% فأكثر يُعتبر صحياً.',
+    status: 'great',
+    pct: 98,
+    color: '#22c55e',
+  },
+];
 
-interface SystemMetrics {
-  totalUsers: number;
-  totalSessions: number;
-  averageSessionDuration: number;
-  overallAccuracy: number;
-  mostPopularExercises: { name: string; count: number }[];
-  commonErrors: { error: string; count: number }[];
-  dailyActiveUsers: number;
-  weeklyActiveUsers: number;
-  monthlyActiveUsers: number;
-}
+const weeklyData = [
+  { day: 'الأح', steps: 8200, sleep: 7.5, cal: 520 },
+  { day: 'الاث', steps: 5400, sleep: 6, cal: 380 },
+  { day: 'الثل', steps: 9300, sleep: 8, cal: 640 },
+  { day: 'الأر', steps: 6100, sleep: 7, cal: 420 },
+  { day: 'الخم', steps: 10200, sleep: 7.5, cal: 710 },
+  { day: 'الجم', steps: 4800, sleep: 9, cal: 310 },
+  { day: 'السب', steps: 7240, sleep: 6.5, cal: 480 },
+];
+const maxSteps = 11000;
 
-export const RealMetricsDashboard: React.FC = () => {
-  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>([]);
-  const [userMetrics, setUserMetrics] = useState<UserMetrics[]>([]);
-  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month' | 'all'>('week');
-  const [selectedUserType, setSelectedUserType] = useState<'all' | 'student' | 'youth' | 'coach'>('all');
-  const [selectedEnvironment, setSelectedEnvironment] = useState<'all' | 'school' | 'community'>('all');
-  const [isLoading, setIsLoading] = useState(false);
-
-  // تحميل البيانات الحقيقية من التخزين المحلي
-  useEffect(() => {
-    loadRealData();
-  }, [selectedPeriod, selectedUserType, selectedEnvironment]);
-
-  const loadRealData = () => {
-    setIsLoading(true);
-    
-    // تحميل جلسات التدريب الحقيقية
-    const savedSessions = localStorage.getItem('exerciseSessions');
-    const sessions: WorkoutSession[] = savedSessions ? JSON.parse(savedSessions) : [];
-    
-    // تصفية البيانات حسب المعايير المحددة
-    const filteredSessions = sessions.filter(session => {
-      const sessionDate = new Date(session.date);
-      const now = new Date();
-      
-      // تصفية حسب الفترة الزمنية
-      let periodMatch = true;
-      if (selectedPeriod === 'day') {
-        periodMatch = sessionDate.toDateString() === now.toDateString();
-      } else if (selectedPeriod === 'week') {
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        periodMatch = sessionDate >= weekAgo;
-      } else if (selectedPeriod === 'month') {
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        periodMatch = sessionDate >= monthAgo;
-      }
-      
-      // تصفية حسب نوع المستخدم
-      const userTypeMatch = selectedUserType === 'all' || session.userType === selectedUserType;
-      
-      // تصفية حسب البيئة
-      const environmentMatch = selectedEnvironment === 'all' || session.environment === selectedEnvironment;
-      
-      return periodMatch && userTypeMatch && environmentMatch;
-    });
-    
-    setWorkoutSessions(filteredSessions);
-    
-    // حساب مقاييس المستخدمين
-    const userMetricsMap = new Map<string, UserMetrics>();
-    
-    filteredSessions.forEach(session => {
-      if (!userMetricsMap.has(session.userId)) {
-        userMetricsMap.set(session.userId, {
-          userId: session.userId,
-          userName: `مستخدم ${session.userId}`,
-          userType: session.userType,
-          environment: session.environment,
-          totalSessions: 0,
-          totalDuration: 0,
-          averageAccuracy: 0,
-          improvementRate: 0,
-          lastSessionDate: session.date,
-          consistencyScore: 0,
-          favoriteExercises: [],
-          commonErrors: []
-        });
-      }
-      
-      const metrics = userMetricsMap.get(session.userId)!;
-      metrics.totalSessions += 1;
-      metrics.totalDuration += session.duration;
-      metrics.averageAccuracy = (metrics.averageAccuracy + session.accuracy) / 2;
-      
-      if (new Date(session.date) > new Date(metrics.lastSessionDate)) {
-        metrics.lastSessionDate = session.date;
-      }
-      
-      // تحديث التمارين المفضلة
-      if (!metrics.favoriteExercises.includes(session.exerciseAr)) {
-        metrics.favoriteExercises.push(session.exerciseAr);
-      }
-      
-      // تحديث الأخطاء الشائعة
-      session.errors.forEach(error => {
-        if (!metrics.commonErrors.includes(error)) {
-          metrics.commonErrors.push(error);
-        }
-      });
-    });
-    
-    setUserMetrics(Array.from(userMetricsMap.values()));
-    
-    // حساب مقاييس النظام
-    const systemMetrics: SystemMetrics = {
-      totalUsers: userMetricsMap.size,
-      totalSessions: filteredSessions.length,
-      averageSessionDuration: filteredSessions.length > 0 ? 
-        filteredSessions.reduce((sum, s) => sum + s.duration, 0) / filteredSessions.length : 0,
-      overallAccuracy: filteredSessions.length > 0 ? 
-        filteredSessions.reduce((sum, s) => sum + s.accuracy, 0) / filteredSessions.length : 0,
-      mostPopularExercises: getTopExercises(filteredSessions),
-      commonErrors: getCommonErrors(filteredSessions),
-      dailyActiveUsers: getUsersInPeriod(sessions, 1),
-      weeklyActiveUsers: getUsersInPeriod(sessions, 7),
-      monthlyActiveUsers: getUsersInPeriod(sessions, 30)
-    };
-    
-    setSystemMetrics(systemMetrics);
-    setIsLoading(false);
-  };
-
-  const getTopExercises = (sessions: WorkoutSession[]) => {
-    const exerciseCount = new Map<string, number>();
-    sessions.forEach(session => {
-      exerciseCount.set(session.exerciseAr, (exerciseCount.get(session.exerciseAr) || 0) + 1);
-    });
-    
-    return Array.from(exerciseCount.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  };
-
-  const getCommonErrors = (sessions: WorkoutSession[]) => {
-    const errorCount = new Map<string, number>();
-    sessions.forEach(session => {
-      session.errors.forEach(error => {
-        errorCount.set(error, (errorCount.get(error) || 0) + 1);
-      });
-    });
-    
-    return Array.from(errorCount.entries())
-      .map(([error, count]) => ({ error, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  };
-
-  const getUsersInPeriod = (sessions: WorkoutSession[], days: number) => {
-    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const activeUsers = new Set<string>();
-    
-    sessions.forEach(session => {
-      if (new Date(session.date) >= cutoffDate) {
-        activeUsers.add(session.userId);
-      }
-    });
-    
-    return activeUsers.size;
-  };
-
-  const exportData = () => {
-    const data = {
-      sessions: workoutSessions,
-      userMetrics,
-      systemMetrics,
-      exportDate: new Date(),
-      filters: {
-        period: selectedPeriod,
-        userType: selectedUserType,
-        environment: selectedEnvironment
-      }
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `metrics-export-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const getUserTypeText = (type: string) => {
-    const types = {
-      student: 'تلميذ',
-      youth: 'شاب',
-      coach: 'مدرب'
-    };
-    return types[type as keyof typeof types] || type;
-  };
-
-  const getEnvironmentText = (env: string) => {
-    const environments = {
-      school: 'مدرسية',
-      community: 'مجتمعية'
-    };
-    return environments[env as keyof typeof environments] || env;
-  };
-
-  const getPeriodText = (period: string) => {
-    const periods = {
-      day: 'اليوم',
-      week: 'الأسبوع',
-      month: 'الشهر',
-      all: 'الكل'
-    };
-    return periods[period as keyof typeof periods] || period;
-  };
+export default function RealMetricsDashboard() {
+  const [selectedMetric, setSelectedMetric] = useState<MetricCard | null>(null);
+  const [activeView, setActiveView] = useState<'today' | 'week'>('today');
 
   return (
-    <div className="space-y-6">
-      {/* عنوان الوحدة */}
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-primary mb-2">📊 لوحة المقاييس الواقعية</h2>
-        <p className="text-muted-foreground">تتبع وتحليل البيانات الحقيقية للأداء والنشاط</p>
+    <div className="space-y-5 pb-20 lg:pb-0 animate-in fade-in zoom-in-95 duration-500" dir="rtl">
+      {/* Header */}
+      <div className="bg-slate-900 rounded-[2rem] p-5 relative overflow-hidden border border-slate-800">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+        <div className="relative z-10">
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">مراقبة صحتك اليومية</p>
+          <h2 className="text-2xl font-black text-white">المقاييس الحيوية</h2>
+          <p className="text-slate-400 text-sm mt-1">أرقام واضحة بدون تعقيد — صحتك في لمحة</p>
+          <div className="flex gap-2 mt-4">
+            {(['today', 'week'] as const).map(v => (
+              <button
+                key={v}
+                onClick={() => setActiveView(v)}
+                className={cn(
+                  'px-4 py-2 rounded-xl font-black text-xs transition-colors',
+                  activeView === v ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                )}
+              >
+                {v === 'today' ? '📅 اليوم' : '📊 هذا الأسبوع'}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* أدوات التصفية */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-primary" />
-            تصفية البيانات
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">الفترة الزمنية</label>
-              <div className="flex gap-1">
-                {(['day', 'week', 'month', 'all'] as const).map(period => (
-                  <Button
-                    key={period}
-                    size="sm"
-                    variant={selectedPeriod === period ? "default" : "outline"}
-                    onClick={() => setSelectedPeriod(period)}
-                  >
-                    {getPeriodText(period)}
-                  </Button>
-                ))}
+      {activeView === 'today' ? (
+        <>
+          {/* Overall Score */}
+          <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-sm p-5">
+            <div className="flex items-center gap-4">
+              <div className="relative w-20 h-20 shrink-0">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                  <motion.circle
+                    cx="40" cy="40" r="32" fill="none"
+                    stroke="#22c55e" strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 32}
+                    strokeDashoffset={2 * Math.PI * 32}
+                    animate={{ strokeDashoffset: 2 * Math.PI * 32 * (1 - 0.74) }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-lg font-black text-slate-900">74%</span>
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">نوع المستخدم</label>
-              <div className="flex gap-1">
-                {(['all', 'student', 'youth', 'coach'] as const).map(type => (
-                  <Button
-                    key={type}
-                    size="sm"
-                    variant={selectedUserType === type ? "default" : "outline"}
-                    onClick={() => setSelectedUserType(type)}
-                  >
-                    {type === 'all' ? 'الكل' : getUserTypeText(type)}
-                  </Button>
-                ))}
+              <div className="flex-1">
+                <p className="font-black text-slate-900 text-lg">حالتك الصحية اليوم</p>
+                <p className="text-slate-500 text-sm font-medium">معظم مؤشراتك إيجابية — استمر! 🎉</p>
+                <div className="flex gap-3 mt-2">
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">3 مؤشرات ممتازة</span>
+                  <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg">2 تحتاج انتباه</span>
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">البيئة</label>
-              <div className="flex gap-1">
-                {(['all', 'school', 'community'] as const).map(env => (
-                  <Button
-                    key={env}
-                    size="sm"
-                    variant={selectedEnvironment === env ? "default" : "outline"}
-                    onClick={() => setSelectedEnvironment(env)}
-                  >
-                    {env === 'all' ? 'الكل' : getEnvironmentText(env)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex items-end gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={loadRealData}
-                disabled={isLoading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                تحديث
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={exportData}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                تصدير
-              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* مقاييس النظام العامة */}
-      {systemMetrics && (
-        <div className="grid md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي المستخدمين</p>
-                  <p className="text-2xl font-bold">{systemMetrics.totalUsers}</p>
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {metrics.map((m, i) => {
+              const t = tips[m.status];
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.06 }}
+                  onClick={() => setSelectedMetric(selectedMetric?.title === m.title ? null : m)}
+                  className={cn('bg-white rounded-[1.5rem] border shadow-sm p-4 cursor-pointer hover:shadow-md transition-all', t.border)}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-11 h-11 ${t.bg} rounded-2xl flex items-center justify-center text-2xl`}>{m.emoji}</div>
+                    <div className="flex-1">
+                      <h4 className="font-black text-slate-900 text-sm">{m.title}</h4>
+                      <p className="text-slate-400 text-[10px] font-bold">{m.desc}</p>
+                    </div>
+                    <div className="text-left">
+                      <p className={`font-black text-xl leading-none ${t.color}`}>{m.value}</p>
+                      <p className="text-slate-400 text-[9px] font-bold">{m.unit}</p>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${m.pct}%` }}
+                      transition={{ duration: 0.8, delay: i * 0.06 }}
+                      style={{ backgroundColor: m.color }}
+                      className="h-full rounded-full"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${t.bg} ${t.color}`}>{t.label}</span>
+                    {selectedMetric?.title === m.title ? (
+                      <span className="text-[10px] font-bold text-slate-400">اخفِ النصيحة ▲</span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-slate-400">اعرف أكثر ▼</span>
+                    )}
+                  </div>
+                  {selectedMetric?.title === m.title && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-3 bg-slate-50 rounded-2xl p-3 border border-slate-100"
+                    >
+                      <p className="text-slate-700 text-xs font-bold leading-relaxed">💡 {m.tip}</p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Quick tips row */}
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-[1.5rem] border border-orange-200 p-4">
+            <h3 className="font-black text-slate-900 text-sm mb-3">🎯 نصائح اليوم</h3>
+            <div className="space-y-2">
+              {[
+                { icon: '💧', text: 'اشرب كوباً من الماء الآن — أنت تحتاج ترطيباً أكثر اليوم' },
+                { icon: '🚶', text: 'مشي 20 دقيقة ستكمل هدف خطواتك اليومي' },
+                { icon: '🌙', text: 'حاول النوم قبل الساعة 11 الليلة لتحسين نومك' },
+              ].map((tip, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-base shrink-0">{tip.icon}</span>
+                  <p className="text-slate-700 text-xs font-bold">{tip.text}</p>
                 </div>
-                <Users className="w-8 h-8 text-blue-500" />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        /* Weekly View */
+        <div className="space-y-4">
+          <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-sm p-5">
+            <h3 className="font-black text-slate-900 text-sm mb-4 flex items-center gap-2">
+              👟 الخطوات اليومية (الأسبوع)
+            </h3>
+            <div className="flex items-end justify-between gap-2 h-28">
+              {weeklyData.map((d, i) => {
+                const pct = Math.round((d.steps / maxSteps) * 100);
+                const isToday = i === 6;
+                return (
+                  <div key={i} className="flex flex-col items-center flex-1 gap-1">
+                    <span className="text-[9px] font-black text-slate-400">{(d.steps / 1000).toFixed(1)}k</span>
+                    <div className="w-full bg-slate-100 rounded-xl overflow-hidden flex flex-col-reverse" style={{ height: '72px' }}>
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: `${pct}%` }}
+                        transition={{ duration: 0.5, delay: i * 0.05 }}
+                        className={cn('rounded-xl', isToday ? 'bg-orange-500' : 'bg-blue-400')}
+                      />
+                    </div>
+                    <span className={cn('text-[10px] font-black', isToday ? 'text-orange-600' : 'text-slate-400')}>{d.day}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'متوسط النوم', val: '7.2 ساعة', emoji: '😴', status: 'جيد جداً' },
+              { label: 'متوسط السعرات', val: '494 سعرة', emoji: '🔥', status: 'ضمن الهدف' },
+              { label: 'أفضل يوم', val: 'الخميس', emoji: '🏆', status: '10,200 خطوة' },
+              { label: 'أيام نشاط', val: '5/7 أيام', emoji: '📅', status: 'ممتاز' },
+            ].map((s, i) => (
+              <div key={i} className="bg-white rounded-[1.5rem] border border-slate-100 shadow-sm p-4 text-center">
+                <span className="text-2xl">{s.emoji}</span>
+                <p className="font-black text-slate-900 text-base mt-1">{s.val}</p>
+                <p className="text-slate-400 text-[10px] font-bold">{s.label}</p>
+                <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg mt-1 inline-block">{s.status}</span>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي الجلسات</p>
-                  <p className="text-2xl font-bold">{systemMetrics.totalSessions}</p>
-                </div>
-                <Activity className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">متوسط مدة الجلسة</p>
-                  <p className="text-2xl font-bold">{Math.round(systemMetrics.averageSessionDuration)} د</p>
-                </div>
-                <Clock className="w-8 h-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">الدقة الإجمالية</p>
-                  <p className="text-2xl font-bold">{Math.round(systemMetrics.overallAccuracy)}%</p>
-                </div>
-                <Target className="w-8 h-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </div>
-      )}
-
-      {/* المستخدمون النشطون */}
-      {systemMetrics && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-secondary" />
-              المستخدمون النشطون
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{systemMetrics.dailyActiveUsers}</div>
-                <div className="text-sm text-blue-700">نشطون اليوم</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{systemMetrics.weeklyActiveUsers}</div>
-                <div className="text-sm text-green-700">نشطون هذا الأسبوع</div>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{systemMetrics.monthlyActiveUsers}</div>
-                <div className="text-sm text-purple-700">نشطون هذا الشهر</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* التمارين الأكثر شعبية */}
-      {systemMetrics && systemMetrics.mostPopularExercises.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-accent-orange" />
-              التمارين الأكثر شعبية
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {systemMetrics.mostPopularExercises.map((exercise, index) => (
-                <div key={exercise.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline">#{index + 1}</Badge>
-                    <span className="font-medium">{exercise.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{exercise.count} جلسة</span>
-                    <Progress 
-                      value={(exercise.count / systemMetrics.mostPopularExercises[0].count) * 100} 
-                      className="w-20 h-2" 
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* الأخطاء الشائعة */}
-      {systemMetrics && systemMetrics.commonErrors.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              الأخطاء الأكثر شيوعاً
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {systemMetrics.commonErrors.map((error, index) => (
-                <div key={error.error} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="bg-red-50 text-red-700">#{index + 1}</Badge>
-                    <span className="font-medium">{error.error}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{error.count} مرة</span>
-                    <Progress 
-                      value={(error.count / systemMetrics.commonErrors[0].count) * 100} 
-                      className="w-20 h-2" 
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* أفضل المستخدمين */}
-      {userMetrics.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-500" />
-              أفضل المستخدمين أداءً
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {userMetrics
-                .sort((a, b) => b.averageAccuracy - a.averageAccuracy)
-                .slice(0, 10)
-                .map((user, index) => (
-                <div key={user.userId} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline">#{index + 1}</Badge>
-                    <div>
-                      <div className="font-medium">{user.userName}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {getUserTypeText(user.userType)} - {getEnvironmentText(user.environment)}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">
-                      {Math.round(user.averageAccuracy)}%
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {user.totalSessions} جلسة
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* رسالة عند عدم وجود بيانات */}
-      {workoutSessions.length === 0 && !isLoading && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <BarChart3 className="w-16 h-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">لا توجد بيانات</h3>
-            <p className="text-muted-foreground text-center">
-              لا توجد جلسات تدريب مسجلة للفترة والمعايير المحددة.
-              <br />
-              ابدأ بتسجيل جلسات تدريب لرؤية الإحصائيات هنا.
-            </p>
-          </CardContent>
-        </Card>
       )}
     </div>
   );
-};
-
-export default RealMetricsDashboard;
+}

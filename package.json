@@ -4,6 +4,7 @@
   "packageManager": "pnpm@8.10.0",
   "scripts": {
     "dev": "vite --host",
+    "dev:all": "node dev.js",
     "build": "vite build",
     "lint": "eslint --quiet ./src",
     "preview": "vite preview"

@@ -140,12 +140,25 @@ BEGIN
         NEW.raw_user_meta_data->>'name', 
         NEW.raw_user_meta_data->>'avatar_url', 
         new_role
-    );
+    ) ON CONFLICT (id) DO UPDATE SET 
+        name = EXCLUDED.name,
+        role = EXCLUDED.role;
+
+    -- Sync to public.users (Gamification/Prisma Table)
+    -- This ensures Prima can find the user even if they signed up via Supabase
+    INSERT INTO public.users (id, email, password, role, "xp", "level", "playCoins", "updatedAt", "createdAt")
+    VALUES (
+        NEW.id,
+        NEW.email,
+        '', -- Password handled by Supabase Auth
+        UPPER(new_role)::text, -- Match UserRole enum in Prisma (UPPERCASE)
+        0, 1, 0, NOW(), NOW()
+    ) ON CONFLICT (id) DO NOTHING;
 
     -- Special handling for students
     IF new_role = 'student' THEN
         INSERT INTO public.students_progress (user_id)
-        VALUES (NEW.id);
+        VALUES (NEW.id) ON CONFLICT (user_id) DO NOTHING;
     END IF;
 
     RETURN NEW;

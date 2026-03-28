@@ -35,10 +35,31 @@ interface HealthData {
 }
 
 interface HealthMetricsProps {
-  data: HealthData;
+  data?: HealthData;
 }
 
-export function HealthMetrics({ data }: HealthMetricsProps) {
+const defaultData: HealthData = {
+  heartRate: {
+    min: 65,
+    max: 160,
+    avg: 82,
+    restingHR: 68
+  },
+  sleep: {
+    totalSleep: 460, // 7 hours 40 minutes
+    deepSleep: 110,
+    lightSleep: 240,
+    remSleep: 110,
+    sleepQuality: 88
+  },
+  oxygenSaturation: 98,
+  bloodPressure: {
+    systolic: 120,
+    diastolic: 80
+  }
+};
+
+export function HealthMetrics({ data = defaultData }: HealthMetricsProps) {
   const totalSleepHours = data.sleep.totalSleep / 60;
   const deepSleepPercentage = (data.sleep.deepSleep / data.sleep.totalSleep) * 100;
   const lightSleepPercentage = (data.sleep.lightSleep / data.sleep.totalSleep) * 100;

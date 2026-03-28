@@ -350,7 +350,10 @@ export function ProfessionalProgress() {
             <div className="relative h-72 bg-white/[0.02] border border-white/5 rounded-full flex items-center justify-center shadow-inner">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 pointer-events-none" />
               <div className="text-center relative z-10">
-                <div className="text-6xl font-black text-white mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">73<span className="text-2xl text-gray-500 mr-1">%</span></div>
+                <div className="text-6xl font-black text-white mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                  {metrics.length > 0 ? Math.round(metrics.reduce((acc, m) => acc + m.value, 0) / metrics.length) : 0}
+                  <span className="text-2xl text-gray-500 mr-1">%</span>
+                </div>
                 <div className="text-xs font-black text-gray-500 uppercase tracking-widest">المستوى العام (Total Level)</div>
               </div>
 

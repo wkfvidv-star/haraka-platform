@@ -7,6 +7,19 @@ import { Play, TrendingUp, Trophy, Star, Activity, Coins, Zap, QrCode } from 'lu
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { motion, useSpring, useTransform } from 'framer-motion';
+import { useEffect } from 'react';
+
+function AnimatedNumber({ value }: { value: number }) {
+    const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
+    const display = useTransform(spring, (current) => Math.round(current).toLocaleString('ar-AE'));
+
+    useEffect(() => {
+        spring.set(value);
+    }, [spring, value]);
+
+    return <motion.span>{display}</motion.span>;
+}
 
 interface StudentIdentityCardProps {
     studentName?: string;
@@ -82,77 +95,92 @@ export const StudentIdentityCard: React.FC<StudentIdentityCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Info Section */}
-                    <div className="flex-1 text-center md:text-right space-y-4">
+                    {/* Info & Metrics Section */}
+                    <div className="flex-1 text-center md:text-right space-y-6">
                         <div>
-                            <h2 className="text-3xl font-black tracking-tight text-white mb-2">{studentName}</h2>
+                            <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                                <h2 className="text-3xl font-black tracking-tight text-white">{studentName}</h2>
+                                {studentLevel === 'Advanced' && <Trophy className="w-6 h-6 text-yellow-500 animate-bounce" />}
+                            </div>
                             <div className="flex items-center justify-center md:justify-start gap-3">
-                                <Badge className="bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border-blue-400/30 px-3 py-0.5 font-bold">
+                                <Badge className="bg-blue-500 text-white hover:bg-blue-600 border-none px-3 py-1 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-blue-500/20">
                                     {studentLevel === 'Beginner' ? 'مبتدئ' : studentLevel === 'Intermediate' ? 'متوسط' : 'متقدم'}
                                 </Badge>
                                 <span className="text-white/30">•</span>
                                 <span className="text-sm font-bold flex items-center gap-1.5 text-blue-200">
-                                    <TrendingUp className="w-4 h-4" />
-                                    أفضل بنسبة 12% هذا الأسبوع
+                                    <TrendingUp className="w-4 h-4 text-green-400" />
+                                    أداء متميز هذا الأسبوع
                                 </span>
                             </div>
                         </div>
 
-                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">نقاط الخبرة</div>
-                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
-                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                {totalPoints}
+                        {/* Grid of Mini-Stats */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md transition-all hover:bg-white/10 group">
+                                <div className="text-[9px] font-black uppercase tracking-[2px] text-blue-400 mb-1 group-hover:text-blue-300 transition-colors">الخبرة (XP)</div>
+                                <div className="text-xl font-black flex items-center justify-center md:justify-start gap-2 text-white">
+                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                    <AnimatedNumber value={totalPoints} />
+                                </div>
                             </div>
-                        </div>
-                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-yellow-400 mb-1">عملات الحركة</div>
-                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
-                                <Coins className="w-4 h-4 text-yellow-500" />
-                                {Math.floor(totalPoints / 10)}
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md transition-all hover:bg-white/10 group">
+                                <div className="text-[9px] font-black uppercase tracking-[2px] text-yellow-400 mb-1 group-hover:text-yellow-300 transition-colors">العملات</div>
+                                <div className="text-xl font-black flex items-center justify-center md:justify-start gap-2 text-white">
+                                    <Coins className="w-4 h-4 text-yellow-500" />
+                                    <AnimatedNumber value={Math.floor(totalPoints / 10)} />
+                                </div>
                             </div>
-                        </div>
-                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-1">التتابع اليومي</div>
-                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
-                                <Zap className="w-4 h-4 text-orange-500 fill-orange-500" />
-                                {streak} أيام
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md transition-all hover:bg-white/10 group">
+                                <div className="text-[9px] font-black uppercase tracking-[2px] text-orange-400 mb-1 group-hover:text-orange-300 transition-colors">التتابع</div>
+                                <div className="text-xl font-black flex items-center justify-center md:justify-start gap-2 text-white">
+                                    <Zap className="w-4 h-4 text-orange-500 fill-orange-500" />
+                                    <AnimatedNumber value={streak} /> <span className="text-sm">يوم</span>
+                                </div>
                             </div>
-                        </div>
-                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 backdrop-blur-sm shadow-sm">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-1">أحدث شارة</div>
-                            <div className="text-lg font-black flex items-center gap-1.5 text-white">
-                                <Trophy className="w-4 h-4 text-orange-500 fill-orange-500" />
-                                {latestBadge}
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-md transition-all hover:bg-white/10 group">
+                                <div className="text-[9px] font-black uppercase tracking-[2px] text-purple-400 mb-1 group-hover:text-purple-300 transition-colors">أحدث وسام</div>
+                                <div className="text-sm font-black flex items-center justify-center md:justify-start gap-2 text-white truncate">
+                                    <Trophy className="w-4 h-4 text-purple-400" />
+                                    {latestBadge}
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* CTA Section */}
-                    <div className="w-full md:w-auto flex flex-col gap-4 min-w-[240px]">
+                    <div className="w-full md:w-auto flex flex-col gap-4 min-w-[280px]">
                         <Button
                             size="lg"
-                            className="w-full bg-white text-blue-900 hover:bg-blue-50 font-black shadow-xl transition-all duration-300 hover:scale-[1.03] active:scale-95 h-14 text-lg"
+                            className="w-full bg-white text-blue-900 hover:bg-blue-50 font-black shadow-xl transition-all duration-300 hover:rotate-1 active:scale-95 h-16 text-xl group"
                             onClick={onStartSession}
                         >
-                            <Play className="w-6 h-6 ml-3 fill-current" />
+                            <Play className="w-6 h-6 ml-3 fill-current group-hover:scale-110 transition-transform" />
                             ابدأ تمرين اليوم
                         </Button>
                         <Button
                             variant="outline"
                             size="lg"
-                            className="w-full bg-blue-500/10 border-blue-400/30 text-blue-100 hover:bg-blue-500/20 font-bold transition-all duration-300 h-14 text-lg gap-3"
+                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 border-none text-white hover:opacity-90 font-black transition-all duration-300 h-14 text-lg gap-3 shadow-lg shadow-orange-500/20"
                             onClick={onOpenAccess}
                         >
                             <QrCode className="w-6 h-6" />
-                            دخول سريع (QR)
+                            الهوية الرقمية (Smart ID)
                         </Button>
-                        <div className="space-y-2 pt-2">
-                            <div className="flex justify-between text-xs font-black text-blue-200 px-1 uppercase tracking-wider">
+                        <div className="space-y-3 pt-2">
+                            <div className="flex justify-between text-[10px] font-black text-blue-200 px-1 uppercase tracking-[2px]">
                                 <span>التقدم للمستوى التالي</span>
-                                <span className="bg-blue-500/20 px-2 py-0.5 rounded text-blue-100">{levelProgress}%</span>
+                                <span className="bg-blue-500/30 px-2 py-0.5 rounded-full text-white shadow-sm flex items-center gap-1">
+                                    <AnimatedNumber value={levelProgress} />%
+                                </span>
                             </div>
-                            <Progress value={levelProgress} className="h-3 bg-white/5 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-blue-400 border border-white/10" />
+                            <div className="relative h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${levelProgress}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                    className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-indigo-400 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)]"
+                                />
+                            </div>
                         </div>
                     </div>
 

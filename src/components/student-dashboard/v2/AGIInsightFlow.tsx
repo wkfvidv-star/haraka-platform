@@ -16,34 +16,40 @@ export const AGIInsightFlow: React.FC<AGIInsightFlowProps> = ({ insights }) => {
 
     return (
         <div className="relative mb-12">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-full bg-blue-600">
-                    <Brain className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-md">
+                    <Brain className="w-6 h-6 text-orange-500" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-black text-white">العقل الرقمي (Digital Brain)</h2>
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[3px]">AGI LAYER</p>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">نواة الذكاء الاصطناعي</h2>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">الطبقة المعرفية الفائقة • AGI Layer</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {sections.map((section, idx) => (
-                    <Card key={idx} className={`glass-card border-white/10 relative overflow-hidden group ${section.shadow}`}>
-                        <CardHeader className="pb-2">
-                            <CardTitle className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest ${section.color}`}>
-                                <section.icon className="w-4 h-4" />
-                                {section.title}
+                    <Card key={idx} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-all rounded-3xl overflow-hidden group">
+                        <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/50">
+                            <CardTitle className={`flex items-center justify-between text-xs font-black uppercase tracking-widest text-slate-600`}>
+                                <span>{section.title}</span>
+                                <div className={`p-1.5 rounded-lg bg-white shadow-sm border border-slate-100 ${section.color}`}>
+                                  <section.icon className="w-4 h-4" />
+                                </div>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-5">
                             <div className="space-y-4">
                                 <div>
-                                    <div className="text-white font-black text-lg mb-1">{section.data?.status || 'جاري التحليل'}</div>
-                                    <p className="text-[11px] text-white/50 leading-relaxed">"{section.data?.observation || '...'}"</p>
+                                    <div className="text-slate-900 font-extrabold text-2xl mb-2 flex items-center gap-2">
+                                        {/* <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> */}
+                                        {section.data?.status || 'جاري التحليل'}
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-500 leading-relaxed">"{section.data?.observation || 'مراقبة البيانات الحالية لك...'}"</p>
                                 </div>
-                                <div className="p-3 rounded-xl bg-white/5 border-l-2 border-orange-500/50">
-                                    <p className="text-[12px] font-bold text-white">
-                                        {section.data?.recommendation || '...'}
+                                <div className="p-4 rounded-2xl bg-orange-50/50 border border-orange-100/50 flex gap-3 items-start">
+                                    <Sparkles className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
+                                    <p className="text-xs font-bold text-orange-800 leading-relaxed">
+                                        {section.data?.recommendation || 'الذكاء الاصطناعي يقوم بتجهيز التوصيات...'}
                                     </p>
                                 </div>
                             </div>

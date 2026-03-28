@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivityTracker } from '@/hooks/useActivityTracker';
 import AIAnalyticsPage from '@/pages/AIAnalyticsPage';
@@ -13,26 +11,57 @@ import SystemSettings from '@/components/admin/SystemSettings';
 import ActivityStatistics from '@/components/admin/ActivityStatistics';
 import AuditLogs from '@/components/admin/AuditLogs';
 import SmartAccessControl from '@/components/admin/SmartAccessControl';
+import { AdminOnboarding } from '@/components/admin-dashboard/AdminOnboarding';
+import { AdminHome } from '@/components/admin-dashboard/AdminHome';
+import { AdminStudents } from '@/components/admin-dashboard/AdminStudents';
+import { AdminTeachers } from '@/components/admin-dashboard/AdminTeachers';
+import { AdminPerformance } from '@/components/admin-dashboard/AdminPerformance';
+import { AdminVideoAnalysis } from '@/components/admin-dashboard/AdminVideoAnalysis';
+import { AdminHealth } from '@/components/admin-dashboard/AdminHealth';
+import { AdminPsychological } from '@/components/admin-dashboard/AdminPsychological';
+import { AdminReports } from '@/components/admin-dashboard/AdminReports';
 import {
   Users,
   Settings,
   BarChart3,
   FileText,
   Brain,
-  Zap,
   Shield,
-  Database,
   Activity,
   LogOut,
   Bell,
   Target,
   Cpu,
-  ShieldCheck
+  ShieldCheck,
+  PlayCircle,
+  Menu,
+  HeartPulse,
+  Video,
+  Home,
+  ArrowUpRight,
+  GraduationCap
 } from 'lucide-react';
+
+export type AdminViewType =
+  | 'home'
+  | 'students'
+  | 'teachers'
+  | 'statistics'
+  | 'settings'
+  | 'logs'
+  | 'access'
+  | 'video'
+  | 'health'
+  | 'psychological'
+  | 'analytics'
+  | 'predictive'
+  | 'control-center';
 
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'analytics' | 'predictive' | 'control-center'>('dashboard');
+  const [currentView, setCurrentView] = useState<AdminViewType>('home');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const { trackClick, trackInteraction } = useActivityTracker({
     component: 'AdminDashboard',
     trackClicks: true,
@@ -40,6 +69,29 @@ const AdminDashboard: React.FC = () => {
     trackInteractions: true,
     trackTime: true
   });
+
+  // Onboarding State
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('haraka_admin_onboarding_seen');
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+      setIsNewUser(true);
+    }
+  }, []);
+
+  const handleCompleteOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('haraka_admin_onboarding_seen', 'true');
+  };
+
+  const handleReplayOnboarding = () => {
+    localStorage.removeItem('haraka_admin_onboarding_seen');
+    setIsNewUser(false);
+    setShowOnboarding(true);
+  };
 
   const handleLogout = () => {
     trackClick('logout_button');
@@ -63,23 +115,37 @@ const AdminDashboard: React.FC = () => {
 
   const handleBackToDashboard = () => {
     trackInteraction('back_to_dashboard');
-    setCurrentView('dashboard');
+    setCurrentView('home');
   };
 
-  if (currentView === 'analytics') {
-    return <AIAnalyticsPage onBack={handleBackToDashboard} />;
-  }
+  const navItems = [
+    { id: 'home', label: 'الرئيسية', icon: Home },
+    { id: 'students', label: 'التلاميذ', icon: Users },
+    { id: 'teachers', label: 'المعلمين', icon: GraduationCap },
+    { id: 'statistics', label: 'الأداء العام', icon: BarChart3 },
+    { id: 'video', label: 'تحليل الفيديو', icon: Video },
+    { id: 'health', label: 'الملف الصحي', icon: HeartPulse },
+    { id: 'psychological', label: 'الحالة النفسية', icon: Brain },
+    { id: 'logs', label: 'التقارير والسجلات', icon: FileText },
+    { id: 'access', label: 'الوصول الذكي', icon: ShieldCheck },
+    { id: 'settings', label: 'الإعدادات', icon: Settings },
+  ] as const;
 
-  if (currentView === 'predictive') {
-    return <PredictiveIntelligencePage onBack={handleBackToDashboard} />;
-  }
-
-  if (currentView === 'control-center') {
-    return <AIControlCenterPage onBack={handleBackToDashboard} />;
-  }
+  if (currentView === 'analytics') return <AIAnalyticsPage onBack={handleBackToDashboard} />;
+  if (currentView === 'predictive') return <PredictiveIntelligencePage onBack={handleBackToDashboard} />;
+  if (currentView === 'control-center') return <AIControlCenterPage onBack={handleBackToDashboard} />;
 
   return (
-    <div className="expert-dashboard-root selection:bg-blue-500/30">
+    <div className="expert-dashboard-root selection:bg-blue-500/30 relative text-right" dir="rtl">
+      {/* Onboarding Overlay */}
+      {showOnboarding && (
+        <AdminOnboarding
+          onComplete={handleCompleteOnboarding}
+          onSkip={handleCompleteOnboarding}
+          isNewUser={isNewUser}
+        />
+      )}
+
       {/* Background Image with Deep Overlay */}
       <div
         className="expert-bg-image"
@@ -87,199 +153,171 @@ const AdminDashboard: React.FC = () => {
       />
       <div className="expert-bg-overlay" />
 
-      {/* Main Content Container */}
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="expert-header">
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-[#3b82f6]/10 rounded-2xl border border-[#3b82f6]/20">
-                  <Shield className="h-8 w-8 text-[#3b82f6]" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-black tracking-tight text-white">مركز تحكم النظام الرئيسي</h1>
-                  <p className="text-sm text-slate-400 font-medium">
-                    مرحباً، {user?.name} — إدارة البنية التحتية والذكاء السيادي
-                  </p>
-                </div>
-              </div>
+      {/* Main Content Container border-t border-l */}
+      <div className="relative z-10 flex h-screen overflow-hidden font-cairo">
+
+        {/* Sidebar */}
+        <aside
+          data-tour="admin_sidebar"
+          className={`
+          ${isSidebarOpen ? 'w-72' : 'w-20'} 
+          transition-all duration-300 ease-in-out shrink-0
+          bg-slate-950/80 backdrop-blur-xl border-l border-white/5 
+          flex flex-col z-40
+        `}>
+          <div className="p-6 flex items-center justify-between border-b border-white/5">
+            {isSidebarOpen && (
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="rounded-full text-slate-300 hover:bg-white/5">
-                  <Bell className="h-4 w-4" />
-                </Button>
-                <div className="h-8 w-[1px] bg-white/10 mx-2" />
-                <Button
-                  variant="ghost"
-                  onClick={handleLogout}
-                  className="text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors font-bold"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  تسجيل الخروج
-                </Button>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="expert-container">
-          {/* AI Systems Quick Access Section */}
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black flex items-center gap-3 text-white">
-                <div className="w-2 h-8 bg-[#3b82f6] rounded-full" />
-                الأنظمة الذكية والتحليلات السيادية
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  title: 'مركز التحكم الذكي',
-                  desc: 'المركز العصبي للمنصة: مراقبة الأداء الفوري لكافة القطاعات',
-                  icon: Cpu,
-                  badge: 'جديد',
-                  color: '#3482f6',
-                  action: handleViewControlCenter,
-                  stats: [
-                    { label: 'مراقبة شاملة', icon: Activity },
-                    { label: 'خرائط حرارية', icon: BarChart3 }
-                  ]
-                },
-                {
-                  title: 'الذكاء الاصطناعي التحليلي',
-                  desc: 'مراقبة وتحليل النشاط الوطني باستخدام محركات التحليل العميق',
-                  icon: Brain,
-                  badge: 'نشط',
-                  color: '#10b981',
-                  action: handleViewAnalytics,
-                  stats: [
-                    { label: 'التحليل الفوري', icon: Activity },
-                    { label: 'أجهزة الاستشعار', icon: Settings }
-                  ]
-                },
-                {
-                  title: 'نظام الذكاء التنبؤي',
-                  desc: 'التنبؤ والوعي السياقي: استباق الاحتياجات والتحديات المستقبلية',
-                  icon: Target,
-                  badge: 'متقدم',
-                  color: '#6366f1',
-                  action: handleViewPredictive,
-                  stats: [
-                    { label: 'التنبؤ الذكي', icon: Target },
-                    { label: 'إنذارات ذكية', icon: Bell }
-                  ]
-                }
-              ].map((sys, idx) => (
-                <Card key={idx} className="glass-card border-white/5 hover:border-[#3b82f6]/30 transition-all duration-500 group overflow-hidden relative">
-                  <CardHeader className="pb-6 relative z-10">
-                    <div className="flex items-center justify-between">
-                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                        <sys.icon className="h-7 w-7" style={{ color: sys.color }} />
-                      </div>
-                      <Badge className="bg-white/5 text-slate-300 border-white/10 px-3 py-1">
-                        {sys.badge}
-                      </Badge>
-                    </div>
-                    <div className="pt-6">
-                      <CardTitle className="text-xl font-black text-white mb-2">{sys.title}</CardTitle>
-                      <CardDescription className="text-slate-400 font-medium leading-relaxed">{sys.desc}</CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="relative z-10">
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                      {sys.stats.map((stat, sIdx) => (
-                        <div key={sIdx} className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center group-hover:bg-white/10 transition-colors">
-                          <stat.icon className="h-5 w-5 mx-auto mb-2 text-[#3b82f6]" />
-                          <div className="text-xs font-black text-slate-400 uppercase tracking-widest leading-loose">{stat.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      onClick={sys.action}
-                      className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white shadow-xl shadow-blue-900/40 rounded-2xl font-black h-12 transition-all active:scale-95"
-                    >
-                      دخول النظام السيادي
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          {/* Core Management Tabs */}
-          <section>
-            <Tabs defaultValue="users" className="space-y-8">
-              <div className="flex items-center justify-center">
-                <div className="bg-white/5 backdrop-blur-md p-1.5 rounded-3xl border border-white/10 inline-flex shadow-2xl">
-                  <TabsList className="bg-transparent border-none grid grid-cols-5 h-12 w-[650px]">
-                    <TabsTrigger
-                      value="users"
-                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 gap-2"
-                    >
-                      <Users className="h-4 w-4" />
-                      المستخدمين
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="statistics"
-                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 gap-2"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      الإحصائيات
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="settings"
-                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 gap-2"
-                    >
-                      <Settings className="h-4 w-4" />
-                      الإعدادات
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="logs"
-                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      السجلات
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="access"
-                      className="rounded-2xl data-[state=active]:bg-[#3b82f6] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all font-black text-xs text-slate-400 gap-2"
-                    >
-                      <ShieldCheck className="h-4 w-4" />
-                      الوصول الذكي
-                    </TabsTrigger>
-                  </TabsList>
+                <div className="p-2 bg-[#3b82f6]/10 rounded-xl border border-[#3b82f6]/20">
+                  <Shield className="h-6 w-6 text-[#3b82f6]" />
                 </div>
+                <span className="text-xl font-black text-white tracking-wide">الإدارة</span>
               </div>
+            )}
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white mx-auto">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
 
+          <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2 custom-scrollbar">
+            {navItems.map((item) => {
+              const isActive = currentView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentView(item.id as AdminViewType)}
+                  className={`
+                    w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group
+                    ${isActive
+                      ? 'bg-[#3b82f6] text-white shadow-lg shadow-blue-500/20'
+                      : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}
+                  `}
+                >
+                  <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`} />
+                  {isSidebarOpen && (
+                    <span className="font-bold text-sm tracking-wide text-right flex-1">{item.label}</span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-white/5 space-y-2">
+            {isSidebarOpen && (
+              <div className="px-4 py-3 bg-white/5 rounded-2xl mb-4 border border-white/5 text-right">
+                <p className="text-xs text-slate-400 font-medium">حساب المدير</p>
+                <p className="text-sm text-white font-bold truncate">{user?.name}</p>
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className={`
+                w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all
+                text-rose-400 border border-transparent hover:border-rose-500/30 hover:bg-rose-500/10
+                ${!isSidebarOpen && 'justify-center'}
+              `}
+            >
+              <LogOut className="h-5 w-5" />
+              {isSidebarOpen && <span className="font-bold text-sm">تسجيل الخروج</span>}
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col h-screen overflow-hidden text-right">
+
+          {/* Header */}
+          <header className="h-20 bg-slate-950/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 shrink-0">
+            <div>
+              <h1 className="text-2xl font-black text-white">مركز تحكم النظام الرئيسي</h1>
+              <p className="text-xs font-bold text-slate-400 mt-0.5 tracking-wide">
+                منصة حركة - الوصول السيادي والإشراف المتقدم
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4" dir="ltr">
+              <Button variant="ghost" size="icon" className="rounded-full text-slate-300 hover:bg-white/10 relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-slate-900 border-2" />
+              </Button>
+
+              <div className="h-8 w-[1px] bg-white/10" />
+
+              {/* Replay Tour Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReplayOnboarding}
+                className="bg-white/5 border-white/10 text-slate-300 hover:text-[#3b82f6] hover:bg-white/10 transition-all rounded-xl gap-2 h-10 px-4 group hidden md:flex"
+              >
+                <PlayCircle className="w-4 h-4 group-hover:text-[#3b82f6] transition-colors" />
+                <span className="font-cairo font-bold">إعادة الجولة</span>
+              </Button>
+            </div>
+          </header>
+
+          {/* Scrollable Page Content */}
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
+
+            {/* Render view dynamically based on sidebar state */}
+            {currentView === 'home' && <AdminHome />}
+
+            {currentView === 'students' && (
               <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <Card className="glass-card border-white/5 rounded-[32px] overflow-hidden">
-                  <CardContent className="p-8">
-                    <TabsContent value="users" className="m-0">
-                      <UserManagement />
-                    </TabsContent>
-
-                    <TabsContent value="statistics" className="m-0">
-                      <ActivityStatistics />
-                    </TabsContent>
-
-                    <TabsContent value="settings" className="m-0">
-                      <SystemSettings />
-                    </TabsContent>
-
-                    <TabsContent value="logs" className="m-0">
-                      <AuditLogs />
-                    </TabsContent>
-
-                    <TabsContent value="access" className="m-0">
-                      <SmartAccessControl />
-                    </TabsContent>
-                  </CardContent>
-                </Card>
+                <AdminStudents />
               </div>
-            </Tabs>
-          </section>
-        </main>
+            )}
+
+            {currentView === 'teachers' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <AdminTeachers />
+              </div>
+            )}
+
+            {currentView === 'statistics' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <AdminPerformance />
+              </div>
+            )}
+
+            {currentView === 'settings' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <SystemSettings />
+              </div>
+            )}
+
+            {currentView === 'logs' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <AdminReports />
+              </div>
+            )}
+
+            {currentView === 'access' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <SmartAccessControl />
+              </div>
+            )}
+
+            {currentView === 'video' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <AdminVideoAnalysis />
+              </div>
+            )}
+
+            {currentView === 'health' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <AdminHealth />
+              </div>
+            )}
+
+            {currentView === 'psychological' && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <AdminPsychological />
+              </div>
+            )}
+
+          </main>
+        </div>
       </div>
     </div>
   );

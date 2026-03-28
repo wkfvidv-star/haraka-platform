@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Almarai:wght@300;400;700;800&family=Tajawal:wght@400;500;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -77,6 +77,11 @@
     /* #0ea5e9 - Haraka Blue */
     --app-accent-orange: 25 95% 53%;
     /* #f97316 - Haraka Orange */
+
+    /* Premium Gradients */
+    --gradient-school: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    --gradient-community: linear-gradient(135deg, #f97316 0%, #10b981 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
   }
 }
 
@@ -85,9 +90,16 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    background-color: #020617; /* bg-slate-950 */
+    color: #f8fafc;
+  }
+
   body {
     @apply bg-background text-foreground;
-    font-family: 'Cairo', 'Amiri', system-ui, -apple-system, sans-serif;
+    font-family: 'Almarai', 'Tajawal', system-ui, sans-serif;
+    font-size: 16.5px;
+    letter-spacing: 0.01em;
   }
 
   /* RTL Support */
@@ -103,7 +115,11 @@
 
   /* Arabic Font Support */
   .font-arabic {
-    font-family: 'Cairo', 'Amiri', sans-serif;
+    font-family: 'Almarai', 'Tajawal', sans-serif;
+  }
+
+  .font-cairo {
+    font-family: 'Cairo', sans-serif;
   }
 
   .font-handwriting {
@@ -263,16 +279,22 @@
   }
 
   .glass-card {
-    background-color: hsla(var(--app-surface-glass));
-    backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid hsla(var(--app-text-primary) / 0.1);
-    box-shadow: 0 8px 64px 0 rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease-in-out;
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .glass-card:hover {
-    background-color: hsla(var(--app-surface-glass) / 0.9);
-    border-color: hsla(var(--app-text-primary) / 0.15);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .premium-shadow {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.2);
   }
 
   /* Expert Dashboard Utilities */

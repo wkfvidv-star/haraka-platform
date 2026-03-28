@@ -5,11 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Play, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Play,
+  Eye,
+  CheckCircle,
+  XCircle,
   Clock,
   Target,
   TrendingUp,
@@ -26,6 +26,7 @@ import {
   Download,
   Filter
 } from 'lucide-react';
+import api from '@/services/api';
 
 interface AnalysisReport {
   id: string;
@@ -76,94 +77,35 @@ export const VideoAnalysisReview: React.FC = () => {
   useEffect(() => {
     const loadAnalysisData = async () => {
       setIsLoading(true);
-      
-      // محاكاة البيانات من analysis_reports
-      const mockReports: AnalysisReport[] = [
-        {
-          id: 'analysis_001',
-          sessionId: 'session_001',
-          studentId: 'student_001',
-          studentName: 'أحمد محمد',
-          exerciseName: 'تمرين القوة الوظيفية',
-          videoUrl: '/mock-video-1.mp4',
-          overallScore: 85,
+
+      try {
+        const { db } = await import('@/lib/mockDatabase');
+        const rawData = await db.getSubmissions();
+        const coachData = rawData.filter(r => r.assignedRole === 'coach');
+        
+        const processedReports = coachData.map((r: any) => ({
+          id: r.id,
+          sessionId: `sess-${r.id}`,
+          studentId: 'std-1',
+          studentName: r.studentName,
+          exerciseName: r.exerciseName,
+          videoUrl: r.videoUrl || '',
+          overallScore: r.score || 0,
           metrics: {
-            balance: 88,
-            speed: 82,
-            accuracy: 85,
-            modelConfidence: 92
+            balance: 80, speed: 75, accuracy: 85, modelConfidence: 90
           },
-          recommendation: 'ممتاز! حافظ على هذا المستوى وركز على تحسين السرعة',
-          status: 'completed',
+          recommendation: r.note || 'لا توجد رسالة من الطالب',
+          status: r.status === 'evaluated' ? 'completed' : r.status === 'redo' ? 'failed' : 'processing',
           coachReviewRequested: true,
-          coachReviewed: false,
-          createdAt: new Date('2024-01-15T10:30:00'),
-          completedAt: new Date('2024-01-15T10:35:00')
-        },
-        {
-          id: 'analysis_002',
-          sessionId: 'session_002',
-          studentId: 'student_002',
-          studentName: 'فاطمة علي',
-          exerciseName: 'تمارين التوازن',
-          videoUrl: '/mock-video-2.mp4',
-          overallScore: 72,
-          metrics: {
-            balance: 68,
-            speed: 75,
-            accuracy: 74,
-            modelConfidence: 87
-          },
-          recommendation: 'جيد، لكن يحتاج تحسين في التوازن. جرب تمارين الثبات',
-          status: 'completed',
-          coachReviewRequested: true,
-          coachReviewed: true,
-          coachFeedback: 'أوافق على التوصية. أضف تمارين اليوغا للتوازن',
-          createdAt: new Date('2024-01-14T14:20:00'),
-          completedAt: new Date('2024-01-14T14:25:00')
-        },
-        {
-          id: 'analysis_003',
-          sessionId: 'session_003',
-          studentId: 'student_003',
-          studentName: 'محمد حسن',
-          exerciseName: 'تدريب السرعة',
-          videoUrl: '/mock-video-3.mp4',
-          overallScore: 0,
-          metrics: {
-            balance: 0,
-            speed: 0,
-            accuracy: 0,
-            modelConfidence: 0
-          },
-          recommendation: '',
-          status: 'processing',
-          coachReviewRequested: false,
-          coachReviewed: false,
-          createdAt: new Date('2024-01-16T09:15:00')
-        },
-        {
-          id: 'analysis_004',
-          sessionId: 'session_004',
-          studentId: 'student_001',
-          studentName: 'أحمد محمد',
-          exerciseName: 'تمرين التحمل',
-          videoUrl: '/mock-video-4.mp4',
-          overallScore: 78,
-          metrics: {
-            balance: 80,
-            speed: 76,
-            accuracy: 78,
-            modelConfidence: 89
-          },
-          recommendation: 'تحسن ملحوظ في الأداء العام. استمر في هذا المسار',
-          status: 'completed',
-          coachReviewRequested: false,
-          coachReviewed: false,
-          createdAt: new Date('2024-01-13T16:45:00'),
-          completedAt: new Date('2024-01-13T16:50:00')
-        }
-      ];
+          coachReviewed: r.status === 'evaluated' || r.status === 'redo',
+          coachFeedback: r.coachNotes,
+          createdAt: new Date(r.date),
+          completedAt: r.status !== 'pending' ? new Date() : undefined
+        })) as AnalysisReport[];
+        setAnalysisReports(processedReports);
+      } catch (err) {
+        console.error('Failed to load analysis logs', err);
+      }
 
       // محاكاة بيانات تقدم الطلاب
       const mockProgress: StudentProgress[] = [
@@ -190,9 +132,6 @@ export const VideoAnalysisReview: React.FC = () => {
         }
       ];
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setAnalysisReports(mockReports);
       setStudentProgress(mockProgress);
       setIsLoading(false);
     };
@@ -200,27 +139,42 @@ export const VideoAnalysisReview: React.FC = () => {
     loadAnalysisData();
   }, []);
 
-  const handleReviewReport = (reportId: string, approved: boolean, feedback?: string) => {
-    setAnalysisReports(prev =>
-      prev.map(report =>
-        report.id === reportId
-          ? { 
-              ...report, 
-              coachReviewed: true, 
-              coachFeedback: feedback || (approved ? 'تمت الموافقة على التوصية' : 'تم تعديل التوصية')
-            }
-          : report
-      )
-    );
-    
-    if (selectedReport?.id === reportId) {
-      setSelectedReport(prev => 
-        prev ? { 
-          ...prev, 
-          coachReviewed: true, 
-          coachFeedback: feedback || (approved ? 'تمت الموافقة على التوصية' : 'تم تعديل التوصية')
-        } : null
+  const handleReviewReport = async (reportId: string, approved: boolean, feedback?: string) => {
+    try {
+      const { db } = await import('@/lib/mockDatabase');
+      await db.updateSubmissionEvaluation(
+        reportId, 
+        approved ? 95 : 45, 
+        feedback || (approved ? 'تمت الموافقة على التوصية' : 'تم تعديل التوصية'), 
+        [] // defaults empty tips for now
       );
+      // Simulate success for state update
+      const isSuccess = true;
+      if (isSuccess) {
+        setAnalysisReports(prev =>
+          prev.map(report =>
+            report.id === reportId
+              ? {
+                ...report,
+                coachReviewed: true,
+                coachFeedback: feedback || (approved ? 'تمت الموافقة على التوصية' : 'تم تعديل التوصية')
+              }
+              : report
+          )
+        );
+
+        if (selectedReport?.id === reportId) {
+          setSelectedReport(prev =>
+            prev ? {
+              ...prev,
+              coachReviewed: true,
+              coachFeedback: feedback || (approved ? 'تمت الموافقة على التوصية' : 'تم تعديل التوصية')
+            } : null
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to submit review', err);
     }
   };
 
@@ -399,11 +353,10 @@ export const VideoAnalysisReview: React.FC = () => {
               <h3 className="text-lg font-semibold">قائمة التحليلات</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {filteredReports.map((report) => (
-                  <Card 
-                    key={report.id} 
-                    className={`cursor-pointer transition-all ${
-                      selectedReport?.id === report.id ? 'ring-2 ring-blue-500' : ''
-                    } ${report.coachReviewRequested && !report.coachReviewed ? 'border-yellow-300 bg-yellow-50' : ''}`}
+                  <Card
+                    key={report.id}
+                    className={`cursor-pointer transition-all ${selectedReport?.id === report.id ? 'ring-2 ring-blue-500' : ''
+                      } ${report.coachReviewRequested && !report.coachReviewed ? 'border-yellow-300 bg-yellow-50' : ''}`}
                     onClick={() => setSelectedReport(report)}
                   >
                     <CardContent className="p-4">
@@ -536,15 +489,15 @@ export const VideoAnalysisReview: React.FC = () => {
                               <div className="space-y-3">
                                 <h4 className="font-medium">مراجعة المدرب مطلوبة</h4>
                                 <div className="flex gap-2">
-                                  <Button 
+                                  <Button
                                     size="sm"
                                     onClick={() => handleReviewReport(selectedReport.id, true)}
                                   >
                                     <ThumbsUp className="h-4 w-4 mr-2" />
                                     قبول التوصية
                                   </Button>
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     variant="outline"
                                     onClick={() => handleReviewReport(selectedReport.id, false, 'يحتاج تعديل في خطة التدريب')}
                                   >
@@ -594,7 +547,7 @@ export const VideoAnalysisReview: React.FC = () => {
 
         <TabsContent value="progress" className="space-y-6">
           <h3 className="text-lg font-semibold">تتبع تقدم الطلاب</h3>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {studentProgress.map((student) => (
               <Card key={student.studentId}>
@@ -644,7 +597,7 @@ export const VideoAnalysisReview: React.FC = () => {
 
                     {/* Improvement Badge */}
                     <div className="flex justify-center">
-                      <Badge 
+                      <Badge
                         variant={student.averageImprovement > 5 ? 'default' : 'secondary'}
                         className={student.averageImprovement > 5 ? 'bg-green-500' : ''}
                       >
