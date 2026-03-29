@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '@/services/authService';
-import api from '@/services/api';
+import { supabase } from '@/lib/supabaseClient';
 
 export type UserRole = 'student' | 'youth' | 'parent' | 'teacher' | 'principal' | 'coach' | 'directorate' | 'ministry' | 'competition' | 'admin';
 export type Environment = 'school' | 'community';
@@ -146,19 +146,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshProfiles = async () => {
     if (user?.id) {
       try {
-        const response = await api.get(`/profile/${user.id}`);
-        if (response.data && response.data.success) {
-          const profile = response.data.profile;
-          setUser(prev => prev ? ({
-            ...prev,
-            xp: response.data.xp || prev.xp,
-            level: response.data.level || prev.level,
-            name: `${profile.firstName} ${profile.lastName}`,
-            firstName: profile.firstName,
-            lastName: profile.lastName,
-            avatar: profile.avatarUrl || prev.avatar
-          }) : null);
-        }
+        // جلب بيانات التقدم من Supabase
+        const { data: progress } = await supabase
+          .from('students_progress')
+          .select('xp, level')
+          .eq('user_id', user.id)
+          .single();
+
+        // جلب الملف الشخصي من Supabase
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        setUser(prev => prev ? ({
+          ...prev,
+          xp: progress?.xp ?? prev.xp,
+          level: progress?.level ?? prev.level,
+          name: profile ? `${profile.first_name} ${profile.last_name}` : prev.name,
+          firstName: profile?.first_name ?? prev.firstName,
+          lastName: profile?.last_name ?? prev.lastName,
+          avatar: profile?.avatar_url ?? prev.avatar,
+        }) : null);
       } catch (err) {
         console.error('Failed to refresh profile:', err);
       }
@@ -198,8 +208,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setEnvironmentState(null);
     setProvinceState(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     localStorage.removeItem('environment');
     localStorage.removeItem('province');
+    // تسجيل الخروج من Supabase بشكل صامت
+    supabase.auth.signOut().catch(() => {});
   };
 
   const setEnvironment = (env: Environment | null) => {
@@ -232,13 +245,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const updatedUser = { ...user, ...stats };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      
+
+      // مزامنة XP مع Supabase مباشرة
       try {
         if (stats.xp !== undefined || stats.level !== undefined) {
-          await api.put(`/profile/${user.id}/xp`, { xp: updatedUser.xp, level: updatedUser.level });
+          await supabase
+            .from('students_progress')
+            .upsert({
+              user_id: user.id,
+              xp: updatedUser.xp,
+              level: updatedUser.level,
+              last_active_at: new Date().toISOString(),
+            }, { onConflict: 'user_id' });
         }
       } catch (err) {
-        console.error('Failed to sync XP with server:', err);
+        console.error('Failed to sync XP with Supabase:', err);
       }
     }
   };

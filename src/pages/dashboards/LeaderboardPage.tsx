@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronRight, Trophy, Medal, Crown } from "lucide-react";
 import { useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface User {
   id: string;
@@ -32,17 +33,63 @@ export function LeaderboardPage() {
     const fetchLeaderboard = async () => {
       try {
         setLoading(true);
-        const url = selectedRole && selectedRole !== "الكل"
-          ? `http://localhost:3001/api/gamification/leaderboard?role=${selectedRole}`
-          : 'http://localhost:3001/api/gamification/leaderboard';
 
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.success) {
-          setUsers(data.leaderboard);
+        // بناء الاستعلام من Supabase — جدول students_progress أو profiles
+        let query = supabase
+          .from('students_progress')
+          .select(`
+            user_id,
+            xp,
+            level,
+            profiles:user_id ( first_name, last_name, role )
+          `)
+          .order('xp', { ascending: false })
+          .limit(20);
+
+        // فلترة حسب الدور إذا تم اختياره
+        if (selectedRole && selectedRole !== 'الكل') {
+          // نجلب الكل ونصفّي client-side لأن الدور في جدول profiles
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error('Supabase leaderboard error:', error.message);
+          setUsers(_getMockLeaderboard());
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const mapped: User[] = data
+            .map((row: any) => {
+              const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+              const role = profile?.role || 'student';
+              const mappedRole = _mapRole(role);
+
+              // فلترة حسب الدور المحدد
+              if (selectedRole && selectedRole !== 'الكل' && role.toUpperCase() !== selectedRole.toUpperCase()) {
+                return null;
+              }
+
+              return {
+                id: row.user_id,
+                name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'مستخدم' : 'مستخدم',
+                role: mappedRole,
+                points: row.xp || 0,
+                level: row.level || 1,
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
+              } as User;
+            })
+            .filter(Boolean) as User[];
+
+          setUsers(mapped.length > 0 ? mapped : _getMockLeaderboard());
+        } else {
+          // لا يوجد بيانات — اعرض بيانات تجريبية
+          setUsers(_getMockLeaderboard());
         }
       } catch (error) {
-        console.error("Failed to fetch leaderboard:", error);
+        console.error('Failed to fetch leaderboard:', error);
+        setUsers(_getMockLeaderboard());
       } finally {
         setLoading(false);
       }
@@ -161,4 +208,37 @@ export function LeaderboardPage() {
       </div>
     </div>
   );
+}
+
+// ── دوال مساعدة ────────────────────────────────────────────────
+
+/** تحويل دور المستخدم الإنجليزي إلى تسمية عربية */
+function _mapRole(role: string): "تلميذ" | "معلم" | "مدير" | "ولي أمر" | "شباب" | "مدرب" {
+  const map: Record<string, "تلميذ" | "معلم" | "مدير" | "ولي أمر" | "شباب" | "مدرب"> = {
+    student:     'تلميذ',
+    teacher:     'معلم',
+    principal:   'مدير',
+    parent:      'ولي أمر',
+    youth:       'شباب',
+    coach:       'مدرب',
+    STUDENT:     'تلميذ',
+    TEACHER:     'معلم',
+    PRINCIPAL:   'مدير',
+    PARENT:      'ولي أمر',
+    YOUTH:       'شباب',
+    COACH:       'مدرب',
+  };
+  return map[role] ?? 'تلميذ';
+}
+
+/** بيانات تجريبية تُعرض عندما لا تتوفر بيانات من Supabase */
+function _getMockLeaderboard(): User[] {
+  return [
+    { id: 'm1', name: 'أحمد محمد',  role: 'تلميذ', points: 2450, level: 5 },
+    { id: 'm2', name: 'سارة علي',   role: 'شباب',  points: 2100, level: 4 },
+    { id: 'm3', name: 'خالد يوسف',  role: 'تلميذ', points: 1900, level: 4 },
+    { id: 'm4', name: 'نور الدين',  role: 'مدرب',  points: 1750, level: 3 },
+    { id: 'm5', name: 'فاطمة حسين', role: 'تلميذ', points: 1600, level: 3 },
+    { id: 'm6', name: 'يوسف كريم',  role: 'شباب',  points: 1400, level: 2 },
+  ];
 }

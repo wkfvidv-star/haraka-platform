@@ -182,7 +182,7 @@ export const AIControlCenterProvider: React.FC<AIControlCenterProviderProps> = (
       name: 'واجهة وزارة التربية',
       type: 'api',
       status: 'connected',
-      endpoint: 'http://localhost:3001/api/ministry',
+      endpoint: `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ministry`,
       lastSync: new Date(),
       config: { apiKey: 'demo_key', version: 'v2' },
       metrics: { requestCount: 1247, successRate: 98.5, avgResponseTime: 245 }
@@ -192,18 +192,19 @@ export const AIControlCenterProvider: React.FC<AIControlCenterProviderProps> = (
       name: 'خدمة الذكاء الاصطناعي',
       type: 'ai_service',
       status: 'connected',
-      endpoint: 'http://localhost:3002/v1',
+      endpoint: 'https://api.openai.com/v1',
       lastSync: new Date(),
       config: { model: 'gpt-4', temperature: 0.7 },
       metrics: { requestCount: 892, successRate: 99.2, avgResponseTime: 1200 }
     },
     {
       id: 'analytics_db',
-      name: 'قاعدة بيانات التحليلات',
+      name: 'قاعدة بيانات Supabase',
       type: 'database',
       status: 'connected',
+      endpoint: import.meta.env.VITE_SUPABASE_URL,
       lastSync: new Date(),
-      config: { host: 'localhost', port: 5432 },
+      config: { provider: 'supabase', region: 'eu-central-1' },
       metrics: { requestCount: 5647, successRate: 99.8, avgResponseTime: 45 }
     }
   ]);

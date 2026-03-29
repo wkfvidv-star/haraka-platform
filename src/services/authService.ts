@@ -1,9 +1,28 @@
-import api from './api';
+// ============================================================
+//  authService.ts — مصادقة هجينة
+//  في التطوير المحلي: يحاول السيرفر المحلي أولاً، ثم Supabase كـ Fallback
+//  في الإنتاج (Vercel): يستخدم Supabase مباشرة
+// ============================================================
+import { supabase } from '@/lib/supabaseClient';
+
+// ── كاشف البيئة ───────────────────────────────────────────
+const isProduction = import.meta.env.PROD;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+// ── ترجمة أخطاء Supabase ──────────────────────────────────
+function translateError(msg: string): string {
+    const map: Record<string, string> = {
+        'Invalid login credentials': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+        'Email not confirmed': 'يرجى تأكيد بريدك الإلكتروني أولاً',
+        'User already registered': 'هذا البريد الإلكتروني مسجّل مسبقاً',
+        'Password should be at least 6 characters': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+    };
+    return map[msg] ?? msg;
+}
 
 export const authService = {
     login: async (email: string, password: string, environment: string) => {
-        // ── DEV BYPASS (password: devx) ────────────────────────────────────
-        // Email format: "role:ROLENAME@x" e.g. "role:parent@x" for parent dashboard
+        // ── DEV BYPASS (password: devx) ───────────────────────────────────
         if (password === 'devx') {
             const roleFromEmail = email.startsWith('role:')
                 ? email.split(':')[1]?.split('@')[0] || 'student'
@@ -33,46 +52,115 @@ export const authService = {
             localStorage.setItem('environment', mockUser.environment);
             return { success: true, token: mockToken, user: mockUser };
         }
-        // ───────────────────────────────────────────────────────────────────
-        try {
-            const response = await api.post('/auth/login', {
-                email,
-                password,
-                environment
-            });
+        // ─────────────────────────────────────────────────────────────────
 
-            if (response.data.success) {
-                return {
-                    success: true,
-                    token: response.data.token,
-                    user: response.data.user
-                };
+        // ── طريق الإنتاج: Supabase مباشرة ───────────────────────────────
+        if (isProduction) {
+            return authService._supabaseLogin(email, password, environment);
+        }
+
+        // ── طريق التطوير: السيرفر المحلي ← Supabase fallback ────────────
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, environment }),
+                signal: AbortSignal.timeout(5000), // 5s timeout
+            });
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('environment', environment);
+                return { success: true, token: data.token, user: data.user };
             }
-            return {
-                success: false,
-                error: response.data.error || 'فشل تسجيل الدخول'
-            };
-        } catch (error: any) {
-            console.error('Login service error:', error);
-            return {
-                success: false,
-                error: error.response?.data?.error || 'تعذر الاتصال بخادم المصادقة'
-            };
+            return { success: false, error: data.error || 'فشل تسجيل الدخول' };
+        } catch {
+            console.warn('[authService] السيرفر المحلي غير متاح، التبديل إلى Supabase...');
+            return authService._supabaseLogin(email, password, environment);
         }
     },
 
+    // ── تسجيل الدخول عبر Supabase ────────────────────────────────────────
+    _supabaseLogin: async (email: string, password: string, environment: string) => {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+            return { success: false, error: translateError(error.message) };
+        }
+        const meta = data.user?.user_metadata ?? {};
+        const user = {
+            id: data.user!.id,
+            email: data.user!.email ?? '',
+            name: meta.full_name || meta.name || email.split('@')[0],
+            firstName: meta.first_name || '',
+            lastName: meta.last_name || '',
+            role: meta.role || 'student',
+            environment: meta.environment || environment,
+            avatar: meta.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user!.id}`,
+            xp: meta.xp || 0,
+            level: meta.level || 1,
+            badges: meta.badges || [],
+            subscriptionStatus: meta.subscription_status || 'ACTIVE',
+        };
+        const token = data.session?.access_token ?? '';
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('environment', user.environment);
+        return { success: true, token, user };
+    },
 
     register: async (userData: any) => {
+        // ── الإنتاج: Supabase مباشرة ──────────────────────────────────────
+        if (isProduction) {
+            return authService._supabaseRegister(userData);
+        }
+
+        // ── التطوير: السيرفر المحلي ← Supabase fallback ──────────────────
         try {
-            const response = await api.post('/auth/register', userData);
-            return response.data;
-        } catch (error: any) {
-            console.error('Registration service error:', error);
-            throw error;
+            const response = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData),
+                signal: AbortSignal.timeout(5000),
+            });
+            return await response.json();
+        } catch {
+            console.warn('[authService] السيرفر المحلي غير متاح، التبديل إلى Supabase للتسجيل...');
+            return authService._supabaseRegister(userData);
         }
     },
 
-    logout: () => {
+    // ── تسجيل مستخدم جديد عبر Supabase ──────────────────────────────────
+    _supabaseRegister: async (userData: any) => {
+        const { data, error } = await supabase.auth.signUp({
+            email: userData.email,
+            password: userData.password,
+            options: {
+                data: {
+                    full_name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+                    first_name: userData.firstName || '',
+                    last_name: userData.lastName || '',
+                    role: userData.role || 'student',
+                    environment: userData.environment || 'school',
+                    xp: 0,
+                    level: 1,
+                    badges: [],
+                    subscription_status: 'ACTIVE',
+                },
+            },
+        });
+        if (error) {
+            return { success: false, error: translateError(error.message) };
+        }
+        return { success: true, userId: data.user?.id, user: data.user };
+    },
+
+    logout: async () => {
+        // تسجيل خروج من Supabase إذا كانت هناك جلسة نشطة
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+            await supabase.auth.signOut();
+        }
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('environment');
