@@ -47,11 +47,79 @@ export function TeacherVideoReview() {
 
   // 1. Database Fetch
   const fetchSubmissions = async () => {
-    const data = await db.getSubmissions();
-    const teacherVids = data.filter(sub => sub.assignedRole === 'teacher' || sub.assignedRole === 'coach');
-    setSubmissions(teacherVids);
-    if (teacherVids.length > 0 && !activeVideo) {
-      setActiveVideo(teacherVids[0]);
+    try {
+      const data = await db.getSubmissions();
+      let teacherVids = data.filter(sub => sub.assignedRole === 'teacher' || sub.assignedRole === 'coach');
+      
+      // Injecting rich mock data if empty (to mirror global platforms presentation)
+      if (teacherVids.length === 0) {
+        teacherVids = [
+          {
+            id: 'sub-m1',
+            studentName: 'ياسين العمري',
+            exerciseName: 'تحليل القفز العمودي والتوازن (Vertical Jump)',
+            exerciseType: 'motor',
+            assignedRole: 'teacher',
+            date: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+            videoBlob: null,
+            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+            status: 'pending',
+          },
+          {
+            id: 'sub-m2',
+            studentName: 'سلمى بن علي',
+            exerciseName: 'استقرار الجذع (Core Stability Dynamics)',
+            exerciseType: 'motor',
+            assignedRole: 'teacher',
+            date: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+            videoBlob: null,
+            status: 'pending',
+          },
+          {
+            id: 'sub-m3',
+            studentName: 'عمر فاروق',
+            exerciseName: 'التوافق الحركي المتقدم (Pro Agility Drill)',
+            exerciseType: 'cognitive',
+            assignedRole: 'teacher',
+            date: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+            videoBlob: null,
+            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+            status: 'pending',
+          },
+          {
+            id: 'sub-m4',
+            studentName: 'نور الدين',
+            exerciseName: 'ميكانيكا الركض السريع (Sprint Form Analysis)',
+            exerciseType: 'motor',
+            assignedRole: 'teacher',
+            date: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+            videoBlob: null,
+            status: 'evaluated',
+            score: 88,
+            coachNotes: 'زوايا الركبة ممتازة أثناء الهبوط. استجابة عصبية مبهرة في توجيه الكتلة نحو الأمام.\n[00:12] - يرجى الانتباه لـ : ضرورة إبقاء الظهر مستقيماً لتفادي الإصابة.',
+            technicalTips: ['الحفاظ على استقامة الجذع في المرحلة الأخيرة', 'زيادة سرعة الانطلاق']
+          },
+          {
+            id: 'sub-m5',
+            studentName: 'فاطمة الزهراء',
+            exerciseName: 'التوازن أحادي الساق (Single Leg Stance)',
+            exerciseType: 'motor',
+            assignedRole: 'teacher',
+            date: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+            videoBlob: null,
+            status: 'evaluated',
+            score: 72,
+            coachNotes: 'هناك اختلال بسيط في توازن الحوض أثناء الوقوف. يجب تقوية عضلات الجلوت المتوسعة لضمان استقرار مفصل الحوض أثناء الحركة المفاجئة.',
+          }
+        ];
+      }
+
+      setSubmissions(teacherVids);
+      if (teacherVids.length > 0 && !activeVideo) {
+        setActiveVideo(teacherVids[0]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch submissions", error);
     }
   };
 

@@ -15,6 +15,7 @@ import { FirstTimeExperience }      from '@/components/student-dashboard/v2/Firs
 import { VideoRecordingPage }       from '@/components/student-dashboard/v2/VideoRecordingPage';
 import { StudentProfileSettingsPage } from '@/components/student-dashboard/v2/StudentProfileSettingsPage';
 import { SupportHelpPage }            from '@/components/student-dashboard/v2/SupportHelpPage';
+import { GPSActivityHub }           from '@/components/youth-dashboard/gps/GPSActivityHub';
 
 // ─── Shared / Service Components ────────────────────────────────────
 import { SmartAccessModal }  from '@/components/access/SmartAccessModal';
@@ -34,7 +35,8 @@ import {
   LayoutDashboard, Flame, Fingerprint, TrendingUp, Heart,
   Settings, HelpCircle, LogOut, Bell, Search, Zap, Target,
   Shield, Brain, Trophy, Star, Play, ChevronRight, MessageSquare,
-  Dumbbell, Clock, CheckCircle2, Activity, Sparkles, PlayCircle, RefreshCw, Video, Camera, Users, ArrowUpRight
+  Dumbbell, Clock, CheckCircle2, Activity, Sparkles, PlayCircle, RefreshCw, Video, Camera, Users, ArrowUpRight,
+  Navigation, MapPin
 } from 'lucide-react';
 
 // ─── Tab definition ──────────────────────────────────────────────────
@@ -45,6 +47,7 @@ const TABS = [
   { id: 'videos',      labelAr: 'سجل أدائك (فيديو)',   icon: Camera },
   { id: 'progress',    labelAr: 'التحديات والمنافسات',  icon: Trophy },
   { id: 'health',      labelAr: 'المدرب الذكي (AI)',    icon: Brain },
+  { id: 'gps',         labelAr: 'التتبع الميداني 🛰️',  icon: Navigation },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -402,14 +405,64 @@ function EnergyBar({ pct = 72 }: { pct?: number }) {
 // ═════════════════════════════════════════════════════════════════
 // HOME TAB — Bento Grid Layout
 // ═════════════════════════════════════════════════════════════════
+// ── GPS Bento CTA ─────────────────────────────────────────────────
+function GPSBentoCTA({ onOpen }: { onOpen: () => void }) {
+  return (
+    <div onClick={onOpen} className="cursor-pointer rounded-[2rem] relative overflow-hidden border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 group shadow-lg hover:shadow-orange-500/10"
+      style={{ background: 'linear-gradient(135deg, #0c1220 0%, #12171f 50%, #0c1220 100%)' }}>
+      <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-blue-500/5 group-hover:from-orange-500/10 group-hover:to-blue-500/10 transition-all duration-500" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
+
+      {/* Animated rings */}
+      <div className="absolute left-8 top-1/2 -translate-y-1/2 pointer-events-none">
+        {[0,1,2].map(i=>(
+          <motion.div key={i} className="absolute border border-orange-500/15 rounded-full"
+            style={{width:50+i*35,height:50+i*35,top:-(25+i*17.5),left:-(25+i*17.5)}}
+            animate={{scale:[1,1.4,1],opacity:[0.3,0,0.3]}}
+            transition={{duration:2.5,repeat:Infinity,delay:i*0.8}} />
+        ))}
+        <div className="w-7 h-7 rounded-full bg-orange-500/30 border border-orange-500/60 flex items-center justify-center">
+          <MapPin className="w-3.5 h-3.5 text-orange-400" />
+        </div>
+      </div>
+
+      <div className="relative z-10 p-7 pr-24 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-green-400 text-xs font-bold">GPS جاهز للاتصال</span>
+          </div>
+          <h3 className="text-xl md:text-2xl font-black text-white mb-1.5">🛰️ نظام التتبع الميداني الذكي</h3>
+          <p className="text-slate-400 font-bold text-sm max-w-lg leading-relaxed">
+            تتبع حركتك في الواقع بالـ GPS، حلل أداءك، وأنجز تحديات جغرافية ذكية. تجربة تدريب ميداني حقيقية.
+          </p>
+          <div className="flex gap-4 mt-3">
+            {[{icon:Navigation,label:'تتبع فعلي',c:'text-orange-400'},{icon:Trophy,label:'تحديات GPS',c:'text-yellow-400'},{icon:Activity,label:'تقارير ذكية',c:'text-blue-400'}].map((s,i)=>(
+              <div key={i} className="flex items-center gap-1.5">
+                <s.icon className={`w-3.5 h-3.5 ${s.c}`} />
+                <span className={`text-xs font-bold ${s.c}`}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.97}}
+          className="flex-shrink-0 bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-400 hover:to-rose-500 text-white font-black px-7 py-3.5 rounded-2xl shadow-xl shadow-orange-500/30 flex items-center gap-2.5 transition-all text-sm">
+          <Navigation className="w-4 h-4" /> ابدأ جلسة تتبع الآن
+        </motion.button>
+      </div>
+    </div>
+  );
+}
+
 function HomeTab({
   studentName, xp, level, coverImage,
-  onStartTraining, onGoProgress, onGoVideos, onUploadClick, isFirstDay, onRestartOnboarding,
+  onStartTraining, onGoProgress, onGoVideos, onUploadClick, isFirstDay, onRestartOnboarding, onOpenGPS,
 }: {
   studentName: string; xp: number; level: number; coverImage?: string | null;
   onStartTraining: () => void; onGoProgress: () => void; onGoVideos?: () => void; onUploadClick?: () => void;
   isFirstDay?: boolean;
   onRestartOnboarding?: () => void;
+  onOpenGPS?: () => void;
 }) {
   return (
     <div className="space-y-4">
@@ -519,6 +572,14 @@ function HomeTab({
           className="md:col-span-2 xl:col-span-2"
         >
           <ChallengesBento />
+        </motion.div>
+
+        {/* 7. GPS Tracker CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+          className="md:col-span-2 xl:col-span-4"
+        >
+          <GPSBentoCTA onOpen={onOpenGPS} />
         </motion.div>
 
         {/* Re-do Fingerprint Assessment */}
@@ -1093,6 +1154,7 @@ export default function StudentDashboard() {
                       onUploadClick={() => setIsVideoModalOpen(true)}
                       isFirstDay={isFirstDay}
                       onRestartOnboarding={handleRestartOnboarding}
+                      onOpenGPS={() => setActiveTab('gps')}
                     />
                     </AppErrorBoundary>
                   </motion.div>
@@ -1140,6 +1202,17 @@ export default function StudentDashboard() {
                     exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
                   >
                     <HealthWellbeingPage />
+                  </motion.div>
+                )}
+
+                {activeTab === 'gps' && (
+                  <motion.div key="gps"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
+                  >
+                    <AppErrorBoundary>
+                      <GPSActivityHub />
+                    </AppErrorBoundary>
                   </motion.div>
                 )}
 

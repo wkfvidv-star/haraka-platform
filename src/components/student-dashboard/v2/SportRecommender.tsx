@@ -119,8 +119,8 @@ const sportsData: SportMatch[] = [
 ];
 
 const categoryColors: Record<string, string> = {
-    'جماعي': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-    'فردي': 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+    'جماعي': 'bg-blue-500/10 border border-blue-500/20 text-blue-400',
+    'فردي': 'bg-violet-500/10 border border-violet-500/20 text-violet-400',
 };
 
 function MatchScoreRing({ score, color }: { score: number; color: string }) {
@@ -137,7 +137,7 @@ function MatchScoreRing({ score, color }: { score: number; color: string }) {
     return (
         <div className="relative w-16 h-16 flex-shrink-0">
             <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
-                <circle cx="32" cy="32" r={r} fill="none" stroke="currentColor" strokeWidth="5" className="text-slate-100 dark:text-slate-700" />
+                <circle cx="32" cy="32" r={r} fill="none" stroke="currentColor" strokeWidth="5" className="text-white/10" />
                 <motion.circle
                     cx="32" cy="32" r={r}
                     fill="none" stroke={strokeColor} strokeWidth="5"
@@ -150,7 +150,7 @@ function MatchScoreRing({ score, color }: { score: number; color: string }) {
                 />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-base font-black text-slate-900 dark:text-white">{score}%</span>
+                <span className="text-base font-black text-white">{score}%</span>
             </div>
         </div>
     );
@@ -168,26 +168,26 @@ export function SportRecommender() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                    <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
                             <Trophy className="w-5 h-5 text-white" />
                         </div>
                         اكتشاف موهبتك الرياضية
                     </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
+                    <p className="text-sm text-slate-400 mt-1.5">
                         بناءً على بصمتك الحركية، إليك أنسب الرياضات لك
                     </p>
                 </div>
-                <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl">
+                <div className="flex items-center gap-2 p-1.5 bg-[#151928]/60 backdrop-blur-md border border-white/5 rounded-2xl">
                     {(['all', 'جماعي', 'فردي'] as const).map(f => (
                         <button
                             key={f}
                             onClick={() => setActiveFilter(f)}
                             className={cn(
-                                'px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200',
+                                'px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300',
                                 activeFilter === f
-                                    ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
                             )}
                         >
                             {f === 'all' ? 'الكل' : f}
@@ -252,25 +252,26 @@ export function SportRecommender() {
                             transition={{ delay: i * 0.07 }}
                             onClick={() => setSelectedSport(selectedSport?.id === sport.id ? null : sport)}
                             className={cn(
-                                'text-right rounded-2xl border p-5 transition-all duration-200 group',
+                                'w-full text-right rounded-3xl border p-5 transition-all duration-300 relative overflow-hidden group',
                                 selectedSport?.id === sport.id
-                                    ? 'border-blue-300/50 dark:border-blue-600/30 bg-blue-50 dark:bg-blue-900/10 shadow-md'
-                                    : 'bg-white dark:bg-white/5 border-slate-200/50 dark:border-white/5 hover:border-slate-300 hover:shadow-sm dark:hover:border-white/10'
+                                    ? 'border-blue-500/50 bg-blue-900/20 shadow-[0_0_30px_rgba(59,130,246,0.15)]'
+                                    : 'bg-[#151928]/80 backdrop-blur-xl border-white/5 hover:border-white/10 hover:bg-[#1a1f33]'
                             )}
                         >
-                            <div className="flex items-center gap-4">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="relative z-10 flex items-center gap-4">
                                 <MatchScoreRing score={sport.matchScore} color={sport.color} />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
-                                            <p className="font-black text-slate-900 dark:text-slate-100">{sport.nameAr}</p>
+                                            <p className="font-black text-white text-lg tracking-tight">{sport.nameAr}</p>
                                             <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block', categoryColors[sport.category])}>
                                                 {sport.category}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {sport.badge && (
-                                                <span className="hidden sm:flex items-center gap-1 text-[10px] font-black bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded-full">
+                                                <span className="hidden sm:flex items-center gap-1 text-[10px] font-black bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 px-2 py-0.5 rounded-full">
                                                     <Award className="w-2.5 h-2.5" />
                                                     {sport.badge}
                                                 </span>
@@ -278,7 +279,7 @@ export function SportRecommender() {
                                             <span className="text-lg">{sport.emoji}</span>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-1">{sport.description}</p>
+                                    <p className="text-xs text-slate-400 mt-2 line-clamp-1 group-hover:text-slate-300 transition-colors">{sport.description}</p>
                                 </div>
                             </div>
 
@@ -291,19 +292,19 @@ export function SportRecommender() {
                                         exit={{ opacity: 0, height: 0 }}
                                         className="overflow-hidden"
                                     >
-                                        <div className="mt-4 pt-4 border-t border-blue-200/50 dark:border-blue-700/30 space-y-3">
-                                            <p className="text-sm text-slate-600 dark:text-slate-300">{sport.description}</p>
+                                        <div className="relative z-10 mt-5 pt-5 border-t border-white/10 space-y-4">
+                                            <p className="text-sm text-slate-300 leading-relaxed">{sport.description}</p>
                                             <div>
-                                                <p className="text-xs font-bold text-slate-500 mb-2">متطلبات الرياضة</p>
+                                                <p className="text-xs font-black tracking-wider text-slate-400 mb-3 uppercase">متطلبات الرياضة</p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {sport.requiredDimensions.map(d => (
                                                         <span
                                                             key={d.label}
                                                             className={cn(
                                                                 'text-xs font-semibold px-3 py-1 rounded-full',
-                                                                d.importance === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-                                                                    d.importance === 'medium' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
-                                                                        'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                                                                d.importance === 'high' ? 'bg-red-500/10 border border-red-500/20 text-red-400' :
+                                                                    d.importance === 'medium' ? 'bg-orange-500/10 border border-orange-500/20 text-orange-400' :
+                                                                        'bg-white/5 border border-white/10 text-slate-300'
                                                             )}
                                                         >
                                                             {d.importance === 'high' ? '🔴' : d.importance === 'medium' ? '🟡' : '🟢'} {d.label}

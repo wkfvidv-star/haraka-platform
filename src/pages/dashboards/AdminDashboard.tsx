@@ -41,6 +41,7 @@ import {
   ArrowUpRight,
   GraduationCap
 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export type AdminViewType =
   | 'home'
@@ -236,10 +237,44 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4" dir="ltr">
-              <Button variant="ghost" size="icon" className="rounded-full text-slate-300 hover:bg-white/10 relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-slate-900 border-2" />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full text-slate-300 hover:bg-white/10 relative">
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border border-slate-900 border-2 animate-pulse" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 bg-slate-900 border-slate-800 p-0 shadow-2xl" align="end" sideOffset={8}>
+                  <div className="flex flex-col text-right font-cairo" dir="rtl">
+                    <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50 rounded-t-md">
+                      <span className="font-bold text-white">الإشعارات</span>
+                      <span className="text-xs bg-rose-500/20 text-rose-400 px-2 py-1 rounded-md font-bold">3 جديدة</span>
+                    </div>
+                    <div className="flex flex-col max-h-[300px] overflow-y-auto">
+                      {[
+                        { title: 'تقرير أداء جديد متاح', desc: 'تم الانتهاء من تحليل أداء الصف الرابع (أ).', time: 'منذ 10 دقائق', icon: BarChart3, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                        { title: 'تسجيل معلم جديد', desc: 'انضم أ.خالد أحمد إلى كادر المنصة.', time: 'منذ ساعتين', icon: GraduationCap, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                        { title: 'تنبيه نظام', desc: 'تم رفع فيديو يتطلب مراجعة من قبل الإدارة.', time: 'منذ 5 ساعات', icon: Shield, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+                      ].map((note, index) => (
+                        <div key={index} className="flex gap-3 p-4 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors cursor-pointer">
+                          <div className={`p-2 rounded-full h-fit shrink-0 ${note.bg}`}>
+                            <note.icon className={`w-4 h-4 ${note.color}`} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-200">{note.title}</p>
+                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">{note.desc}</p>
+                            <p className="text-[10px] text-slate-500 mt-2 font-bold">{note.time}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-3 text-center border-t border-slate-800 bg-slate-950/30 rounded-b-md">
+                      <button className="text-xs font-bold text-[#3b82f6] hover:text-blue-400 transition-colors">عرض كل الإشعارات</button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
 
               <div className="h-8 w-[1px] bg-white/10" />
 

@@ -4,3 +4,4 @@ import './index.css';
 
 console.info('🛠 Diagnostic: Application entry point reached.');
 createRoot(document.getElementById('root')!).render(<App />);
+ 

@@ -180,6 +180,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.register(data);
       setIsLoading(false);
+      
+      if (!response.success && response.error) {
+        let errorMessage = response.error;
+        if (Array.isArray(errorMessage)) {
+          errorMessage = errorMessage.map((e: any) => e.message || e.path?.join('.')).join(', ');
+        } else if (typeof errorMessage !== 'string') {
+          errorMessage = JSON.stringify(errorMessage);
+        }
+        return { ...response, error: errorMessage };
+      }
+      
       return response;
     } catch (error: any) {
       console.error('Register error details:', error);

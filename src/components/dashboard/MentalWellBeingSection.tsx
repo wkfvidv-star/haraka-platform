@@ -86,34 +86,36 @@ export function MentalWellBeingSection({ isSimplified = false }: MentalWellBeing
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-2">
-                <h2 className={cn("font-bold text-gray-800 dark:text-gray-100", isSimplified ? "text-2xl" : "text-xl")}>
+                <h2 className={cn("font-black tracking-tight text-white", isSimplified ? "text-3xl" : "text-2xl")}>
                     🧘 الصحة النفسية
                 </h2>
-                <p className={cn("text-gray-500", isSimplified ? "text-base" : "text-sm")}>
+                <p className={cn("text-slate-400", isSimplified ? "text-lg" : "text-sm")}>
                     اعتني بنفسك ومشاعرك يومياً
                 </p>
             </div>
 
             {/* Daily Mood Check-in */}
-            <Card className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-500/20">
-                <CardHeader>
-                    <CardTitle className="text-lg text-blue-400">كيف تشعر اليوم؟</CardTitle>
+            <Card className="bg-[#151928]/90 backdrop-blur-xl border border-blue-500/20 relative overflow-hidden shadow-xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 pointer-events-none" />
+                <div className="absolute -left-20 -top-20 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
+                <CardHeader className="relative z-10 pb-4">
+                    <CardTitle className="text-xl font-black text-white">كيف تشعر اليوم؟</CardTitle>
                 </CardHeader>
-                <CardContent className="flex justify-around py-4">
+                <CardContent className="flex justify-around py-6 relative z-10">
                     {[
-                        { icon: Sun, label: 'رائع', value: 'great', color: 'text-yellow-400' },
-                        { icon: Smile, label: 'جيد', value: 'good', color: 'text-emerald-400' },
-                        { icon: Cloud, label: 'عادي', value: 'okay', color: 'text-blue-400' },
-                        { icon: Moon, label: 'متعب', value: 'tired', color: 'text-indigo-400' },
+                        { icon: Sun, label: 'رائع', value: 'great', color: 'text-amber-400 hover:text-amber-300' },
+                        { icon: Smile, label: 'جيد', value: 'good', color: 'text-emerald-400 hover:text-emerald-300' },
+                        { icon: Cloud, label: 'عادي', value: 'okay', color: 'text-blue-400 hover:text-blue-300' },
+                        { icon: Moon, label: 'متعب', value: 'tired', color: 'text-indigo-400 hover:text-indigo-300' },
                     ].map((item) => (
-                        <div key={item.value} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleMoodSelect(item.value)}>
+                        <div key={item.value} className="flex flex-col items-center gap-3 cursor-pointer group" onClick={() => handleMoodSelect(item.value)}>
                             <div className={cn(
-                                "p-3 rounded-full bg-slate-800 border border-white/5 shadow-sm transition-transform hover:scale-110 hover:bg-slate-700",
-                                mood === item.value ? "ring-2 ring-blue-400 bg-blue-500/10 scale-110" : ""
+                                "p-4 rounded-2xl bg-[#1a1f33] border border-white/5 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg",
+                                mood === item.value ? "ring-2 ring-blue-500 bg-blue-500/20 -translate-y-1 shadow-lg shadow-blue-500/20" : ""
                             )}>
-                                <item.icon className={cn("w-8 h-8", item.color)} />
+                                <item.icon className={cn("w-8 h-8 transition-colors", item.color, mood === item.value ? "scale-110" : "")} strokeWidth={mood === item.value ? 2.5 : 2} />
                             </div>
-                            <span className="text-sm font-medium text-slate-400">{item.label}</span>
+                            <span className={cn("text-sm font-bold transition-colors", mood === item.value ? "text-white" : "text-slate-400 group-hover:text-slate-300")}>{item.label}</span>
                         </div>
                     ))}
                 </CardContent>

@@ -13,7 +13,8 @@ import {
   GraduationCap,
   Inbox,
   Star,
-  MessageCircle
+  MessageCircle,
+  Satellite
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RatingSystem } from '@/components/shared/RatingSystem';
@@ -28,12 +29,14 @@ import { TeacherReports } from '@/components/teacher/v2/TeacherReports';
 import { TeacherOnboarding } from '@/components/teacher/v2/TeacherOnboarding';
 import { TeacherSetupModal } from '@/components/teacher/v2/TeacherSetupModal';
 import { TeacherStudentRequests } from '@/components/teacher/v2/TeacherStudentRequests';
+import { TeacherGPSDashboard } from '@/components/teacher/gps/TeacherGPSDashboard';
 
 const navigationTabs = [
   { id: 'overview', label: 'اللوحة الرئيسية', icon: LayoutDashboard },
   { id: 'video-review', label: 'مراجعة الفيديوهات', icon: Video },
   { id: 'exercises', label: 'التمارين والمناهج', icon: ClipboardList },
   { id: 'class', label: 'إدارة القسم', icon: Users },
+  { id: 'gps', label: 'الميدان (GPS)', icon: Satellite },
   { id: 'requests', label: 'الطلبات الواردة', icon: Inbox },
   { id: 'reports', label: 'التقارير', icon: FileText },
   { id: 'ratings', label: 'تقييم التلاميذ', icon: Star },
@@ -60,6 +63,7 @@ export default function TeacherDashboard() {
       case 'video-review': return <TeacherVideoReview />;
       case 'exercises': return <TeacherExerciseManager />;
       case 'class': return <TeacherClassManager />;
+      case 'gps': return <TeacherGPSDashboard />;
       case 'requests': return <TeacherStudentRequests />;
       case 'reports': return <TeacherReports />;
       case 'ratings': return (

@@ -7,7 +7,8 @@ import {
   Flame, Gamepad2, Brain, Activity, HeartPulse, 
   Map, Crosshair, Crown, Zap, BarChart3, Users, 
   TestTube, ShieldAlert, Sparkles, BookOpen, Clock, AlertTriangle,
-  Coins, User, Home, Calendar, Camera, Wind, Sun, LogOut, Video
+  Coins, User, Home, Calendar, Camera, Wind, Sun, LogOut, Video,
+  Navigation, Satellite
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -45,6 +46,10 @@ import { AchievementsPage } from '@/components/student-dashboard/v2/Achievements
 import { CognitiveSection } from '@/components/dashboard/CognitiveSection';
 import { AcademicSection } from '@/components/dashboard/AcademicSection';
 import { MentalWellBeingSection } from '@/components/dashboard/MentalWellBeingSection';
+import { GPSActivityHub } from '@/components/youth-dashboard/gps/GPSActivityHub';
+import { PhysicalPerformanceSection } from '@/components/youth-dashboard/development/PhysicalPerformanceSection';
+import { RehabilitationSection } from '@/components/youth-dashboard/development/RehabilitationSection';
+import { ARTrainingSection } from '@/components/youth-dashboard/innovation/ARTrainingSection';
 
 
 
@@ -62,19 +67,19 @@ export default function YouthDashboard() {
   const [hceInsights, setHCEInsights] = useState<any>(null);
 
   useEffect(() => {
-    // Only bypass if fully complete 
-    const isComplete = localStorage.getItem('youth_onboarding_final');
-    if (isComplete === 'true') {
-        setOnboardingPhase('complete');
-    }
+    // Force onboarding every time as requested by user
+    // The onboarding phase state initializes to 'slides'
   }, []);
 
   const completeOnboarding = () => {
-    localStorage.setItem('youth_onboarding_final', 'true');
+    // Don't save to localStorage so it runs every time
     setOnboardingPhase('complete');
   };
 
   const navigationGroups = {
+    gps: [
+      { id: 'gps-tracker', label: 'التتبع الذكي (GPS)', icon: Satellite },
+    ],
     training: [
       { id: 'training', label: 'التدريب', icon: Dumbbell },
       { id: 'sports', label: 'الرياضات', icon: Activity },
@@ -140,6 +145,68 @@ export default function YouthDashboard() {
              </motion.div>
           </div>
 
+          {/* ===== GPS HERO CARD ===== */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <button
+              onClick={() => setActiveTab('gps-tracker')}
+              className="w-full text-right group relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-r from-[#060d1f] via-[#0a1628] to-[#060d1f] shadow-2xl shadow-blue-900/30 hover:border-blue-400/40 transition-all duration-500 hover:shadow-blue-500/20 hover:shadow-2xl"
+            >
+              {/* Animated Background Orbs */}
+              <div className="absolute top-0 left-0 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl -ml-32 -mt-32 group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl -mr-24 -mb-24 group-hover:bg-indigo-500/15 transition-all duration-700 pointer-events-none" />
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSg5OSwxNTgsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30 pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 p-6 md:p-8">
+                {/* Icon Section */}
+                <div className="relative shrink-0">
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-blue-500/30 group-hover:scale-110 transition-transform duration-500">
+                    <Satellite className="w-10 h-10 md:w-12 md:h-12 text-white" />
+                  </div>
+                  {/* Live Pulse Indicator */}
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500" />
+                  </span>
+                </div>
+
+                {/* Text Content */}
+                <div className="flex-1 text-center md:text-right">
+                  <div className="flex items-center justify-center md:justify-start gap-2 mb-2 flex-row-reverse md:flex-row">
+                    <span className="text-2xl md:text-3xl font-black text-white">نظام التتبع الذكي بالـ GPS</span>
+                    <span className="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-black uppercase tracking-wider">جديد 🚀</span>
+                  </div>
+                  <p className="text-slate-400 font-bold text-sm md:text-base leading-relaxed max-w-2xl mb-4">
+                    تتبع جريك ومشيتك في العالم الحقيقي، اكسب تحديات جغرافية، واحجز مدربك من الخريطة مباشرة. رفيقك الرقمي الذكي في كل خطوة.
+                  </p>
+                  {/* Mini Stats */}
+                  <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
+                    {[
+                      { icon: Navigation, label: 'تتبع GPS حي', color: 'text-blue-400' },
+                      { icon: Trophy, label: 'تحديات ميدانية', color: 'text-yellow-400' },
+                      { icon: Map, label: 'خريطة تفاعلية', color: 'text-green-400' },
+                      { icon: Users, label: 'حجز مدربين', color: 'text-purple-400' },
+                    ].map((f, i) => (
+                      <div key={i} className={`flex items-center gap-1.5 text-xs font-bold ${f.color}`}>
+                        <f.icon className="w-3.5 h-3.5" /> {f.label}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CTA Arrow */}
+                <div className="shrink-0 hidden md:flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 group-hover:bg-blue-500/20 group-hover:border-blue-400/40 transition-all duration-300">
+                  <svg className="w-6 h-6 text-blue-400 group-hover:-translate-x-1 transition-transform duration-300 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+          </motion.div>
+
           {/* Core Modules - Prominent Positioning */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
              {/* AI Modules Overview */}
@@ -177,7 +244,7 @@ export default function YouthDashboard() {
                      { id: 'cognitive', title: 'المعرفي والنفسي', icon: Brain, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
                      { id: 'rehab', title: 'إعادة التأهيل', icon: HeartPulse, color: 'text-rose-400', bg: 'bg-rose-500/10' }
                    ].map(item => (
-                     <button key={item.id} onClick={() => setActiveTab('library')} className="group p-4 rounded-xl border border-white/5 bg-slate-900/50 hover:bg-white/5 transition-all flex flex-col gap-3 h-full justify-between items-start text-right">
+                     <button key={item.id} onClick={() => setActiveTab(item.id)} className="group p-4 rounded-xl border border-white/5 bg-slate-900/50 hover:bg-white/5 transition-all flex flex-col gap-3 h-full justify-between items-start text-right">
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", item.bg)}><item.icon className={cn("w-5 h-5", item.color)} /></div>
                         <h4 className="font-black text-white text-xs">{item.title}</h4>
                      </button>
@@ -211,22 +278,19 @@ export default function YouthDashboard() {
     if (activeTab === 'metrics') return <PerformanceAnalyticsDashboard />;
     if (activeTab === 'Haraka') return <AIGuidanceCenter />;
     
-    // AR Placeholder
-    if (activeTab === 'ar-training') return (
-       <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-400 bg-slate-900/50 rounded-3xl border border-white/5 p-8 text-center shadow-2xl relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
-           <Camera className="w-20 h-20 mb-6 text-rose-500/80 animate-pulse" />
-           <h2 className="text-3xl font-black text-white mb-2">الواقع المعزز (AR) <Badge className="bg-rose-500 hover:bg-rose-500 text-white border-none align-top animate-bounce">قريباً</Badge></h2>
-           <p className="max-w-md text-slate-400 leading-relaxed font-bold">هذه الميزة الثورية ستسمح لك بالتدريب في العالم الحقيقي باستخدام كاميرا جهازك، حيث سيتم عرض المدرب الرقمي داخل غرفتك بدقة متناهية.</p>
-           <Button className="mt-8 font-bold bg-white/5 hover:bg-white/10 text-white rounded-xl h-12 px-8" onClick={() => setActiveTab('dashboard')}>العودة للوحة القيادة</Button>
-       </div>
-    );
+    // AR Integration
+    if (activeTab === 'ar-training') return <ARTrainingSection />;
     
     // --- Community & Rewards Integration ---
     if (activeTab === 'competitions') return <SmartCompetitions />;
     if (activeTab === 'rewards') return <AchievementsPage />;
 
+    // --- GPS Field Tracking ---
+    if (activeTab === 'gps-tracker') return <GPSActivityHub />;
+
     // --- Comprehensive Development Integration ---
+    if (activeTab === 'physical') return <PhysicalPerformanceSection />;
+    if (activeTab === 'rehab') return <RehabilitationSection />;
     if (activeTab === 'cognitive') return <CognitiveSection />;
     if (activeTab === 'academic') return <AcademicSection />;
     if (activeTab === 'mental') return <MentalWellBeingSection />;
@@ -277,6 +341,19 @@ export default function YouthDashboard() {
                     <Home className="h-4 w-4" /> لوحة القيادة
                  </button>
               </div>
+
+              {/* GPS Field Tracking - Highlighted prominently */}
+               <div>
+                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">التتبع الميداني</div>
+                  <div className="space-y-1">
+                     {navigationGroups.gps.map(tab => (
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs border", activeTab === tab.id ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-400 border-blue-500/30 shadow-lg" : "border-transparent text-slate-400 hover:text-white hover:bg-white/5")}>
+                           <tab.icon className="h-4 w-4" /> {tab.label}
+                           {activeTab !== tab.id && <span className="mr-auto text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full font-black">جديد</span>}
+                        </button>
+                     ))}
+                  </div>
+               </div>
 
               {/* Training Links */}
               <div>

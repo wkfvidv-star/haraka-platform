@@ -8,8 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import {
-  LayoutDashboard, Users, Activity, Target, Flame, Calendar,
-  Bell, Navigation, Play, Plus, Zap, HeartPulse, Search, Menu, AlertCircle, Bot, Sparkles, CheckCircle2, Apple, LineChart, MessageSquare, Video, LogOut, Star, MessageCircle
+  LayoutDashboard, Users, Activity, Target, Flame, Calendar, MapPin,
+  Bell, Navigation, Play, Plus, Zap, HeartPulse, Search, Menu, AlertCircle, Bot, Sparkles, CheckCircle2, Apple, LineChart, MessageSquare, Video, LogOut, Star, MessageCircle, Dumbbell
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getCoachStats } from '@/data/mockCoachData';
@@ -25,13 +25,17 @@ import { CoachOnboarding } from '@/components/coach-dashboard/CoachOnboarding';
 import { CoachDashboardContext, useCoachDashboard } from '@/contexts/CoachDashboardContext';
 import { RatingSystem } from '@/components/shared/RatingSystem';
 import { ChatSystem } from '@/components/shared/ChatSystem';
+import CoachLibrary from '@/components/coach-dashboard/CoachLibrary';
+import CoachGPSHub from '@/components/coach-dashboard/gps/CoachGPSHub';
 
 const TABS = [
   { id: 'overview',    label: 'اللوحة الرئيسية',  icon: LayoutDashboard },
+  { id: 'gps-hub',     label: 'التدريب الميداني', icon: MapPin },
   { id: 'clients',     label: 'المتدربين',        icon: Users },
   { id: 'video-review',label: 'تحليل الفيديو',   icon: Video },
   { id: 'programs',    label: 'البرامج',           icon: Target },
   { id: 'schedule',    label: 'الجدول',            icon: Calendar },
+  { id: 'library',     label: 'مكتبة التمارين',  icon: Dumbbell },
   { id: 'nutrition',   label: 'الأنظمة الغذائية', icon: Apple },
   { id: 'analytics',   label: 'التحليلات والنمو', icon: LineChart },
   { id: 'messages',    label: 'صندوق الرسائل',  icon: MessageSquare },
@@ -54,10 +58,12 @@ const CoachDashboardContent = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview': return <CoachOverviewPanel />;
+      case 'gps-hub': return <CoachGPSHub />;
       case 'clients': return <CoachClientsManager />;
       case 'video-review': return <CoachVideoReview />;
       case 'programs': return <CoachPrograms />;
       case 'schedule': return <CoachSchedule />;
+      case 'library': return <CoachLibrary />;
       case 'nutrition': return <CoachNutrition />;
       case 'analytics': return <CoachAnalytics />;
       case 'messages': return <CoachMessages />;

@@ -107,13 +107,13 @@ const programs: TrainingProgram[] = [
 ];
 
 const difficultyLabel = ['', 'مبتدئ', 'متوسط', 'متقدم'];
-const difficultyColor = ['', 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30', 'text-amber-600 bg-amber-50 dark:bg-amber-900/30', 'text-red-600 bg-red-50 dark:bg-red-900/30'];
+const difficultyColor = ['', 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20', 'text-amber-400 bg-amber-500/10 border border-amber-500/20', 'text-red-400 bg-red-500/10 border border-red-500/20'];
 
 const adaptationConfig = {
-    progressing: { label: 'يتقدم جيداً', icon: TrendUp, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30', dot: 'bg-emerald-500' },
-    challenging: { label: 'تحدٍّ صعب', icon: AlertTriangle, color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30', dot: 'bg-amber-500' },
-    easy: { label: 'سهل نسبياً', icon: Star, color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30', dot: 'bg-blue-500' },
-    locked: { label: 'مقفل', icon: Lock, color: 'text-slate-500 bg-slate-100 dark:bg-slate-700', dot: 'bg-slate-400' },
+    progressing: { label: 'يتقدم جيداً', icon: TrendUp, color: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20', dot: 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]' },
+    challenging: { label: 'تحدٍّ صعب', icon: AlertTriangle, color: 'text-amber-400 bg-amber-500/10 border border-amber-500/20', dot: 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]' },
+    easy: { label: 'سهل نسبياً', icon: Star, color: 'text-blue-400 bg-blue-500/10 border border-blue-500/20', dot: 'bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]' },
+    locked: { label: 'مقفل', icon: Lock, color: 'text-slate-400 bg-slate-800/50 border border-slate-700', dot: 'bg-slate-500' },
 };
 
 function TrendUp(props: any) {
@@ -121,9 +121,9 @@ function TrendUp(props: any) {
 }
 
 const exerciseTypeStyle = {
-    warmup: 'border-r-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10',
-    main: 'border-r-4 border-blue-500 bg-blue-50/50 dark:bg-blue-900/10',
-    cooldown: 'border-r-4 border-emerald-400 bg-emerald-50 dark:bg-emerald-900/10',
+    warmup: 'border-r-4 border-yellow-400 bg-yellow-500/10',
+    main: 'border-r-4 border-blue-500 bg-blue-500/10',
+    cooldown: 'border-r-4 border-emerald-400 bg-emerald-500/10',
 };
 const exerciseTypeLabel = { warmup: 'إحماء', main: 'تمرين', cooldown: 'تهدئة' };
 
@@ -138,30 +138,30 @@ export function AdaptiveTrainingEngine() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
                         <RefreshCw className="w-5 h-5 text-white" />
                     </div>
                     البرامج التدريبية الذكية (Adaptive Training)
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-sm text-slate-400 mt-1.5">
                     مسارات تدريبية تتكيف تلقائياً مع "بصمتك الحركية" بناءً على مبادئ التدرج والخصوصية.
                 </p>
             </div>
 
             {/* AI Diagnosis from Motor Profile */}
-            <div className="bg-gradient-to-l from-indigo-50 to-blue-50 dark:from-indigo-900/10 dark:to-blue-900/10 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-800/30 shadow-sm relative overflow-hidden">
+            <div className="bg-[#151928]/80 backdrop-blur-xl rounded-3xl p-6 border border-indigo-500/20 shadow-[0_0_40px_rgba(79,70,229,0.1)] relative overflow-hidden">
                 <div className="absolute left-0 top-0 w-32 h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay pointer-events-none"></div>
-                <div className="flex items-start gap-4 relative z-10">
-                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-[#0B0E14] shadow-sm flex items-center justify-center flex-shrink-0 relative">
-                        <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl blur opacity-30 animate-pulse"></div>
-                        <BrainCircuit className="w-6 h-6 text-indigo-600 dark:text-indigo-400 relative z-10" />
+                <div className="flex items-start gap-5 relative z-10">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center flex-shrink-0 relative">
+                        <div className="absolute -inset-2 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl blur opacity-20 animate-pulse"></div>
+                        <BrainCircuit className="w-7 h-7 text-indigo-400 relative z-10" />
                     </div>
                     <div>
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">تحليل البصمة الحركية والتوجيه التدريبي</h3>
-                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl">
+                        <h3 className="text-lg font-black text-white mb-2 tracking-tight">تحليل البصمة الحركية والتوجيه التدريبي</h3>
+                        <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
                             بناءً على نتائج قياساتك الأخيرة (السرعة: 7.5ث، القوة: ضعف نسبي، المرونة: جيدة)، صمم لك الذكاء الاصطناعي 
-                            برنامج <strong className="text-indigo-600 dark:text-indigo-400">"السرعة والرشاقة"</strong> ليكون التركيز الأساسي لهذه الدورة التدريبية المصغرة (Microcycle). 
+                            برنامج <strong className="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-md mx-1">"السرعة والرشاقة"</strong> ليكون التركيز الأساسي لهذه الدورة التدريبية المصغرة (Microcycle). 
                             تم مراعاة التدرج في الحمل التدريبي لضمان التطور الآمن وتجنب الإصابات.
                         </p>
                     </div>
@@ -182,22 +182,26 @@ export function AdaptiveTrainingEngine() {
                                 onClick={() => { if (program.adaptationStatus !== 'locked') setActiveProgramId(program.id); }}
                                 disabled={program.adaptationStatus === 'locked'}
                                 className={cn(
-                                    'w-full text-right rounded-2xl border p-4 transition-all duration-200 group',
-                                    isActive ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300/50 dark:border-blue-600/30 shadow-md' :
-                                        program.adaptationStatus === 'locked' ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-white/[0.02] border-slate-200/50 dark:border-white/5' :
-                                            'bg-white dark:bg-white/5 border-slate-200/50 dark:border-white/5 hover:border-slate-300 hover:shadow-sm dark:hover:border-white/10'
+                                    'w-full text-right rounded-3xl border p-5 transition-all duration-300 group relative overflow-hidden',
+                                    isActive ? 'bg-blue-900/20 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.15)]' :
+                                        program.adaptationStatus === 'locked' ? 'opacity-50 cursor-not-allowed bg-black/20 border-white/5' :
+                                            'bg-[#151928]/80 backdrop-blur-xl border-white/5 hover:border-white/10 hover:bg-[#1a1f33]'
                                 )}
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br flex-shrink-0', program.gradient)}>
-                                        <program.icon className="w-5 h-5 text-white" />
+                                {isActive && <div className="absolute inset-0 bg-blue-500/5 pointer-events-none" />}
+                                {!isActive && program.adaptationStatus !== 'locked' && (
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                                )}
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br flex-shrink-0 shadow-lg', program.gradient)}>
+                                        <program.icon className="w-6 h-6 text-white" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{program.title}</p>
-                                        <p className="text-xs text-slate-500 mt-0.5">{program.targetDimension}</p>
+                                        <p className="text-base font-black text-white truncate">{program.title}</p>
+                                        <p className="text-xs text-slate-400 mt-1">{program.targetDimension}</p>
                                         {/* Micro progress */}
                                         <div className="mt-2 flex items-center gap-2">
-                                            <div className="flex-1 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                                                 <div
                                                     className={cn('h-full rounded-full bg-gradient-to-l', program.gradient)}
                                                     style={{ width: `${pct}%` }}
@@ -276,35 +280,35 @@ export function AdaptiveTrainingEngine() {
                     </div>
 
                     {/* AI Adaptation Note */}
-                    <div className="rounded-2xl border border-slate-200/50 dark:border-white/5 bg-white dark:bg-white/5 p-4 flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
-                            <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <div className="rounded-3xl border border-white/5 bg-[#151928]/80 backdrop-blur-xl p-5 flex items-start gap-4 shadow-sm">
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                            <Zap className="w-5 h-5 text-indigo-400" />
                         </div>
                         <div className="flex-1">
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                                <p className="text-sm font-bold text-slate-900 dark:text-slate-100">تقييم الذكاء الاصطناعي</p>
-                                <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1', adaptation.color)}>
-                                    <span className={cn('w-1.5 h-1.5 rounded-full', adaptation.dot)} />
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                                <p className="text-sm font-black text-white">تقييم الذكاء الاصطناعي</p>
+                                <span className={cn('text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5', adaptation.color)}>
+                                    <span className={cn('w-1.5 h-1.5 rounded-full block', adaptation.dot)} />
                                     {adaptation.label}
                                 </span>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">{activeProgram.aiNote}</p>
+                            <p className="text-sm text-slate-300 leading-relaxed">{activeProgram.aiNote}</p>
                         </div>
                     </div>
 
                     {/* Today's Session Preview */}
-                    <div className="rounded-2xl border border-slate-200/50 dark:border-white/5 bg-white dark:bg-white/5 overflow-hidden">
+                    <div className="rounded-3xl border border-white/5 bg-[#151928]/80 backdrop-blur-xl overflow-hidden shadow-sm">
                         <button
                             onClick={() => setShowTodaySession(!showTodaySession)}
-                            className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors"
+                            className="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-colors"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                    <Play className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                    <Play className="w-5 h-5 text-blue-400" />
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">جلسة اليوم</p>
-                                    <p className="text-xs text-slate-500">{activeProgram.todayExercises.length} تمارين • ~53 دقيقة</p>
+                                    <p className="font-black text-white text-base">جلسة اليوم</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">{activeProgram.todayExercises.length} تمارين • ~53 دقيقة</p>
                                 </div>
                             </div>
                             <ChevronRight className={cn('w-5 h-5 text-slate-400 transition-transform', showTodaySession ? 'rotate-90' : '')} />
@@ -318,27 +322,27 @@ export function AdaptiveTrainingEngine() {
                                     exit={{ height: 0, opacity: 0 }}
                                     className="overflow-hidden"
                                 >
-                                    <div className="px-4 pb-4 space-y-2">
+                                    <div className="px-5 pb-5 space-y-3">
                                         {activeProgram.todayExercises.map((ex, i) => (
-                                            <div key={i} className={cn('rounded-xl p-3 flex items-center gap-3', exerciseTypeStyle[ex.type])}>
-                                                <div className="w-6 h-6 rounded-full bg-white dark:bg-white/10 flex items-center justify-center flex-shrink-0">
-                                                    <span className="text-[11px] font-black text-slate-600 dark:text-slate-300">{i + 1}</span>
+                                            <div key={i} className={cn('rounded-2xl p-4 flex items-center gap-4 border', exerciseTypeStyle[ex.type], ex.type === 'warmup' ? 'border-yellow-500/10' : ex.type === 'main' ? 'border-blue-500/10' : 'border-emerald-500/10')}>
+                                                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner">
+                                                    <span className="text-xs font-black text-slate-300">{i + 1}</span>
                                                 </div>
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{ex.name}</p>
-                                                    <div className="flex items-center gap-3 mt-0.5">
-                                                        <span className="text-xs text-slate-500 flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />{ex.duration}
+                                                    <p className="text-sm font-bold text-white mb-1">{ex.name}</p>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                                                            <Clock className="w-3.5 h-3.5" />{ex.duration}
                                                         </span>
-                                                        {ex.reps && <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{ex.reps}</span>}
+                                                        {ex.reps && <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-md">{ex.reps}</span>}
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] font-bold text-slate-400 bg-white/60 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                                                <span className="text-[10px] font-bold text-slate-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
                                                     {exerciseTypeLabel[ex.type]}
                                                 </span>
                                             </div>
                                         ))}
-                                        <button className={cn('w-full mt-3 py-3 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 bg-gradient-to-r shadow-lg', activeProgram.gradient)}>
+                                        <button className={cn('w-full mt-4 py-3.5 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 bg-gradient-to-l shadow-lg hover:opacity-90 transition-opacity', activeProgram.gradient)}>
                                             <Play className="w-4 h-4 fill-white" />
                                             ابدأ الجلسة الآن
                                         </button>

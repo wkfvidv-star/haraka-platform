@@ -13,7 +13,7 @@ import { evaluateIdentityRisk } from '../services/identityRiskEngine.js';
 const registerSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8),
-    role: z.enum(['ADMIN', 'STUDENT', 'PARENT', 'TEACHER', 'COACH', 'YOUTH', 'PRINCIPAL', 'DIRECTORATE', 'MINISTRY']).optional(),
+    role: z.enum(['ADMIN', 'STUDENT', 'PARENT', 'TEACHER', 'COACH', 'YOUTH', 'PRINCIPAL', 'DIRECTORATE', 'MINISTRY', 'COMPETITION']).optional(),
     firstName: z.string(),
     lastName: z.string(),
 });

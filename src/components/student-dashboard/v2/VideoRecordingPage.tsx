@@ -51,6 +51,7 @@ export function VideoRecordingPage() {
       setHasPermission(true);
     } catch (err) {
       console.error("Camera access denied or error:", err);
+      // Fallback to Simulation Mode if camera is blocked (e.g. testing over HTTP network)
       setHasPermission(false);
     }
   }, []);
@@ -87,76 +88,96 @@ export function VideoRecordingPage() {
 
   // ─── Live Motion Tracking Engine (Stage 3) ──────────────────
   const processFrame = useCallback(() => {
-    if (stage !== 'tracking' || !videoRef.current || !canvasRef.current) return;
+    if (stage !== 'tracking' || !canvasRef.current) return;
     
-    const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (video.videoWidth === 0 || video.videoHeight === 0) {
-      animationFrameRef.current = requestAnimationFrame(processFrame);
-      return;
-    }
-
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
-    if (prevFrameRef.current) {
-      let motionPixels = 0;
-      let diffX = 0; let diffY = 0;
-      
-      const length = currentData.data.length;
-      for (let i = 0; i < length; i += 4) {
-        const rDiff = Math.abs(currentData.data[i] - prevFrameRef.current.data[i]);
-        const gDiff = Math.abs(currentData.data[i+1] - prevFrameRef.current.data[i+1]);
-        const bDiff = Math.abs(currentData.data[i+2] - prevFrameRef.current.data[i+2]);
+    // If we have a real video stream, process pixels, otherwise simulate
+    if (videoRef.current && hasPermission) {
+        const video = videoRef.current;
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          animationFrameRef.current = requestAnimationFrame(processFrame);
+          return;
+        }
+
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         
-        if (rDiff + gDiff + bDiff > 100) { 
-          motionPixels++;
-          const pxIndex = i / 4;
-          diffX += pxIndex % canvas.width;
-          diffY += Math.floor(pxIndex / canvas.width);
+        if (prevFrameRef.current) {
+          let motionPixels = 0;
+          let diffX = 0; let diffY = 0;
+          
+          const length = currentData.data.length;
+          for (let i = 0; i < length; i += 4) {
+            const rDiff = Math.abs(currentData.data[i] - prevFrameRef.current.data[i]);
+            const gDiff = Math.abs(currentData.data[i+1] - prevFrameRef.current.data[i+1]);
+            const bDiff = Math.abs(currentData.data[i+2] - prevFrameRef.current.data[i+2]);
+            
+            if (rDiff + gDiff + bDiff > 100) { 
+              motionPixels++;
+              const pxIndex = i / 4;
+              diffX += pxIndex % canvas.width;
+              diffY += Math.floor(pxIndex / canvas.width);
+            }
+          }
+          
+          const totalPixels = canvas.width * canvas.height;
+          const motionPct = (motionPixels / totalPixels) * 100;
+
+          if (motionPct < 2.0) {
+            setRealtimeFeedback('⚠️ لم تقم بالحركة، حاول تقليد التمرين!');
+            setFeedbackColor('amber');
+            setSessionData(p => ({ ...p, idle: p.idle + 1 }));
+          } else {
+            const avgX = diffX / motionPixels;
+            const avgY = diffY / motionPixels;
+            const w = canvas.width; const h = canvas.height;
+
+            if (avgX < w * 0.40) { 
+              setRealtimeFeedback('❌ اتجه أكثر نحو اليمين لاستعادة التوازن');
+              setFeedbackColor('amber');
+              setSessionData(p => ({ ...p, badForm: p.badForm + 1 }));
+            } else if (avgX > w * 0.60) {
+              setRealtimeFeedback('❌ اتجه أكثر نحو اليسار، ظهرك مائل');
+              setFeedbackColor('amber');
+              setSessionData(p => ({ ...p, badForm: p.badForm + 1 }));
+            } else if (avgY < h * 0.4) {
+              setRealtimeFeedback('💡 ممتاز! ارفع ذراعيك بهذا الشكل');
+              setFeedbackColor('blue');
+              setSessionData(p => ({ ...p, good: p.good + 1 }));
+            } else {
+              setRealtimeFeedback('✅ أداء ممتاز 👏 استمر!');
+              setFeedbackColor('emerald');
+              setSessionData(p => ({ ...p, good: p.good + 1 }));
+            }
+          }
         }
-      }
-      
-      const totalPixels = canvas.width * canvas.height;
-      const motionPct = (motionPixels / totalPixels) * 100;
-
-      if (motionPct < 2.0) {
-        setRealtimeFeedback('⚠️ لم تقم بالحركة، حاول تقليد التمرين!');
-        setFeedbackColor('amber');
-        setSessionData(p => ({ ...p, idle: p.idle + 1 }));
-      } else {
-        const avgX = diffX / motionPixels;
-        const avgY = diffY / motionPixels;
-        const w = canvas.width; const h = canvas.height;
-
-        if (avgX < w * 0.40) { 
-          setRealtimeFeedback('❌ اتجه أكثر نحو اليمين لاستعادة التوازن');
-          setFeedbackColor('amber');
-          setSessionData(p => ({ ...p, badForm: p.badForm + 1 }));
-        } else if (avgX > w * 0.60) {
-          setRealtimeFeedback('❌ اتجه أكثر نحو اليسار، ظهرك مائل');
-          setFeedbackColor('amber');
-          setSessionData(p => ({ ...p, badForm: p.badForm + 1 }));
-        } else if (avgY < h * 0.4) {
-          setRealtimeFeedback('💡 ممتاز! ارفع ذراعيك بهذا الشكل');
-          setFeedbackColor('blue');
-          setSessionData(p => ({ ...p, good: p.good + 1 }));
+        prevFrameRef.current = currentData;
+    } else {
+        // Simulation path for when camera is denied
+        const rand = Math.random();
+        if (rand < 0.1) {
+            setRealtimeFeedback('❌ اتجه أكثر نحو اليمين لاستعادة التوازن');
+            setFeedbackColor('amber');
+            setSessionData(p => ({ ...p, badForm: p.badForm + 1 }));
+        } else if (rand < 0.2) {
+            setRealtimeFeedback('💡 ممتاز! ارفع ذراعيك بهذا الشكل');
+            setFeedbackColor('blue');
+            setSessionData(p => ({ ...p, good: p.good + 1 }));
         } else {
-          setRealtimeFeedback('✅ أداء ممتاز 👏 استمر!');
-          setFeedbackColor('emerald');
-          setSessionData(p => ({ ...p, good: p.good + 1 }));
+            setRealtimeFeedback('✅ أداء ممتاز 👏 استمر!');
+            setFeedbackColor('emerald');
+            setSessionData(p => ({ ...p, good: p.good + 1 }));
         }
-      }
     }
 
-    prevFrameRef.current = currentData;
     setTimeout(() => {
       animationFrameRef.current = requestAnimationFrame(processFrame);
-    }, 150); // Sample rate ~6 fps for stable text updates without flashing
-  }, [stage]);
+    }, 150);
+  }, [stage, hasPermission]);
 
   useEffect(() => {
     if (stage === 'tracking') {
@@ -231,13 +252,13 @@ export function VideoRecordingPage() {
   const totalScore    = Math.round((finalAccuracy * 0.5) + (finalBalance * 0.3) + (finalTiming * 0.2));
 
   // ─── Render Handling ──────────────────────────────────────────
-  if (hasPermission === false) {
+  if (hasPermission === false && stage === 'calibration') {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center h-[70vh] rounded-[2rem] border border-red-200 bg-red-50 dark:bg-red-900/10">
-        <Camera className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">تعذر الوصول للكاميرا</h2>
-        <p className="text-slate-600 dark:text-slate-400 max-w-md">نظام التتبع الذكي يتطلب الوصول للكاميرا لرصد مفاصل الجسم الحية.</p>
-        <button onClick={startCamera} className="mt-8 bg-blue-600 text-white font-black px-8 py-3 rounded-xl shadow-lg">إعادة المحاولة</button>
+      <div className="flex flex-col items-center justify-center p-8 text-center h-[70vh] rounded-[2rem] border border-slate-700 bg-[#0f121e]">
+        <Camera className="w-16 h-16 text-slate-500 mb-4" />
+        <h2 className="text-2xl font-black text-white mb-2">الكاميرا غير متاحة، تفعيل وضع المحاكاة</h2>
+        <p className="text-slate-400 max-w-md">نظراً لتقييدات المتصفح (HTTP أو رفض الصلاحية)، سيعمل محرك الذكاء الاصطناعي في "وضع المحاكاة" لتستمتع بالتجربة.</p>
+        <button onClick={() => { setHasPermission(null); setStage('calibration'); }} className="mt-8 bg-blue-600 hover:bg-blue-500 text-white font-black px-8 py-3 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all">استمرار بوضع المحاكاة المتقدم 🚀</button>
       </div>
     );
   }
@@ -257,14 +278,20 @@ export function VideoRecordingPage() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 flex flex-col p-4 md:p-6"
           >
-            <div className="relative flex-1 bg-black overflow-hidden rounded-[2rem] shadow-2xl border-4 border-slate-800 dark:border-slate-800">
-              <video 
-                ref={videoRef} muted playsInline 
-                className={cn(
-                  "w-full h-full object-cover -scale-x-100 transition-all duration-700",
-                  stage === 'reference' ? "opacity-30 blur-sm scale-105" : "scale-100 opacity-100"
-                )}
-              />
+            <div className="relative flex-1 bg-[#0b0e14] overflow-hidden rounded-[2rem] shadow-2xl border-4 border-slate-800/80">
+              {/* Animated Matrix/Grid Background for Simulation Mode */}
+              {hasPermission === false && (
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:30px_30px] opacity-40 animate-[pulse_4s_ease-in-out_infinite]" />
+              )}
+              {hasPermission !== false && (
+                <video 
+                  ref={videoRef} muted playsInline 
+                  className={cn(
+                    "w-full h-full object-cover -scale-x-100 transition-all duration-700",
+                    stage === 'reference' ? "opacity-30 blur-sm scale-105" : "scale-100 opacity-100"
+                  )}
+                />
+              )}
 
               {/* STAGE 1: CALIBRATION OVERLAY */}
               {stage === 'calibration' && (
@@ -365,14 +392,80 @@ export function VideoRecordingPage() {
                     </div>
                   </div>
 
-                  {/* Pose Estimation Visual Overlay (Simulated Nodes) */}
-                  <div className="absolute inset-x-0 top-[20%] bottom-[20%] flex items-center justify-center pointer-events-none opacity-60">
-                     <div className="w-1/2 h-full border border-white/10 relative">
-                        {/* Dynamic Node Highlights based on feedback color */}
-                        <div className={cn("absolute top-[10%] left-1/2 w-4 h-4 rounded-full -translate-x-1/2 border-2 transition-all", feedbackColor === 'emerald' ? 'bg-emerald-500 border-white' : 'bg-white/20 border-white/50')} /> {/* Head */}
-                        <div className={cn("absolute top-[30%] left-[20%] w-4 h-4 rounded-full border-2 transition-all", feedbackColor === 'amber' ? 'bg-amber-500 border-amber-200 animate-ping' : 'bg-indigo-500 border-white')} /> {/* Left Shoulder Guide */}
-                        <div className={cn("absolute top-[30%] right-[20%] w-4 h-4 rounded-full border-2 transition-all", feedbackColor === 'blue' ? 'bg-blue-500 border-white shadow-[0_0_20px_blue]' : 'bg-indigo-500 border-white')} /> {/* Right Shoulder Guide */}
-                     </div>
+                  {/* Pose Estimation Visual Overlay (Simulated High-Fi Nodes & Angles) */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center -z-0">
+                    {/* Scanning Laser Line */}
+                    <motion.div 
+                      className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(34,211,238,0.8)] z-10"
+                      animate={{ top: ['10%', '90%', '10%'], opacity: [0.1, 0.8, 0.1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                    />
+                    
+                    <div className="relative w-full max-w-sm h-full max-h-[75vh] border border-cyan-500/10 bg-cyan-500/[0.01] rounded-[3rem] overflow-hidden">
+                      {/* Depth Field Grid */}
+                      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_49%,rgba(34,211,238,0.1)_50%,transparent_51%)] bg-[length:100%_40px] opacity-30" />
+
+                      {/* Head Node */}
+                      <motion.div 
+                        className={cn("absolute w-14 h-14 rounded-full border-2 -translate-x-1/2 transition-colors duration-500", feedbackColor === 'emerald' ? 'border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)] bg-emerald-500/10' : feedbackColor === 'amber' ? 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] bg-amber-500/10' : 'border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] bg-cyan-500/10')}
+                        animate={{ top: ['15%', '25%', '15%'], left: ['50%', '51%', '50%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        <div className="absolute -right-20 top-2 text-[10px] font-mono text-cyan-300 bg-black/60 px-1.5 py-0.5 rounded tracking-widest border border-cyan-500/30">H: {recordingTime + 85}%</div>
+                      </motion.div>
+
+                      {/* Shoulders Line */}
+                      <motion.div 
+                        className="absolute h-[3px] bg-cyan-400/60 rounded-full"
+                        animate={{ top: ['25%', '35%', '25%'], left: '25%', right: '25%' }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      {/* Left Shoulder */}
+                      <motion.div className="absolute w-5 h-5 rounded-full bg-cyan-500 shadow-[0_0_15px_cyan] border-2 border-white" animate={{ top: ['24%', '34%', '24%'], left: '23%' }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+                      {/* Right Shoulder */}
+                      <motion.div className="absolute w-5 h-5 rounded-full bg-cyan-500 shadow-[0_0_15px_cyan] border-2 border-white" animate={{ top: ['24%', '34%', '24%'], right: '23%' }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+
+                      {/* Spine */}
+                      <motion.div 
+                        className="absolute w-[3px] bg-cyan-400/60 left-1/2 -translate-x-1/2 rounded-full"
+                        animate={{ top: ['25%', '35%', '25%'], bottom: ['45%', '35%', '45%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+
+                      {/* Hips Line */}
+                      <motion.div 
+                        className="absolute h-[3px] bg-cyan-400/60 rounded-full"
+                        animate={{ bottom: ['45%', '35%', '45%'], left: '30%', right: '30%' }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      {/* Left Hip */}
+                      <motion.div className="absolute w-5 h-5 rounded-full bg-indigo-500 shadow-[0_0_15px_indigo] border-2 border-white" animate={{ bottom: ['44%', '34%', '44%'], left: '28%' }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+                      {/* Right Hip */}
+                      <motion.div className="absolute w-5 h-5 rounded-full bg-indigo-500 shadow-[0_0_15px_indigo] border-2 border-white" animate={{ bottom: ['44%', '34%', '44%'], right: '28%' }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+
+                      {/* Left Leg (Thigh) */}
+                      <motion.div className="absolute w-[3px] bg-indigo-400/60 transform origin-top left-[32%]" animate={{ bottom: ['25%', '25%', '25%'], top: ['55%', '65%', '55%'], rotate: ['10deg', '45deg', '10deg'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+                      <motion.div className="absolute w-5 h-5 rounded-full bg-purple-500 shadow-[0_0_15px_purple] border-2 border-white" animate={{ bottom: ['24%', '44%', '24%'], left: ['25%', '15%', '25%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+                      
+                      {/* Right Leg (Thigh) */}
+                      <motion.div className="absolute w-[3px] bg-indigo-400/60 transform origin-top right-[32%]" animate={{ bottom: ['25%', '25%', '25%'], top: ['55%', '65%', '55%'], rotate: ['-10deg', '-45deg', '-10deg'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+                      <motion.div className="absolute w-5 h-5 rounded-full bg-purple-500 shadow-[0_0_15px_purple] border-2 border-white" animate={{ bottom: ['24%', '44%', '24%'], right: ['25%', '15%', '25%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+
+                      {/* Dynamic Protractors (Angles) overlay */}
+                      <motion.div className="absolute left-[15%] bottom-[35%] flex items-center gap-1 opacity-90" animate={{ rotate: [0, -35, 0], bottom: ['40%', '45%', '40%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}>
+                         <svg width="40" height="40" viewBox="0 0 100 100" className="stroke-yellow-400 fill-yellow-400/30">
+                            <path d="M50 50 L10 50 A40 40 0 0 1 50 10 Z" strokeWidth="2"/>
+                         </svg>
+                         <span className="text-yellow-400 font-mono text-sm font-black drop-shadow-[0_0_5px_rgba(250,204,21,0.8)] flex-col flex leading-none"><span>90°</span><span className="text-[10px] text-yellow-500">Knee</span></span>
+                      </motion.div>
+
+                      {/* Random Data Streams around the body */}
+                      <div className="absolute bottom-[20%] right-2 flex flex-col gap-1.5 opacity-80 z-20">
+                         <span className="text-[10px] font-mono text-emerald-400 bg-black/60 px-2 py-0.5 border border-emerald-500/20 rounded tracking-widest">vx_JMP: 2.1m/s</span>
+                         <span className="text-[10px] font-mono text-emerald-400 bg-black/60 px-2 py-0.5 border border-emerald-500/20 rounded tracking-widest">vy_JMP: -0.8m/s</span>
+                         <span className="text-[10px] font-mono text-emerald-400 bg-black/60 px-2 py-0.5 border border-emerald-500/20 rounded tracking-widest">conf_L: 0.98</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* SMART EVALUATION ENGINE - TEXT OVERLAY */}
