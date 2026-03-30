@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
 import { LogOut, Home, Users, BarChart3, Calendar, MessageSquare, LayoutDashboard, PlayCircle, Star, MessageCircle, Menu, X, ChevronLeft, ChevronRight, Activity, XCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 import { RatingSystem } from '@/components/shared/RatingSystem';
 import { ChatSystem } from '@/components/shared/ChatSystem';
@@ -17,6 +18,7 @@ import { DinnerDiscussionCard } from '@/components/parent-dashboard/v2/DinnerDis
 import { ParentAIAssistant } from '@/components/parent-dashboard/v2/ParentAIAssistant';
 import { ParentCoachPanel } from '@/components/parent-dashboard/ParentCoachPanel';
 import { ParentOnboarding } from '@/components/parent-dashboard/ParentOnboarding';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 // Existing Sub-Systems (Wrapped to keep functionality)
 import { ChildrenList } from '@/components/parent/ChildrenList';
@@ -210,6 +212,13 @@ export default function ParentDashboard() {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[4px]" aria-hidden="true" />
       </div>
 
+      <MobileBottomNav
+        items={navigationTabs.slice(0, 5)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        accentColor="blue"
+      />
+
       {showOnboarding && (
         <ParentOnboarding
           onComplete={handleCompleteOnboarding}
@@ -299,7 +308,7 @@ export default function ParentDashboard() {
       </aside>
 
       {/* --- Mobile View Header & Menu --- */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-950/80 backdrop-blur-3xl border-b border-white/10 px-4 h-20 flex items-center justify-between">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-950/60 backdrop-blur-3xl border-b border-white/5 px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
              <div className="bg-gradient-to-tr from-blue-600 to-indigo-500 text-white p-2 rounded-xl shadow-lg shadow-blue-500/30">
                 <Activity className="w-5 h-5" />
@@ -317,36 +326,50 @@ export default function ParentDashboard() {
       </header>
 
       {/* Mobile Sidebar Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex">
-           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-           <aside className="w-[280px] bg-slate-900 border-inline-end border-white/10 h-full relative flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
-               <div className="p-6 flex items-center justify-between border-b border-white/5">
-                 <h2 className="font-black text-white text-xl">القائمة</h2>
-                 <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-white p-2 bg-white/5 rounded-full">
-                    <XCircle className="w-6 h-6" />
-                 </button>
-               </div>
-               <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
-                 {navigationTabs.map(tab => {
-                    const isActive = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => { setActiveTab(tab.id); setIsMobileMenuOpen(false); }}
-                        className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all
-                          ${isActive ? 'text-white bg-white/10 shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}
-                        `}
-                      >
-                        <tab.icon className={`w-5 h-5 ${isActive ? 'text-blue-400' : ''}`} />
-                        <span>{tab.label}</span>
-                      </button>
-                    )
-                 })}
-               </nav>
-           </aside>
-        </div>
-      )}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex" dir={isRTL ? 'rtl' : 'ltr'}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: isRTL ? '100%' : '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: isRTL ? '100%' : '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`w-[280px] bg-slate-900 border-white/10 h-full relative flex flex-col shadow-2xl ${isRTL ? 'border-l mr-auto' : 'border-r ml-auto'}`}
+            >
+              <div className="p-6 flex items-center justify-between border-b border-white/5">
+                <h2 className="font-black text-white text-xl">القائمة</h2>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-white p-2 bg-white/5 rounded-full">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+              <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
+                {navigationTabs.map(tab => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setActiveTab(tab.id); setIsMobileMenuOpen(false); }}
+                      className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all
+                        ${isActive ? 'text-white bg-white/10 shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}
+                      `}
+                    >
+                      <tab.icon className={`w-5 h-5 ${isActive ? 'text-blue-400' : ''}`} />
+                      <span>{tab.label}</span>
+                    </button>
+                  )
+                })}
+              </nav>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* --- Main Content Area --- */}
       <main className="flex-1 h-full overflow-y-auto relative z-10 lg:pt-0 pt-20 custom-scrollbar scroll-smooth">

@@ -404,7 +404,7 @@ export const AuthPage: React.FC = () => {
         <div className={`absolute top-3/4 left-3/4 w-64 h-64 rounded-full blur-3xl opacity-10 float-3 ${isSchool ? 'bg-indigo-500' : 'bg-pink-500'}`}></div>
       </div>
 
-      {/* Floating badges */}
+      {/* Floating badges - hidden on mobile for cleaner UI */}
       <div className="absolute top-8 left-8 z-10 hidden lg:block">
         <div className={`floating-badge float-1 ${isSchool ? 'bg-blue-900/60' : 'bg-orange-900/60'}`}>
           <Star size={14} className={isSchool ? 'text-yellow-400' : 'text-yellow-400'} />
@@ -425,10 +425,10 @@ export const AuthPage: React.FC = () => {
       </div>
 
       {/* Main Card */}
-      <div className="w-full max-w-[440px] relative z-10 auth-card auth-page">
+      <div className="w-full max-w-[440px] px-2 sm:px-0 relative z-10 auth-card auth-page">
 
         {/* Back buttons row */}
-        <div className="flex gap-3 mb-6 justify-end">
+        <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6 justify-end items-center">
           <button className="back-btn" onClick={() => setSelectedRole('')}>
             <ArrowRight size={14} />
             <span>تغيير الواجهة</span>
@@ -448,12 +448,12 @@ export const AuthPage: React.FC = () => {
           <div className={`h-1.5 w-full ${isSchool ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500' : 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500'}`}></div>
 
           {/* Header */}
-          <div className="pt-8 pb-6 px-8 text-center">
+          <div className="pt-6 sm:pt-8 pb-4 sm:pb-6 px-6 sm:px-8 text-center">
             {/* Icon */}
-            <div className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-5 pulse-glow ${isSchool ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-orange-500 to-red-600'}`}>
+            <div className={`w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl flex items-center justify-center mb-4 sm:mb-5 pulse-glow ${isSchool ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-orange-500 to-red-600'}`}>
               {isSchool
-                ? <School className="w-10 h-10 text-white" />
-                : <Dumbbell className="w-10 h-10 text-white" />}
+                ? <School className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                : <Dumbbell className="w-8 h-8 sm:w-10 sm:h-10 text-white" />}
             </div>
 
             {/* Role label */}
@@ -462,7 +462,7 @@ export const AuthPage: React.FC = () => {
               {isSchool ? 'بوابة المدرسة' : 'بوابة المجتمع'}
             </div>
 
-            <h1 className="text-3xl font-black text-white mb-1 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 tracking-tight">
               {getRoleLabel(selectedRole)}
             </h1>
 
@@ -478,8 +478,8 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* Tab switcher */}
-          <div className="px-8 mb-6">
-            <div className="flex gap-2 p-1.5 bg-white/5 rounded-xl border border-white/10">
+          <div className="px-6 sm:px-8 mb-4 sm:mb-6">
+            <div className="flex gap-1.5 p-1.5 bg-white/5 rounded-xl border border-white/10">
               <button
                 type="button"
                 className={`tab-btn ${!isRegistering ? 'tab-active' : 'tab-inactive'}`}
@@ -498,11 +498,11 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-4">
+          <form onSubmit={handleSubmit} className="px-6 sm:px-8 pb-6 sm:pb-8 space-y-4">
 
             {/* Name fields (register only) */}
             {isRegistering && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label-text">الاسم الأول</label>
                   <div className="input-wrapper">

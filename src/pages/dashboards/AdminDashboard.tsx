@@ -39,8 +39,10 @@ import {
   Video,
   Home,
   ArrowUpRight,
-  GraduationCap
+  GraduationCap,
+  XCircle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export type AdminViewType =
@@ -62,6 +64,7 @@ const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [currentView, setCurrentView] = useState<AdminViewType>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { trackClick, trackInteraction } = useActivityTracker({
     component: 'AdminDashboard',
@@ -157,28 +160,28 @@ const AdminDashboard: React.FC = () => {
       {/* Main Content Container border-t border-l */}
       <div className="relative z-10 flex h-screen overflow-hidden font-cairo">
 
-        {/* Sidebar */}
-        <aside
-          data-tour="admin_sidebar"
-          className={`
-          ${isSidebarOpen ? 'w-72' : 'w-20'} 
-          transition-all duration-300 ease-in-out shrink-0
-          bg-slate-950/80 backdrop-blur-xl border-l border-white/5 
-          flex flex-col z-40
-        `}>
-          <div className="p-6 flex items-center justify-between border-b border-white/5">
-            {isSidebarOpen && (
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#3b82f6]/10 rounded-xl border border-[#3b82f6]/20">
-                  <Shield className="h-6 w-6 text-[#3b82f6]" />
+          {/* Sidebar */}
+          <aside
+            data-tour="admin_sidebar"
+            className={`
+            ${isSidebarOpen ? 'w-72' : 'w-20'} 
+            transition-all duration-300 ease-in-out shrink-0
+            bg-slate-950/80 backdrop-blur-xl border-l border-white/5 
+            hidden lg:flex flex-col z-40
+          `}>
+            <div className="p-6 flex items-center justify-between border-b border-white/5">
+              {isSidebarOpen && (
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#3b82f6]/10 rounded-xl border border-[#3b82f6]/20">
+                    <Shield className="h-6 w-6 text-[#3b82f6]" />
+                  </div>
+                  <span className="text-xl font-black text-white tracking-wide">الإدارة</span>
                 </div>
-                <span className="text-xl font-black text-white tracking-wide">الإدارة</span>
-              </div>
-            )}
-            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white mx-auto">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white mx-auto">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </div>
 
           <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2 custom-scrollbar">
             {navItems.map((item) => {
@@ -222,19 +225,81 @@ const AdminDashboard: React.FC = () => {
               {isSidebarOpen && <span className="font-bold text-sm">تسجيل الخروج</span>}
             </button>
           </div>
-        </aside>
+          </aside>
+
+          {/* Mobile Sidebar Overlay */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <div className="fixed inset-0 z-50 lg:hidden flex" dir="rtl">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                />
+                <motion.aside
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className="w-72 bg-slate-900 border-l border-white/10 h-full relative flex flex-col shadow-2xl mr-auto"
+                >
+                  <div className="p-6 flex items-center justify-between border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-[#3b82f6]/10 rounded-xl border border-[#3b82f6]/20">
+                        <Shield className="h-6 w-6 text-[#3b82f6]" />
+                      </div>
+                      <span className="text-xl font-black text-white tracking-wide">الإدارة</span>
+                    </div>
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="text-slate-400 hover:text-white p-2">
+                       <XCircle className="w-6 h-6" />
+                    </button>
+                  </div>
+                  <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
+                    {navItems.map(item => {
+                      const isActive = currentView === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => { setCurrentView(item.id as AdminViewType); setIsMobileMenuOpen(false); }}
+                          className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all
+                            ${isActive ? 'bg-[#3b82f6] text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}
+                          `}
+                        >
+                          <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : ''}`} />
+                          <span>{item.label}</span>
+                        </button>
+                      )
+                    })}
+                  </nav>
+                  <div className="p-4 border-t border-white/5">
+                    <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-rose-400 hover:bg-rose-500/10">
+                      <LogOut className="h-5 w-5" />
+                      <span className="font-bold">تسجيل الخروج</span>
+                    </button>
+                  </div>
+                </motion.aside>
+              </div>
+            )}
+          </AnimatePresence>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col h-screen overflow-hidden text-right">
 
-          {/* Header */}
-          <header className="h-20 bg-slate-950/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 shrink-0">
-            <div>
-              <h1 className="text-2xl font-black text-white">مركز تحكم النظام الرئيسي</h1>
-              <p className="text-xs font-bold text-slate-400 mt-0.5 tracking-wide">
-                منصة حركة - الوصول السيادي والإشراف المتقدم
-              </p>
-            </div>
+            {/* Header */}
+            <header className="h-20 lg:h-24 bg-slate-950/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 lg:px-8 shrink-0">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-white">
+                  <Menu className="h-6 w-6" />
+                </Button>
+                <div>
+                  <h1 className="text-lg lg:text-2xl font-black text-white truncate">مركز تحكم النظام الرئيسي</h1>
+                  <p className="text-[10px] lg:text-xs font-bold text-slate-400 mt-0.5 tracking-wide hidden sm:block">
+                    منصة حركة - الوصول السيادي والإشراف المتقدم
+                  </p>
+                </div>
+              </div>
 
             <div className="flex items-center gap-4" dir="ltr">
               <Popover>

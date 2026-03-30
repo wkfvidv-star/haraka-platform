@@ -41,8 +41,10 @@ import {
   Bell,
   Plus,
   Globe,
-  PlayCircle
+  PlayCircle,
+  Menu
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface NationalStats {
   totalProvinces: number;
@@ -107,6 +109,7 @@ export default function MinistryDashboard() {
   const { t, language } = useTranslation();
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
     const hasSeen = localStorage.getItem('haraka_ministry_onboarding_seen');
@@ -420,59 +423,64 @@ export default function MinistryDashboard() {
       <div className="relative z-10 font-arabic">
         <header className="expert-header">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-red-600/10 rounded-2xl border border-red-600/20 shadow-[0_0_20px_rgba(220,38,38,0.15)]">
-                  <Flag className="h-8 w-8 text-red-500" />
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-white -mr-2">
+                  <Menu className="h-6 w-6" />
+                </Button>
+                <div className="p-2 sm:p-3 bg-red-600/10 rounded-2xl border border-red-600/20 shadow-[0_0_20px_rgba(220,38,38,0.15)]">
+                  <Flag className="h-5 w-5 sm:h-8 sm:w-8 text-red-500" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black tracking-tight text-white">وزارة التربية الوطنية</h1>
-                  <p className="text-sm text-slate-400 font-medium">
+                  <h1 className="text-lg sm:text-2xl font-black tracking-tight text-white leading-tight">وزارة التربية الوطنية</h1>
+                  <p className="text-[10px] sm:text-sm text-slate-400 font-medium line-clamp-1">
                     الجمهورية الجزائرية الديمقراطية الشعبية — مركز القرار السيادي
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <LanguageSwitcher />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden sm:block">
+                  <LanguageSwitcher />
+                </div>
                 <Button variant="ghost" size="icon" className="rounded-full text-slate-300 hover:bg-white/5">
-                  <Bell className="h-4 w-4" />
+                  <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
-                <div className="h-8 w-[1px] bg-white/10 mx-2" />
+                <div className="h-6 w-[1px] bg-white/10 mx-1 sm:mx-2" />
                 {/* Replay Tour Button */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleReplayOnboarding}
-                  className="bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/10 transition-all rounded-xl gap-2 font-bold hidden md:flex"
+                  className="bg-white/5 border-white/10 text-slate-300 hover:text-red-400 hover:bg-white/10 transition-all rounded-xl gap-2 font-bold hidden lg:flex"
                 >
-                  <PlayCircle className="w-4 h-4 group-hover:text-red-400 transition-colors" />
+                  <PlayCircle className="w-4 h-4 transition-colors" />
                   إعادة الجولة
                 </Button>
-                <div className="h-8 w-[1px] bg-white/10 mx-1 hidden md:block" />
+                <div className="h-8 w-[1px] bg-white/10 mx-1 hidden lg:block" />
                 <Button
                   variant="ghost"
                   onClick={logout}
-                  className="text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors font-bold"
+                  className="text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors font-bold px-2 sm:px-4"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  تسجيل الخروج
+                  <LogOut className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">تسجيل الخروج</span>
                 </Button>
               </div>
             </div>
 
-            <div className="expert-nav-tabs-container p-1.5 rounded-3xl">
-              <div className="flex gap-2 overflow-x-auto justify-center">
+            <div className="expert-nav-tabs-container p-1 sm:p-1.5 rounded-2xl sm:rounded-3xl">
+              <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth">
                 {navigationTabs.map((tab) => (
                   <Button
                     key={tab.id}
                     variant="ghost"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`rounded-2xl px-6 flex gap-2 font-black transition-all ${activeTab === tab.id
+                    className={`rounded-xl sm:rounded-2xl px-4 sm:px-6 flex gap-2 font-black transition-all shrink-0 text-sm sm:text-base ${activeTab === tab.id
                       ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
                       : "text-slate-400 hover:text-white hover:bg-white/5"
                       }`}
                   >
-                    <tab.icon className="h-4 w-4" />
+                    <tab.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     {tab.label}
                   </Button>
                 ))}
@@ -481,7 +489,62 @@ export default function MinistryDashboard() {
           </div>
         </header>
 
-        <main className="expert-container">
+        {/* Mobile Sidebar Overlay */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden flex" dir={isRTL ? 'rtl' : 'ltr'}>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: isRTL ? '100%' : '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: isRTL ? '100%' : '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className={`w-72 bg-slate-900 border-white/10 h-full relative flex flex-col shadow-2xl ${isRTL ? 'border-l mr-auto' : 'border-r ml-auto'}`}
+              >
+                <div className="p-6 flex items-center justify-between border-b border-white/5">
+                   <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-600/10 rounded-xl border border-red-600/20">
+                      <Flag className="h-6 w-6 text-red-500" />
+                    </div>
+                    <span className="text-xl font-black text-white">الوزارة</span>
+                  </div>
+                </div>
+                <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
+                  {navigationTabs.map(tab => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => { setActiveTab(tab.id); setIsMobileMenuOpen(false); }}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all
+                          ${isActive ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}
+                        `}
+                      >
+                        <tab.icon className={`h-5 w-5 ${isActive ? 'text-white' : ''}`} />
+                        <span>{tab.label}</span>
+                      </button>
+                    )
+                  })}
+                </nav>
+                <div className="p-4 border-t border-white/5 space-y-3">
+                  <LanguageSwitcher />
+                  <button onClick={logout} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-rose-400 hover:bg-rose-500/10">
+                    <LogOut className="h-5 w-5" />
+                    <span className="font-bold">تسجيل الخروج</span>
+                  </button>
+                </div>
+              </motion.aside>
+            </div>
+          )}
+        </AnimatePresence>
+
+        <main className="expert-container pb-24 lg:pb-10">
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
             {renderContent()}
           </div>

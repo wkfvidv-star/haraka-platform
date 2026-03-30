@@ -48,31 +48,31 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
         </motion.div>
       </div>
 
-      {/* Made the container max-w-5xl to shrink size overall */}
-      <div className="container mx-auto px-4 py-8 relative z-10 max-w-5xl">
-        {/* Header Section (High Contrast Expert Look) */}
+      {/* Mobile-optimized container */}
+      <div className="container mx-auto px-3 sm:px-4 py-5 sm:py-8 relative z-10 max-w-5xl">
+        {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-10"
+          className="text-center mb-6 sm:mb-10"
         >
-          <div className="flex items-center justify-center mb-6">
-            <h1 className="text-5xl sm:text-7xl font-black tracking-tighter text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center justify-center mb-3 sm:mb-6">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
               Haraka Platform
             </h1>
           </div>
-          <p className="text-xl sm:text-2xl font-black text-blue-100 tracking-tight drop-shadow-md">
+          <p className="text-base sm:text-xl font-black text-blue-100 tracking-tight drop-shadow-md">
             الوصول إلى البوابات الذكية
           </p>
-          <div className="mt-6 flex items-center justify-center gap-6">
-            <div className="h-px w-20 bg-blue-400/30" />
-            <span className="text-xs font-bold text-blue-400 uppercase tracking-[0.4em]">اختر بوابتك للدخول</span>
-            <div className="h-px w-20 bg-blue-400/30" />
+          <div className="mt-3 sm:mt-6 flex items-center justify-center gap-4 sm:gap-6">
+            <div className="h-px w-12 sm:w-20 bg-blue-400/30" />
+            <span className="text-[10px] sm:text-xs font-bold text-blue-400 uppercase tracking-[0.3em] sm:tracking-[0.4em]">اختر بوابتك للدخول</span>
+            <div className="h-px w-12 sm:w-20 bg-blue-400/30" />
           </div>
         </motion.div>
 
-        {/* Environment Cards Container - slightly scaled down through utility classes */}
-        <div className="grid md:grid-cols-2 gap-8 relative px-4">
+        {/* Environment Cards Container */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 relative px-0 sm:px-4">
 
           {/* School Environment Card */}
           <motion.button
@@ -87,17 +87,17 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
             <Card className="flex-1 glass-card border-white/10 shadow-2xl relative overflow-hidden group-hover:ring-2 group-hover:ring-blue-500/50 ring-1 ring-white/10 transition-all duration-500">
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-blue-500/20 transition-colors" />
 
-              <CardHeader className="text-center pt-8 pb-4 relative z-10 pointer-events-none">
+              <CardHeader className="text-center pt-5 sm:pt-8 pb-3 sm:pb-4 relative z-10 pointer-events-none">
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: -5 }}
                   className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/40"
                 >
                   <School className="w-10 h-10 text-white" />
                 </motion.div>
-                <CardTitle className="text-3xl font-black text-white mb-2">
+                <CardTitle className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">
                   البيئة المدرسية
                 </CardTitle>
-                <CardDescription className="text-blue-300 font-bold tracking-tight text-lg mb-3 drop-shadow-sm">
+                <CardDescription className="text-blue-300 font-bold tracking-tight text-base sm:text-lg mb-3 drop-shadow-sm">
                   التعليم الذكي
                 </CardDescription>
                 <Badge className="bg-blue-600/30 text-white border-blue-400/30 px-5 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest backdrop-blur-md">
@@ -105,7 +105,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
                 </Badge>
               </CardHeader>
 
-              <CardContent className="px-6 pb-8 space-y-8 relative z-10 text-right rtl pointer-events-none">
+              <CardContent className="px-4 sm:px-6 pb-5 sm:pb-8 space-y-5 sm:space-y-8 relative z-10 text-right rtl pointer-events-none">
                 {/* School Stats/Users */}
                 <div className="space-y-3">
                   <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/70">
@@ -163,17 +163,17 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
             <Card className="flex-1 glass-card border-white/10 shadow-2xl relative overflow-hidden group-hover:ring-2 group-hover:ring-orange-500/50 ring-1 ring-white/10 transition-all duration-500">
               <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-orange-500/20 transition-colors" />
 
-              <CardHeader className="text-center pt-8 pb-4 relative z-10 pointer-events-none">
+              <CardHeader className="text-center pt-5 sm:pt-8 pb-3 sm:pb-4 relative z-10 pointer-events-none">
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   className="w-20 h-20 bg-gradient-to-br from-orange-500 to-rose-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-orange-500/40"
                 >
                   <Dumbbell className="w-10 h-10 text-white" />
                 </motion.div>
-                <CardTitle className="text-3xl font-black text-white mb-2">
+                <CardTitle className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">
                   بيئة الشباب والمدربين
                 </CardTitle>
-                <CardDescription className="text-orange-300 font-bold tracking-tight text-lg mb-3 drop-shadow-sm">
+                <CardDescription className="text-orange-300 font-bold tracking-tight text-base sm:text-lg mb-3 drop-shadow-sm">
                   المجتمع الذكي
                 </CardDescription>
                 <Badge className="bg-orange-600/30 text-white border-orange-400/30 px-5 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest backdrop-blur-md">
@@ -181,7 +181,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
                 </Badge>
               </CardHeader>
 
-              <CardContent className="px-6 pb-8 space-y-8 relative z-10 text-right rtl pointer-events-none">
+              <CardContent className="px-4 sm:px-6 pb-5 sm:pb-8 space-y-5 sm:space-y-8 relative z-10 text-right rtl pointer-events-none">
                 {/* Community Stats/Users */}
                 <div className="space-y-3">
                   <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-orange-400/70">
@@ -232,7 +232,7 @@ export const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = ({ onSele
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-10 text-gray-400"
+          className="mt-6 sm:mt-12 flex flex-wrap items-center justify-center gap-5 sm:gap-10 text-gray-400"
         >
           <div className="flex items-center gap-3 group cursor-default">
             <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-red-500/10 group-hover:border-red-500/30 transition-all duration-300">

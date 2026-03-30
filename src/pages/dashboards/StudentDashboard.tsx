@@ -26,6 +26,7 @@ import { MOCK_TEACHER_ASSIGNMENTS, COACH_EXERCISES } from '@/data/mockAssignment
 import { db, VideoSubmissionRecord } from '@/lib/mockDatabase';
 import { profileService }    from '@/services/profileService';
 import { cn } from '@/lib/utils';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 // ─── UI Primitives ───────────────────────────────────────────────────
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -870,12 +871,21 @@ export default function StudentDashboard() {
         <AnimatePresence>
           {isSidebarOpen && (
             <motion.aside
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 300, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="h-full border-l border-slate-200 dark:border-white/5 bg-white dark:bg-[#0B0E14] flex flex-col z-20 shadow-xl overflow-hidden flex-shrink-0"
+              initial={{ x: isRTL ? 300 : -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: isRTL ? 300 : -300 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className={cn(
+                "h-full border-slate-200 dark:border-white/5 bg-white dark:bg-[#0B0E14] flex flex-col z-50 shadow-xl overflow-hidden flex-shrink-0 fixed lg:static",
+                isRTL ? "right-0 border-l" : "left-0 border-r"
+              )}
+              style={{ width: 300 }}
             >
+              {/* Overlay for mobile when sidebar is open */}
+              <div 
+                className="fixed inset-0 bg-black/50 z-[-1] lg:hidden"
+                onClick={() => setIsSidebarOpen(false)}
+              />
               {/* Logo */}
               <div className="h-20 lg:h-24 flex items-center px-8 py-6 border-b border-slate-100 dark:border-white/5">
                 <div className="flex items-center gap-4">
@@ -1123,7 +1133,7 @@ export default function StudentDashboard() {
               {/* Avatar */}
               <div 
                 onClick={() => setActiveTab('settings')}
-                className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg cursor-pointer overflow-hidden relative"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-[1rem] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg cursor-pointer overflow-hidden relative"
               >
                 {profileImage ? (
                   <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
@@ -1133,6 +1143,22 @@ export default function StudentDashboard() {
               </div>
             </div>
           </header>
+
+          <AnimatePresence>
+            {!isSidebarOpen && (
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="lg:hidden fixed bottom-24 right-6 z-40"
+              >
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-blue-500/40"
+                >
+                  <Navigation className="w-6 h-6" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ── Scrollable Content ── */}
           <ScrollArea className="flex-1">
@@ -1261,6 +1287,14 @@ export default function StudentDashboard() {
         isOpen={showPostHealthModal}
         onClose={() => setShowPostHealthModal(false)}
         onSelectActivity={handlePostHealthActivitySelect}
+      />
+
+      {/* Mobile Navigation */}
+      <MobileBottomNav
+        items={TABS.map(t => ({ id: t.id, label: t.labelAr, icon: t.icon }))}
+        activeTab={activeTab as string}
+        onTabChange={(id) => setActiveTab(id as TabId)}
+        accentColor="blue"
       />
 
       {/* Standalone Video Upload Modal */}

@@ -8,18 +8,19 @@ import {
   Map, Crosshair, Crown, Zap, BarChart3, Users, 
   TestTube, ShieldAlert, Sparkles, BookOpen, Clock, AlertTriangle,
   Coins, User, Home, Calendar, Camera, Wind, Sun, LogOut, Video,
-  Navigation, Satellite
+  Navigation, Satellite, Menu, X, Gift
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { InteractiveTimeline } from '@/components/dashboard/InteractiveTimeline';
 import { DailyMissionCard } from '@/components/dashboard/DailyMissionCard';
-import { StatsCard } from '@/components/dashboard/StatsCard';
+import { StatsCard } from '@/components/ui/stats-card';
 import { CoachBookingModal } from '@/components/youth-dashboard/CoachBookingModal';
 import { VideoAnalysisModal } from '@/components/youth-dashboard/VideoAnalysisModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 // External Modules
 import CoachInboxWidget from '@/components/youth-dashboard/CoachInboxWidget';
@@ -54,7 +55,8 @@ import { ARTrainingSection } from '@/components/youth-dashboard/innovation/ARTra
 
 
 export default function YouthDashboard() {
-  const { language, isRTL } = useLanguage();
+  const { language } = useLanguage();
+  const isRTL = language === 'ar';
   const { user, logout } = useAuth();
   
   // Mandatory Onboarding Flow State
@@ -62,6 +64,7 @@ export default function YouthDashboard() {
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSimplifiedMode, setIsSimplifiedMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [showVideoAnalysis, setShowVideoAnalysis] = useState(false);
   const [hceInsights, setHCEInsights] = useState<any>(null);
@@ -108,7 +111,7 @@ export default function YouthDashboard() {
   function Gift(props: any) { return <Award {...props} />; }
 
   const renderContent = () => {
-    if (activeTab === 'profile') return <ProfileSettings onBack={() => setActiveTab('dashboard')} />;
+    if (activeTab === 'profile') return <ProfileSettings />;
     if (activeTab === 'dashboard') {
       return (
         <div className="space-y-6 animate-in" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -314,88 +317,112 @@ export default function YouthDashboard() {
 
   // ── Main SaaS Sidebar Architectural Layout ──
   return (
-    <div className={`flex w-full h-screen overflow-hidden bg-slate-950 text-slate-100 font-arabic selection:bg-orange-500/30 ${isRTL ? 'rtl flex-row' : 'ltr flex-row'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`flex w-full h-screen overflow-hidden bg-slate-950 text-slate-100 font-arabic selection:bg-orange-500/30 ${isRTL ? 'rtl flex-row' : 'ltr flex-row-reverse'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Background Image Overlay */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[url('/images/youth_adults_active_bg.png')] bg-cover bg-center opacity-10 filter blur-sm"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/95 to-slate-900/95"></div>
       </div>
 
-      {/* DYNAMIC SIDEBAR */}
-      <aside className="w-[280px] shrink-0 border-x border-white/5 bg-slate-950/60 backdrop-blur-2xl relative z-40 flex flex-col shadow-2xl h-full">
-        <div className="p-6 flex items-center gap-4 border-b border-white/5 bg-white/5 shrink-0">
-          <motion.div whileHover={{ rotate: 360, scale: 1.1 }} className="w-12 h-12 bg-gradient-to-br from-orange-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
-            <Crown className="w-6 h-6 text-white" />
-          </motion.div>
-          <div className="flex flex-col">
-            <h1 className="text-xl font-black text-white tracking-tighter leading-none">منصة الشباب</h1>
-            <span className="text-[9px] font-black text-orange-400 uppercase tracking-[0.2em] mt-1">Haraka System</span>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-           <div className="space-y-6">
-              {/* Core Links */}
-              <div>
-                 <button onClick={() => setActiveTab('dashboard')} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-sm", activeTab === 'dashboard' ? "bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-lg" : "text-slate-400 hover:text-white hover:bg-white/5")}>
-                    <Home className="h-4 w-4" /> لوحة القيادة
-                 </button>
+      {/* DYNAMIC SIDEBAR with Drawer Behavior for Mobile */}
+      <AnimatePresence>
+        {(isSidebarOpen || window.innerWidth >= 1024) && (
+          <motion.aside 
+            initial={{ x: isRTL ? 280 : -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: isRTL ? 280 : -280 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className={cn(
+              "w-[280px] shrink-0 border-x border-white/5 bg-slate-950/60 backdrop-blur-2xl relative z-50 flex flex-col shadow-2xl h-full fixed lg:static top-0",
+              isRTL ? "right-0" : "left-0"
+            )}
+          >
+            {/* Overlay for mobile */}
+            <div className="fixed inset-0 bg-black/60 z-[-1] lg:hidden" onClick={() => setIsSidebarOpen(false)} />
+            
+            <div className="p-6 flex items-center gap-4 border-b border-white/5 bg-white/5 shrink-0">
+              <motion.div whileHover={{ rotate: 360, scale: 1.1 }} className="w-12 h-12 bg-gradient-to-br from-orange-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                <Crown className="w-6 h-6 text-white" />
+              </motion.div>
+              <div className="flex flex-col">
+                <h1 className="text-xl font-black text-white tracking-tighter leading-none">منصة الشباب</h1>
+                <span className="text-[9px] font-black text-orange-400 uppercase tracking-[0.2em] mt-1">Haraka System</span>
               </div>
+              <button className="lg:hidden mr-auto p-2 text-white/50" onClick={() => setIsSidebarOpen(false)}>
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-              {/* GPS Field Tracking - Highlighted prominently */}
-               <div>
-                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">التتبع الميداني</div>
-                  <div className="space-y-1">
-                     {navigationGroups.gps.map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs border", activeTab === tab.id ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-400 border-blue-500/30 shadow-lg" : "border-transparent text-slate-400 hover:text-white hover:bg-white/5")}>
-                           <tab.icon className="h-4 w-4" /> {tab.label}
-                           {activeTab !== tab.id && <span className="mr-auto text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full font-black">جديد</span>}
-                        </button>
-                     ))}
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+               <div className="space-y-6">
+                  {/* Core Links */}
+                  <div>
+                     <button onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-sm", activeTab === 'dashboard' ? "bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-lg" : "text-slate-400 hover:text-white hover:bg-white/5")}>
+                        <Home className="h-4 w-4" /> لوحة القيادة
+                     </button>
+                  </div>
+
+                  {/* GPS Field Tracking */}
+                   <div>
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">التتبع الميداني</div>
+                      <div className="space-y-1">
+                         {navigationGroups.gps.map(tab => (
+                            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs border", activeTab === tab.id ? "bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-400 border-blue-500/30 shadow-lg" : "border-transparent text-slate-400 hover:text-white hover:bg-white/5")}>
+                               <tab.icon className="h-4 w-4" /> {tab.label}
+                               {activeTab !== tab.id && <span className="mr-auto text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full font-black">جديد</span>}
+                            </button>
+                         ))}
+                      </div>
+                   </div>
+
+                  {/* Training Links */}
+                  <div>
+                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">التدريب والتطوير</div>
+                     <div className="space-y-1">
+                        {[...navigationGroups.training, ...navigationGroups.development].map(tab => (
+                           <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-xs", activeTab === tab.id ? "bg-white/10 text-orange-400" : "text-slate-400 hover:text-white hover:bg-white/5")}>
+                              <tab.icon className="h-4 w-4" /> {tab.label}
+                           </button>
+                        ))}
+                     </div>
+                  </div>
+
+                  {/* Innovation */}
+                  <div>
+                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">المختبر الرقمي</div>
+                     <div className="space-y-1">
+                        {[...navigationGroups.innovation, ...navigationGroups.community].map(tab => (
+                           <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-xs", activeTab === tab.id ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:text-white hover:bg-white/5")}>
+                              <tab.icon className="h-4 w-4" /> {tab.label}
+                           </button>
+                        ))}
+                     </div>
                   </div>
                </div>
+            </div>
 
-              {/* Training Links */}
-              <div>
-                 <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">التدريب والتطوير</div>
-                 <div className="space-y-1">
-                    {[...navigationGroups.training, ...navigationGroups.development].map(tab => (
-                       <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-xs", activeTab === tab.id ? "bg-white/10 text-orange-400" : "text-slate-400 hover:text-white hover:bg-white/5")}>
-                          <tab.icon className="h-4 w-4" /> {tab.label}
-                       </button>
-                    ))}
-                 </div>
-              </div>
-
-              {/* Innovation */}
-              <div>
-                 <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">المختبر الرقمي</div>
-                 <div className="space-y-1">
-                    {[...navigationGroups.innovation, ...navigationGroups.community].map(tab => (
-                       <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-xs", activeTab === tab.id ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:text-white hover:bg-white/5")}>
-                          <tab.icon className="h-4 w-4" /> {tab.label}
-                       </button>
-                    ))}
-                 </div>
-              </div>
-           </div>
-        </div>
-
-        {/* 🚀 Haraka Chatbot explicitly bound to the sidebar footer 🚀 */}
-        <div className="p-4 mt-auto border-t border-white/5 bg-slate-900/40 relative z-50 shrink-0">
-           <HarakaChatbot inline={true} />
-        </div>
-      </aside>
+            {/* Sidebar Chatbot */}
+            <div className="p-4 mt-auto border-t border-white/5 bg-slate-900/40 relative z-50 shrink-0">
+               <HarakaChatbot inline={true} />
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
       {/* Main Container */}
       <main className="flex-1 flex flex-col h-full relative z-10 min-w-0">
         
         {/* Top App Bar inside main workflow */}
-        <header className="h-20 bg-slate-900/30 backdrop-blur-md border-b border-white/5 flex flex-col justify-center px-6 sm:px-8 shrink-0 relative z-20">
+<header className="h-20 bg-slate-900/30 backdrop-blur-md border-b border-white/5 flex flex-col justify-center px-6 sm:px-8 shrink-0 relative z-20">
             <div className="flex items-center justify-between">
-                <div>
-                   <h2 className="text-lg font-black tracking-tight text-white mb-0.5 opacity-90 hidden sm:block">غرفة العمليات المركزية</h2>
-                   <p className="text-[10px] sm:text-xs text-slate-400">تتبع ذكي، تواصل مباشر مع الخبراء</p>
+                <div className="flex items-center gap-3">
+                   <button className="lg:hidden p-2 bg-white/5 rounded-lg active:scale-95 transition-all" onClick={() => setIsSidebarOpen(true)}>
+                      <Menu className="w-5 h-5 text-white" />
+                   </button>
+                   <div className="hidden sm:block">
+                      <h2 className="text-lg font-black tracking-tight text-white mb-0.5 opacity-90">غرفة العمليات المركزية</h2>
+                      <p className="text-[10px] sm:text-xs text-slate-400">تتبع ذكي، تواصل مباشر مع الخبراء</p>
+                   </div>
                 </div>
                 
                 <div className="flex items-center gap-4 sm:gap-6">
@@ -424,6 +451,20 @@ export default function YouthDashboard() {
         </div>
 
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        items={[
+          { id: 'dashboard', label: 'الرئيسية', icon: Home },
+          { id: 'gps-tracker', label: 'التتبع', icon: Satellite },
+          { id: 'training', label: 'التدريب', icon: Flame },
+          { id: 'competitions', label: 'المسابقات', icon: Trophy },
+          { id: 'profile', label: 'حسابي', icon: User },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id)}
+        accentColor="orange"
+      />
 
       {/* Modals outside standard flow */}
       {showBooking && <CoachBookingModal isOpen={showBooking} onClose={() => setShowBooking(false)} />}

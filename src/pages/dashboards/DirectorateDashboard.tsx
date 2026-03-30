@@ -46,6 +46,7 @@ import {
   Menu,
   PlayCircle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Province {
   id: string;
@@ -94,6 +95,7 @@ export default function DirectorateDashboard() {
   const { t, language } = useTranslation();
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
     const hasSeen = localStorage.getItem('haraka_directorate_onboarding_seen');
@@ -306,7 +308,7 @@ export default function DirectorateDashboard() {
             ${isSidebarOpen ? 'w-72' : 'w-20'} 
             transition-all duration-300 ease-in-out shrink-0
             bg-slate-950/80 backdrop-blur-xl border-l border-white/5 
-            flex flex-col z-40
+            hidden lg:flex flex-col z-40
           `}>
             <div className="p-6 flex items-center justify-between border-b border-white/5">
               {isSidebarOpen && (
@@ -366,16 +368,75 @@ export default function DirectorateDashboard() {
             </div>
           </aside>
 
+          {/* Mobile Sidebar Overlay */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <div className="fixed inset-0 z-50 lg:hidden flex" dir={isRTL ? 'rtl' : 'ltr'}>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                />
+                <motion.aside
+                  initial={{ x: isRTL ? '100%' : '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: isRTL ? '100%' : '-100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className={`w-72 bg-slate-900 border-white/10 h-full relative flex flex-col shadow-2xl ${isRTL ? 'border-l mr-auto' : 'border-r ml-auto'}`}
+                >
+                  <div className="p-6 flex items-center justify-between border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-[#3b82f6]/10 rounded-xl border border-[#3b82f6]/20">
+                        <Building2 className="h-6 w-6 text-[#3b82f6]" />
+                      </div>
+                      <span className="text-xl font-black text-white tracking-wide">المديرية</span>
+                    </div>
+                  </div>
+                  <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
+                    {navigationTabs.map(tab => {
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => { setActiveTab(tab.id); setIsMobileMenuOpen(false); }}
+                          className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all
+                            ${isActive ? 'bg-[#3b82f6] text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}
+                          `}
+                        >
+                          <tab.icon className={`h-5 w-5 ${isActive ? 'text-white' : ''}`} />
+                          <span>{tab.label}</span>
+                        </button>
+                      )
+                    })}
+                  </nav>
+                  <div className="p-4 border-t border-white/5">
+                    <button onClick={logout} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-rose-400 hover:bg-rose-500/10">
+                      <LogOut className="h-5 w-5" />
+                      <span className="font-bold">تسجيل الخروج</span>
+                    </button>
+                  </div>
+                </motion.aside>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col h-screen overflow-hidden text-right">
 
             {/* Header */}
-            <header className="h-20 bg-slate-950/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 shrink-0">
-              <div>
-                <h1 className="text-2xl font-black text-white">مركز مديرية التربية والتعليم</h1>
-                <p className="text-xs font-bold text-slate-400 mt-0.5 tracking-wide">
-                  ولاية {selectedProvince.arabicName} — إدارة المتابعة والقرار الاستراتيجي
-                </p>
+            <header className="h-20 lg:h-24 bg-slate-950/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 lg:px-8 shrink-0">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-white">
+                  <Menu className="h-6 w-6" />
+                </Button>
+                <div>
+                  <h1 className="text-lg lg:text-2xl font-black text-white line-clamp-1 truncate">مركز مديرية التربية والتعليم</h1>
+                  <p className="text-[10px] lg:text-xs font-bold text-slate-400 mt-0.5 tracking-wide line-clamp-1">
+                    ولاية {selectedProvince.arabicName} — إدارة المتابعة والقرار الاستراتيجي
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center gap-4" dir="ltr">
@@ -401,11 +462,15 @@ export default function DirectorateDashboard() {
                   variant="outline"
                   size="sm"
                   onClick={handleReplayOnboarding}
-                  className="bg-white/5 border-white/10 text-slate-300 hover:text-[#3b82f6] hover:bg-white/10 transition-all rounded-xl gap-2 h-10 px-4 group hidden md:flex"
+                  className="bg-white/5 border-white/10 text-slate-300 hover:text-[#3b82f6] hover:bg-white/10 transition-all rounded-xl gap-2 h-10 px-4 group hidden lg:flex"
                 >
                   <PlayCircle className="w-4 h-4 group-hover:text-[#3b82f6] transition-colors" />
                   <span className="font-cairo font-bold">إعادة الجولة</span>
                 </Button>
+                
+                <div className="lg:hidden">
+                  <LanguageSwitcher />
+                </div>
               </div>
             </header>
 
