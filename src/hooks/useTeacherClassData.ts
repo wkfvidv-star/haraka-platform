@@ -4,6 +4,7 @@ import { allDistrictStudents, TeacherStudent, getTeacherStats } from '@/data/moc
 export interface TeacherSettings {
   schoolName: string;
   classes: string[];
+  skipped?: boolean;
 }
 
 export function useTeacherClassData() {
@@ -27,9 +28,9 @@ export function useTeacherClassData() {
     setSettings(newSettings);
   };
 
-  // Filter students: if no classes chosen, return all defaults to avoid blank screens.
+  // Filter students: if no classes chosen or skipped, return all defaults to avoid blank screens.
   const filteredStudents = useMemo(() => {
-    if (!settings || !settings.classes || settings.classes.length === 0) {
+    if (!settings || !settings.classes || settings.classes.length === 0 || settings.skipped) {
       return allDistrictStudents.slice(0, 34); // Default to seeing 34 students
     }
     return allDistrictStudents.filter(s => settings.classes.includes(s.className));
@@ -45,6 +46,6 @@ export function useTeacherClassData() {
     saveSettings,
     students: filteredStudents,
     stats,
-    hasSetup: !!settings && settings.classes.length > 0
+    hasSetup: !!settings && (settings.classes.length > 0 || settings.skipped === true)
   };
 }

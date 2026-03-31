@@ -31,10 +31,24 @@ export function TeacherSetupModal() {
     setTimeout(() => {
       saveSettings({
         schoolName: schoolName.trim(),
-        classes: selectedClasses
+        classes: selectedClasses,
+        skipped: false
       });
       setIsSaving(false);
     }, 1500);
+  };
+
+  const handleSkip = () => {
+    setIsSaving(true);
+    // Faster skip simulation
+    setTimeout(() => {
+      saveSettings({
+        schoolName: '',
+        classes: [],
+        skipped: true
+      });
+      setIsSaving(false);
+    }, 800);
   };
 
   return (
@@ -106,16 +120,24 @@ export function TeacherSetupModal() {
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-slate-50 p-6 border-t border-slate-100 flex justify-end gap-3">
+        <div className="bg-slate-50 p-6 border-t border-slate-100 flex items-center justify-between gap-3">
+           <button 
+             onClick={handleSkip}
+             disabled={isSaving}
+             className="text-slate-500 hover:text-slate-800 font-extrabold text-base transition-colors px-4 py-2"
+           >
+             تخطي الإعداد الآن
+           </button>
+
            <Button 
              onClick={handleSave}
              disabled={isSaving || !schoolName.trim() || selectedClasses.length === 0}
-             className="bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 px-8 rounded-xl w-full md:w-auto transition-transform active:scale-95 shadow-lg"
+             className="bg-slate-900 hover:bg-slate-800 text-white font-black h-12 px-8 rounded-xl min-w-[200px] transition-transform active:scale-95 shadow-lg flex items-center gap-2"
            >
              {isSaving ? (
                <span className="flex items-center gap-2 animate-pulse">جاري المزامنة...</span>
              ) : (
-               <>حفظ وإنشاء المحيط <Save className="w-4 h-4 mr-2" /></>
+               <>حفظ وإنشاء المحيط <Save className="w-4 h-4" /></>
              )}
            </Button>
         </div>
