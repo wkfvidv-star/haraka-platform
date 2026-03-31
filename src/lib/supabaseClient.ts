@@ -459,26 +459,74 @@ export function supabaseSubscribeToTable(
   };
 }
 
+/**
+ * تنفيذ دالة مع إمكانية إعادة المحاولة تلقائياً (Automatic Retry)
+ * مفيد جداً لتجاوز حدود إرسال البريد (Rate Limits) اللحظية
+ */
+export async function executeWithRetry<T>(
+  fn: () => Promise<T>,
+  options: {
+    maxRetries?: number;
+    initialDelay?: number;
+    backoffFactor?: number;
+    shouldRetry?: (error: any) => boolean;
+  } = {}
+): Promise<T> {
+  const {
+    maxRetries = 3,
+    initialDelay = 1000,
+    backoffFactor = 2,
+    shouldRetry = (err) => err?.message?.includes('rate limit') || err?.status === 429
+  } = options;
+
+  let lastError: any;
+  let delay = initialDelay;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      
+      if (attempt < maxRetries && shouldRetry(error)) {
+        console.warn(`[Retry] المحاولة ${attempt + 1} فشلت بسبب حدود الطلب، إعادة المحاولة بعد ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= backoffFactor;
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
+
 // ============================================================
 //  HELPER FUNCTIONS - أدوات مساعدة
 // ============================================================
 
 /**
- * ترجمة رسائل أخطاء Supabase إلى العربية
+ * ترجمة رسائل أخطاء Supabase إلى العربية بشكل احترافي
  */
-function translateAuthError(error: AuthError): string {
+function translateAuthError(error: AuthError | string | any): string {
+  const message = typeof error === 'string' ? error : error?.message || '';
+  
   const errorMap: Record<string, string> = {
     'Invalid login credentials':       'البريد الإلكتروني أو كلمة المرور غير صحيحة',
-    'Email not confirmed':             'يرجى تأكيد بريدك الإلكتروني أولاً',
-    'User already registered':         'هذا البريد الإلكتروني مسجّل مسبقاً',
-    'Password should be at least 6 characters': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
-    'Email rate limit exceeded':       'تم تجاوز الحد المسموح به، حاول لاحقاً',
-    'Invalid email':                   'صيغة البريد الإلكتروني غير صحيحة',
-    'Signup disabled':                 'التسجيل مُعطَّل حالياً',
-    'User not found':                  'المستخدم غير موجود',
+    'Email not confirmed':             'يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط المرسل إليك',
+    'User already registered':         'هذا البريد الإلكتروني مسجّل مسبقاً، جرب تسجيل الدخول',
+    'Password should be at least 6 characters': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل للأمان',
+    'Email rate limit exceeded':       'لقد تجاوزت الحد المسموح به لإرسال البريد. لا تقلق، سنقوم بإعادة المحاولة تلقائياً أو يمكنك الانتظار دقيقة واحدة.',
+    'Invalid email':                   'صيغة البريد الإلكتروني غير صحيحة، يرجى التأكد منها',
+    'Signup disabled':                 'التسجيل مُعطَّل حالياً للصيانة، حاول لاحقاً',
+    'User not found':                  'المستخدم غير موجود أو لم يتم تفعيل الحساب بعد',
   };
 
-  return errorMap[error.message] ?? error.message;
+  // البحث عن كلمات مفتاحية إذا لم يتطابق النص تماماً
+  if (message.includes('rate limit')) return errorMap['Email rate limit exceeded'];
+  if (message.includes('already registered')) return errorMap['User already registered'];
+  if (message.includes('confirm')) return errorMap['Email not confirmed'];
+
+  return errorMap[message] ?? `عذراً، حدث خطأ: ${message}`;
 }
 
 /**

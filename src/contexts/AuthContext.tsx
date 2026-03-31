@@ -36,7 +36,7 @@ interface AuthContextType {
   environment: Environment | null;
   province: ProvinceContext | null; // Added province
   login: (email: string, password: string, environment: Environment) => Promise<{ success: boolean; error?: string }>;
-  register: (data: any) => Promise<{ success: boolean; userId?: string; error?: string }>;
+  register: (data: any) => Promise<{ success: boolean; userId?: string; error?: string; isRateLimit?: boolean }>;
   logout: () => void;
   setEnvironment: (env: Environment | null) => void;
   setProvince: (province: ProvinceContext | null) => void;
@@ -188,7 +188,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else if (typeof errorMessage !== 'string') {
           errorMessage = JSON.stringify(errorMessage);
         }
-        return { ...response, error: errorMessage };
+        return { ...response, error: errorMessage, isRateLimit: (response as any).isRateLimit };
       }
       
       return response;

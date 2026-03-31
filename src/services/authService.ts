@@ -3,7 +3,7 @@
 //  في التطوير المحلي: يحاول السيرفر المحلي أولاً، ثم Supabase كـ Fallback
 //  في الإنتاج (Vercel): يستخدم Supabase مباشرة
 // ============================================================
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, executeWithRetry } from '@/lib/supabaseClient';
 
 // ── كاشف البيئة ───────────────────────────────────────────
 const isProduction = import.meta.env.PROD;
@@ -132,27 +132,46 @@ export const authService = {
 
     // ── تسجيل مستخدم جديد عبر Supabase ──────────────────────────────────
     _supabaseRegister: async (userData: any) => {
-        const { data, error } = await supabase.auth.signUp({
-            email: userData.email,
-            password: userData.password,
-            options: {
-                data: {
-                    full_name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
-                    first_name: userData.firstName || '',
-                    last_name: userData.lastName || '',
-                    role: userData.role || 'student',
-                    environment: userData.environment || 'school',
-                    xp: 0,
-                    level: 1,
-                    badges: [],
-                    subscription_status: 'ACTIVE',
-                },
-            },
-        });
-        if (error) {
-            return { success: false, error: translateError(error.message) };
+        try {
+            return await executeWithRetry(async () => {
+                const { data, error } = await supabase.auth.signUp({
+                    email: userData.email,
+                    password: userData.password,
+                    options: {
+                        data: {
+                            full_name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+                            first_name: userData.firstName || '',
+                            last_name: userData.lastName || '',
+                            role: userData.role || 'student',
+                            environment: userData.environment || 'school',
+                            xp: 0,
+                            level: 1,
+                            badges: [],
+                            subscription_status: 'ACTIVE',
+                        },
+                    },
+                });
+
+                if (error) {
+                    // إذا كان الخطأ هو تجاوز الحد، سنرميه لكي يلتقطه executeWithRetry ويعيد المحاولة
+                    if (error.message?.includes('rate limit') || error.status === 429) {
+                        throw error;
+                    }
+                    return { success: false, error: translateError(error.message) };
+                }
+                
+                return { success: true, userId: data.user?.id, user: data.user };
+            }, {
+                maxRetries: 2,
+                initialDelay: 2000
+            });
+        } catch (finalError: any) {
+            return { 
+                success: false, 
+                error: translateError(finalError.message || 'تعذر إرسال بريد التأكيد حالياً بسبب ضغط الطلبات. سنحاول مرة أخرى تلقائياً.'),
+                isRateLimit: finalError.message?.includes('rate limit') || finalError.status === 429
+            };
         }
-        return { success: true, userId: data.user?.id, user: data.user };
     },
 
     logout: async () => {

@@ -35,12 +35,16 @@ export const AuthPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isSelectingProvince, setIsSelectingProvince] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [retryCooldown, setRetryCooldown] = useState(0);
 
+  // مؤقت العد التنازلي عند تجاوز حد الطلبات
   useEffect(() => {
-    setError('');
-    setSuccessMsg('');
-  }, [environment, province, isRegistering]);
+    let timer: NodeJS.Timeout;
+    if (retryCooldown > 0) {
+      timer = setTimeout(() => setRetryCooldown(retryCooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [retryCooldown]);
 
   const handleEnvironmentSelect = (env: Environment) => {
     setEnvironment(env);
@@ -70,6 +74,10 @@ export const AuthPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (retryCooldown > 0) {
+      setError(`يرجى الانتظار ${retryCooldown} ثانية قبل المحاولة مرة أخرى.`);
+      return;
+    }
     setError('');
     setSuccessMsg('');
 
@@ -90,14 +98,18 @@ export const AuthPage: React.FC = () => {
       try {
         const result = await register({ email, password, firstName, lastName, role: selectedRole, environment });
         if (result.success) {
-          setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
+          setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
           setIsRegistering(false);
           setEmail('');
           setPassword('');
         } else {
-          if (result.error?.toLowerCase().includes('network') || result.error?.toLowerCase().includes('failed to fetch') || result.error?.toLowerCase().includes('econnrefused')) {
+          // التعامل مع خطأ تجاوز حد الطلبات بشكل خاص
+          if (result.isRateLimit || result.error?.includes('limit exceeded')) {
+            setRetryCooldown(60); // منع المحاولة لمدة 60 ثانية
+            setError('⚠️ تم تجاوز حد إرسال البريد. لا تقلق، تم تسجيل المحاولة وسيمكنك إعادة الإرسال بعد دقيقة.');
+          } else if (result.error?.toLowerCase().includes('network') || result.error?.toLowerCase().includes('failed to fetch') || result.error?.toLowerCase().includes('econnrefused')) {
             setError('⚠️ تعذر الاتصال بالخادم. تأكد من تشغيل السرفر الخلفي على المنفذ 3001.');
-          } else if (result.error?.includes('Email already exists')) {
+          } else if (result.error?.includes('Email already exists') || result.error?.includes('مسجّل مسبقاً')) {
             setError('البريد الإلكتروني مستخدم مسبقاً. حاول تسجيل الدخول.');
           } else {
             setError(result.error || 'فشل إنشاء الحساب. حاول مرة أخرى.');
@@ -117,10 +129,10 @@ export const AuthPage: React.FC = () => {
       }
       const result = await login(email, password, environment);
       if (!result.success) {
-        if (result.error?.toLowerCase().includes('network') || result.error?.toLowerCase().includes('econnrefused')) {
+        if (result.error?.includes('Email not confirmed') || result.error?.includes('تأكيد بريدك')) {
+          setError('⚠️ يرجى تفعيل حسابك من البريد الإلكتروني أولاً. إذا لم تصلك الرسالة، انتظر دقيقة ثم حاول التسجيل مجدداً لإعادة الإرسال.');
+        } else if (result.error?.toLowerCase().includes('network') || result.error?.toLowerCase().includes('econnrefused')) {
           setError('⚠️ تعذر الاتصال بالخادم. تأكد من تشغيل السرفر الخلفي على المنفذ 3001.');
-        } else if (result.error?.includes('Invalid credentials')) {
-          setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
         } else {
           setError(result.error || 'بيانات الدخول غير صحيحة أو غير مخولة للبيئة المختارة');
         }
