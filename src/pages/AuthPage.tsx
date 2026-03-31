@@ -109,8 +109,15 @@ export const AuthPage: React.FC = () => {
             setError('⚠️ تم تجاوز حد إرسال البريد. لا تقلق، تم تسجيل المحاولة وسيمكنك إعادة الإرسال بعد دقيقة.');
           } else if (result.error?.toLowerCase().includes('network') || result.error?.toLowerCase().includes('failed to fetch') || result.error?.toLowerCase().includes('econnrefused')) {
             setError('⚠️ تعذر الاتصال بالخادم. تأكد من تشغيل السرفر الخلفي على المنفذ 3001.');
-          } else if (result.error?.includes('Email already exists') || result.error?.includes('مسجّل مسبقاً')) {
-            setError('البريد الإلكتروني مستخدم مسبقاً. حاول تسجيل الدخول.');
+          } else if (result.error === 'EMAIL_TAKEN' || result.error?.includes('Email already exists') || result.error?.includes('مسجّل مسبقاً')) {
+            const roleTranslations: Record<string, string> = {
+              'STUDENT': 'تلميذ', 'TEACHER': 'معلم', 'PARENT': 'ولي أمر', 'COACH': 'مدرب',
+              'ADMIN': 'مدير نظام', 'YOUTH': 'شاب', 'PRINCIPAL': 'مدير مدرسة',
+              'DIRECTORATE': 'مديرية', 'MINISTRY': 'وزارة', 'COMPETITION': 'منظم'
+            };
+            const existingRole = (result as any).existingRole || 'مستخدم';
+            const roleNameAr = roleTranslations[existingRole] || existingRole;
+            setError(`⚠️ هذا البريد مستخدم مسبقاً كـ (${roleNameAr}). يرجى تسجيل الدخول بدلاً من إنشاء حساب جديد.`);
           } else {
             setError(result.error || 'فشل إنشاء الحساب. حاول مرة أخرى.');
           }

@@ -123,7 +123,11 @@ export const authService = {
                 body: JSON.stringify(userData),
                 signal: AbortSignal.timeout(5000),
             });
-            return await response.json();
+            const data = await response.json();
+            if (!data.success && data.error === 'EMAIL_TAKEN') {
+                return { success: false, error: 'EMAIL_TAKEN', existingRole: data.existingRole };
+            }
+            return data;
         } catch {
             console.warn('[authService] السيرفر المحلي غير متاح، التبديل إلى Supabase للتسجيل...');
             return authService._supabaseRegister(userData);

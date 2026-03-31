@@ -30,7 +30,11 @@ model User {
   id                 String             @id @default(uuid())
   email              String             @unique
   password           String
-  role               UserRole           @default(STUDENT)
+  
+  // Phase 10: Global Email Uniqueness and Role Isolation
+  role               UserRole           @default(STUDENT) // Primary Role (Compatibility)
+  roles              UserRoleAssignment[] // Managed Roles
+
   isActive           Boolean            @default(true)
   digitalId          String?            @unique @default(uuid())
   qrToken            String?            @unique
@@ -399,4 +403,15 @@ model UserDevice {
 
   @@index([userId])
   @@map("user_devices")
+}
+
+model UserRoleAssignment {
+  userId    String
+  role      UserRole
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role])
+  @@map("user_role_assignments")
 }

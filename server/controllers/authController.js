@@ -32,20 +32,36 @@ export const register = async (req, res) => {
         }
 
         const { email, password, role, firstName, lastName } = registerSchema.parse(req.body);
+        const userRole = (role || 'STUDENT').toUpperCase();
 
-        const existingUser = await prisma.user.findUnique({ where: { email } });
+        const existingUser = await prisma.user.findUnique({ 
+            where: { email },
+            select: { id: true, role: true }
+        });
+        
         if (existingUser) {
-            return res.status(400).json({ success: false, error: 'Email already exists' });
+            logger.warn('Registration attempt with existing email', { email, existingRole: existingUser.role });
+            return res.status(409).json({ 
+                success: false, 
+                error: 'EMAIL_TAKEN', 
+                existingRole: existingUser.role,
+                message: `This email is already registered with a different role (${existingUser.role}).`
+            });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Create User, Profile and Student/Parent/Coach record in a transaction
+        // Create User, Profile and Role assignment in a transaction
         const user = await prisma.user.create({
             data: {
                 email,
                 password: hashedPassword,
-                role: role || 'STUDENT',
+                role: userRole,
+                roles: {
+                    create: {
+                        role: userRole
+                    }
+                },
                 profile: {
                     create: {
                         firstName,
@@ -53,19 +69,17 @@ export const register = async (req, res) => {
                     }
                 },
                 // Create role-specific record
-                ...(role === 'STUDENT' ? { student: { create: { gradeLevel: 'N/A' } } } : {}),
-                ...(role === 'COACH' ? { coach: { create: { specialization: 'General' } } } : {}),
-                ...(role === 'PARENT' ? { parent: { create: {} } } : {}),
+                ...(userRole === 'STUDENT' ? { student: { create: { gradeLevel: 'N/A' } } } : {}),
+                ...(userRole === 'COACH' ? { coach: { create: { specialization: 'General' } } } : {}),
+                ...(userRole === 'PARENT' ? { parent: { create: {} } } : {}),
             },
             include: {
                 profile: true,
-                student: true,
-                coach: true,
-                parent: true
+                roles: true
             }
         });
 
-        logger.info('User registered', { userId: user.id });
+        logger.info('User registered with global uniqueness check', { userId: user.id, role: userRole });
         res.status(201).json({ success: true, userId: user.id });
     } catch (error) {
         if (error instanceof z.ZodError) {
