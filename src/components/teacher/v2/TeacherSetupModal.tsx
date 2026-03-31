@@ -52,28 +52,30 @@ export function TeacherSetupModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex flex-col items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md rtl">
+    <div className="fixed top-0 left-0 w-full h-[100dvh] z-[150] flex items-center justify-center p-0 md:p-4 bg-slate-900/60 backdrop-blur-md rtl select-none">
       <motion.div 
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        className="bg-white rounded-[2rem] shadow-2xl overflow-hidden w-full max-w-2xl border border-slate-200"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-none md:rounded-[2.5rem] shadow-2xl overflow-hidden w-full max-w-2xl border-none md:border border-slate-200 flex flex-col h-full md:h-auto md:max-h-[90vh]"
       >
-        <div className="bg-gradient-to-l from-blue-700 to-indigo-800 p-8 text-white relative">
+        {/* Header - Fixed */}
+        <div className="bg-gradient-to-l from-blue-700 to-indigo-800 p-6 md:p-8 text-white relative shrink-0">
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
           </div>
           <div className="flex items-center gap-4 relative z-10">
-             <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
-                <GraduationCap className="w-8 h-8 text-white" />
+             <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
+                <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-white" />
              </div>
              <div>
-               <h2 className="text-3xl font-black tracking-tight">إعداد محيط العمل</h2>
-               <p className="text-blue-100 font-bold mt-1 text-base opacity-90">يُرجى إدخال بيانات مؤسستك لترشيح البيانات تلقائياً</p>
+               <h2 className="text-xl md:text-3xl font-black tracking-tight">إعداد محيط العمل</h2>
+               <p className="text-blue-100 font-bold mt-1 text-sm md:text-base opacity-90">يُرجى إدخال بيانات مؤسستك لترشيح البيانات تلقائياً</p>
              </div>
           </div>
         </div>
 
-        <div className="p-8 md:p-10 space-y-8">
+        {/* Content - Scrollable */}
+        <div className="p-6 md:p-10 space-y-8 overflow-y-auto flex-grow custom-scrollbar">
           
           {/* School Name */}
           <div className="space-y-3 relative">
@@ -113,31 +115,32 @@ export function TeacherSetupModal() {
               })}
             </div>
             {selectedClasses.length === 0 && (
-              <p className="text-sm font-bold text-rose-500 mt-2">* يجب اختيار قسم واحد على الأقل.</p>
+              <p className="text-sm font-bold text-rose-500 mt-2">* يجب اختيار قسم واحد على الأقل أو الضغط على "التالي".</p>
             )}
           </div>
 
         </div>
 
-        {/* Footer Actions */}
-        <div className="bg-slate-50 p-6 border-t border-slate-100 flex items-center justify-between gap-3">
-           <button 
+        {/* Footer Actions - Fixed at the bottom of the screen */}
+        <div className="bg-slate-50 p-6 md:p-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 pb-10 md:pb-8">
+           <Button 
              onClick={handleSkip}
+             variant="outline"
              disabled={isSaving}
-             className="text-slate-500 hover:text-slate-800 font-extrabold text-base transition-colors px-4 py-2"
+             className="w-full md:w-auto h-14 md:h-12 border-slate-300 text-slate-700 hover:bg-slate-100 font-extrabold text-lg transition-colors px-8 rounded-xl order-2 md:order-1"
            >
-             تخطي الإعداد الآن
-           </button>
+             التالي
+           </Button>
 
            <Button 
              onClick={handleSave}
              disabled={isSaving || !schoolName.trim() || selectedClasses.length === 0}
-             className="bg-slate-900 hover:bg-slate-800 text-white font-black h-12 px-8 rounded-xl min-w-[200px] transition-transform active:scale-95 shadow-lg flex items-center gap-2"
+             className="bg-slate-900 hover:bg-slate-800 text-white font-black h-14 md:h-12 px-8 rounded-xl w-full md:min-w-[240px] md:w-auto transition-transform active:scale-95 shadow-lg flex items-center justify-center gap-2 order-1 md:order-2 text-lg md:text-base"
            >
              {isSaving ? (
                <span className="flex items-center gap-2 animate-pulse">جاري المزامنة...</span>
              ) : (
-               <>حفظ وإنشاء المحيط <Save className="w-4 h-4" /></>
+               <>حفظ وإكمال الإعداد <Save className="w-5 h-5 md:w-4 md:h-4" /></>
              )}
            </Button>
         </div>
