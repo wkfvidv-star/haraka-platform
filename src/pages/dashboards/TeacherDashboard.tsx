@@ -96,7 +96,10 @@ export default function TeacherDashboard() {
   return (
     <>
       <TeacherOnboarding />
-      <div className={`flex h-screen overflow-hidden bg-slate-50/30 text-slate-900 font-sans ${isRTL ? 'rtl' : 'ltr'}`}>
+      <div 
+        dir={isRTL ? 'rtl' : 'ltr'}
+        className={`flex h-screen overflow-hidden bg-slate-50/30 text-slate-900 font-sans ${isRTL ? 'rtl' : 'ltr'}`}
+      >
         
         {/* ══════════════════════════════════════════════════════
           BOLD PROFESSIONAL SIDEBAR (COACH DASHBOARD STYLE)
@@ -104,11 +107,13 @@ export default function TeacherDashboard() {
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
           <motion.aside
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 280, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-20 shrink-0"
+            initial={false}
+            animate={{ 
+              width: isSidebarOpen ? 280 : 0, 
+              opacity: isSidebarOpen ? 1 : 0 
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-20 shrink-0 overflow-hidden whitespace-nowrap shadow-2xl"
           >
             {/* Header / Logo */}
             <div className="p-6 border-b border-slate-800/50 shrink-0">
