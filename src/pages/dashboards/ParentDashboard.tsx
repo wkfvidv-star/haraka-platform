@@ -366,6 +366,26 @@ export default function ParentDashboard() {
                   )
                 })}
               </nav>
+
+              <div className="p-4 border-t border-white/5 flex flex-col gap-2 bg-slate-900/20">
+                <Button
+                  variant="ghost"
+                  onClick={() => { handleReplayOnboarding(); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-3 justify-start rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors w-full px-4"
+                >
+                  <PlayCircle className="w-5 h-5 shrink-0" />
+                  <span className="font-semibold">تصفح الميزات</span>
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  onClick={logout} 
+                  className="flex items-center gap-3 justify-start rounded-xl text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 transition-colors w-full px-4"
+                >
+                  <LogOut className="w-5 h-5 shrink-0" />
+                  <span className="font-semibold">تسجيل الخروج</span>
+                </Button>
+              </div>
             </motion.aside>
           </div>
         )}
