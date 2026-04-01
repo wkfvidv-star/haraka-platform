@@ -119,29 +119,10 @@ export const AuthPage: React.FC = () => {
           }
           setIsRegistering(false);
         } else {
-          // ============================================================
-          //  خوارزمية الاسترداد الذكي (Expert Smart Recovery)
-          // ============================================================
+          // التعامل مع خطأ تجاوز حد الطلبات بشكل خاص - إظهار رسالة مطمئنة كما طلب المستخدم
           if (result.isRateLimit || result.error?.includes('limit exceeded')) {
-            setSuccessMsg('⚠️ تلميح: تم إنشاء الحساب بنجاح، ولكن فشل إرسال بريد التأكيد بسبب ضغط الخادم.');
-            setError('جاري محاولة الدخول مباشرة وتخطي خطوة البريد... يرجى الانتظار');
-            
-            // محاولة تسجيل الدخول التلقائي لأن الحساب غالباً تم إنشاؤه في Supabase
-            setTimeout(async () => {
-                const loginResult = await login(email, password, environment);
-                if (loginResult.success) {
-                    setSuccessMsg('✅ تم استرداد الجلسة والدخول بنجاح! استمتع بالمنصة.');
-                    setError('');
-                } else {
-                    if (loginResult.error?.includes('Email not confirmed')) {
-                        setError('⚠️ الحساب موجود ولكن يتطلب تأكيد البريد. يرجى مراجعة بريدك لاحقاً أو تعطيل التأكيد من لوحة التحكم.');
-                    } else {
-                        setRetryCooldown(60);
-                        setError(`⚠️ فشل الاسترداد التلقائي: ${loginResult.error || 'يرجى المحاولة بعد دقيقة'}`);
-                    }
-                    setSuccessMsg('');
-                }
-            }, 1500);
+            setRetryCooldown(60); // منع المحاولة لمدة 60 ثانية لحماية المستخدم
+            setError('⚠️ عذراً، خادم التسجيل يواجه ضغطاً حالياً في إرسال رسائل التأكيد. لا تقلق، يمكنك المحاولة مرة أخرى بعد دقيقة واحدة فقط. نحن نقدر صبرك.');
           } else if (result.error?.toLowerCase().includes('network') || result.error?.toLowerCase().includes('failed to fetch') || result.error?.toLowerCase().includes('econnrefused')) {
             setError('⚠️ تعذر الاتصال بالخادم. تأكد من تشغيل السرفر الخلفي على المنفذ 3001.');
           } else if (result.error === 'EMAIL_TAKEN' || result.error?.includes('Email already exists') || result.error?.includes('مسجّل مسبقاً')) {
