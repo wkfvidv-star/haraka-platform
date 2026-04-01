@@ -107,7 +107,7 @@ export const AuthPage: React.FC = () => {
             if ((result as any).isEmergencyEntry) {
               setSuccessMsg('✅ تم تفعيل الدخول المباشر (نظام الطوارئ) لتجاوز ضغط الخادم. جاري التوجيه...');
             } else {
-              setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري توجيهك إلى لوحة التحكم...');
+              setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري التوجيه تلقائياً، وإذا تأخر ذلك يرجى تفعيل حسابك من البريد الإلكتروني للتمكن من الدخول.');
             }
             
             // التوجيه التلقائي سيحدث عبر AuthContext، ولكن سنضيف تأكيداً
@@ -117,6 +117,7 @@ export const AuthPage: React.FC = () => {
                 window.location.href = '/dashboard';
               }
             }, 2000);
+
           } else {
 
             setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
@@ -128,21 +129,10 @@ export const AuthPage: React.FC = () => {
 
           // التعامل مع خطأ تجاوز حد الطلبات بشكل خاص - إظهار رسالة مطمئنة كما طلب المستخدم
           if (result.isRateLimit || result.error?.includes('limit exceeded')) {
-            // SMART RECOVERY: Instead of blocking, try to login directly
-            setSuccessMsg('✅ نعتذر عن ضغط النظام، جاري محاولة الدخول المباشر...');
-            setError('');
-            
-            // Try to login immediately after a short delay
-            setTimeout(async () => {
-              const loginResult = await login(email, password, environment);
-              if (loginResult.success) {
-                setSuccessMsg('✅ تم الدخول بنجاح عبر النظام الاحتياطي!');
-              } else {
-                setError('⚠️ لم نتمكن من الدخول المباشر حالياً. يرجى محاولة تسجيل الدخول يدوياً.');
-                setSuccessMsg('');
-              }
-            }, 2000);
+            setRetryCooldown(2100); // منع المحاولة لمدة 35 دقيقة (2100 ثانية)
+            setError('⚠️ عذراً، خادم التسجيل يواجه ضغطاً في طوابير إرسال رسائل التأكيد حالياً. لا تقلق، لقد حفظنا بياناتك ويمكنك المحاولة مرة أخرى بعد 35 دقيقة. نحن نقدر صبرك ותفهمك.');
           } else if (result.error?.toLowerCase().includes('network') || result.error?.toLowerCase().includes('failed to fetch') || result.error?.toLowerCase().includes('econnrefused')) {
+
             setError('⚠️ تعذر الاتصال بالخادم. تأكد من تشغيل السرفر الخلفي على المنفذ 3001.');
           } else if (result.error === 'EMAIL_TAKEN' || result.error?.includes('Email already exists') || result.error?.includes('مسجّل مسبقاً')) {
 
