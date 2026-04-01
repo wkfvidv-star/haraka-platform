@@ -112,9 +112,11 @@ export const supabaseAuthService = {
   }): Promise<{
     success: boolean;
     user?: PlatformUser;
+    session?: any;
     error?: string;
     emailConfirmationRequired?: boolean;
   }> => {
+
     const result: AuthResult = await supabaseSignUp(
       userData.email,
       userData.password,
@@ -140,6 +142,7 @@ export const supabaseAuthService = {
       return {
         success: true,
         emailConfirmationRequired: true,
+        user: result.user ? mapSupabaseUserToPlatform(result.user) : undefined
       };
     }
 
@@ -148,7 +151,8 @@ export const supabaseAuthService = {
     localStorage.setItem('user', JSON.stringify(platformUser));
     localStorage.setItem('environment', platformUser.environment);
 
-    return { success: true, user: platformUser };
+    return { success: true, user: platformUser, session: result.session };
+
   },
 
   /**

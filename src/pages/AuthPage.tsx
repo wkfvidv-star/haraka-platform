@@ -104,14 +104,15 @@ export const AuthPage: React.FC = () => {
         const result = await register({ email, password, firstName, lastName, role: selectedRole, environment });
         if (result.success) {
           if (skipConfirmation) {
-            setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري تسجيل الدخول تلقائياً...');
-            // Auto-login after successful registration to "skip" confirmation step
+            setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري توجيهك إلى لوحة التحكم...');
+            // إذا لم يتم تسجيل الدخول تلقائياً عبر AuthContext (لأن الإيميل يتطلب تأكيد في Supabase)
+            // سنحاول تسجيل الدخول يدوياً كخطة بديلة
             setTimeout(async () => {
               const loginResult = await login(email, password, environment);
               if (!loginResult.success) {
-                setSuccessMsg('✅ تم إنشاء الحساب! يرجى تفعيل حسابك من البريد الإلكتروني للدخول.');
+                setSuccessMsg('✅ تم إنشاء الحساب! يرجى تفعيل حسابك من البريد الإلكتروني إذا لم يتم توجيهك.');
               }
-            }, 1000);
+            }, 1500);
           } else {
             setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
             setEmail('');
@@ -119,6 +120,7 @@ export const AuthPage: React.FC = () => {
           }
           setIsRegistering(false);
         } else {
+
           // التعامل مع خطأ تجاوز حد الطلبات بشكل خاص - إظهار رسالة مطمئنة كما طلب المستخدم
           if (result.isRateLimit || result.error?.includes('limit exceeded')) {
             setRetryCooldown(1800); // منع المحاولة لمدة 30 دقيقة (1800 ثانية)

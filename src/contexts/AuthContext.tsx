@@ -197,8 +197,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         return { ...response, error: errorMessage, isRateLimit: (response as any).isRateLimit };
       }
+
+      // AUTO-LOGIN: If registration returns a session (email confirmation is off), log them in immediately
+      if (response.success && response.session && response.user) {
+        const backendUser = response.user;
+        const mappedUser: User = {
+          id: backendUser.id,
+          email: backendUser.email || data.email,
+          name: backendUser.user_metadata?.full_name || `${data.firstName} ${data.lastName}`,
+          firstName: backendUser.user_metadata?.first_name || data.firstName,
+          lastName: backendUser.user_metadata?.last_name || data.lastName,
+          role: backendUser.user_metadata?.role || data.role || 'student',
+          environment: backendUser.user_metadata?.environment || data.environment || 'school',
+          avatar: backendUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.email}`,
+          xp: 0,
+          level: 1,
+          badges: [],
+          subscriptionStatus: 'ACTIVE'
+        };
+
+        localStorage.setItem('token', response.session.access_token);
+        localStorage.setItem('user', JSON.stringify(mappedUser));
+        localStorage.setItem('environment', mappedUser.environment);
+        
+        setUser(mappedUser);
+        setEnvironmentState(mappedUser.environment);
+      }
       
       return response;
+
     } catch (error: any) {
       console.error('Register error details:', error);
       setIsLoading(false);

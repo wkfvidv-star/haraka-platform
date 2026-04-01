@@ -164,11 +164,17 @@ export const authService = {
                     return { success: false, error: translateError(error.message) };
                 }
                 
-                return { success: true, userId: data.user?.id, user: data.user };
+                return { 
+                    success: true, 
+                    userId: data.user?.id, 
+                    user: data.user,
+                    session: data.session 
+                };
             }, {
                 maxRetries: 2,
                 initialDelay: 2000
             });
+
         } catch (finalError: any) {
             return { 
                 success: false, 
