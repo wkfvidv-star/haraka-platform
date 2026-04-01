@@ -25,7 +25,12 @@ import LandingPage from '@/pages/Index';
 import OnboardingPage from '@/pages/OnboardingPage';
 
 function AppRoutes() {
-  const { user, environment } = useAuth();
+  const { user, environment, selectedRole } = useAuth();
+
+  const isRoleAuthorized = () => {
+    if (!user || !selectedRole) return false;
+    return user.role?.toLowerCase() === selectedRole.toLowerCase();
+  };
 
   const getDashboardComponent = () => {
     // Environment-based routing with role validation
@@ -76,11 +81,11 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={(!user || !environment) ? <LandingPage /> : <Navigate to="/dashboard" replace />} />
-      <Route path="/auth" element={(!user || !environment) ? <AuthPage /> : <Navigate to="/dashboard" replace />} />
-      <Route path="/onboarding" element={(user && environment) ? <OnboardingPage /> : <Navigate to="/auth" replace />} />
-      <Route path="/dashboard" element={(user && environment) ? getDashboardComponent() : <Navigate to="/auth" replace />} />
-      <Route path="/platform-owner" element={(user && environment) ? <PlatformOwnerDashboard /> : <Navigate to="/auth" replace />} />
+      <Route path="/" element={(!user || !environment || !isRoleAuthorized()) ? <LandingPage /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/auth" element={(!user || !environment || !isRoleAuthorized()) ? <AuthPage /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/onboarding" element={(user && environment && isRoleAuthorized()) ? <OnboardingPage /> : <Navigate to="/auth" replace />} />
+      <Route path="/dashboard" element={(user && environment && isRoleAuthorized()) ? getDashboardComponent() : <Navigate to="/auth" replace />} />
+      <Route path="/platform-owner" element={(user && environment && (user.role === 'superadmin' || user.role === 'platformowner')) ? <PlatformOwnerDashboard /> : <Navigate to="/auth" replace />} />
       <Route path="/identity" element={(user && environment) ? <DigitalIdentity /> : <Navigate to="/auth" replace />} />
       <Route path="/student/exercise/:packId" element={(user && environment) ? <ExerciseSessionPage /> : <Navigate to="/auth" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />

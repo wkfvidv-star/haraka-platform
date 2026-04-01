@@ -43,6 +43,8 @@ interface AuthContextType {
   updateUserStats: (stats: Partial<Pick<User, 'xp' | 'level' | 'badges' | 'playCoins'>>) => void;
   refreshProfiles: () => Promise<void>;
   isLoading: boolean;
+  selectedRole: UserRole | null;
+  setSelectedRole: (role: UserRole | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,17 +65,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [environment, setEnvironmentState] = useState<Environment | null>(null);
   const [province, setProvinceState] = useState<ProvinceContext | null>(null);
+  const [selectedRole, setSelectedRoleState] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const savedEnvironment = localStorage.getItem('environment') as Environment;
     const savedProvince = localStorage.getItem('province');
+    const savedRole = localStorage.getItem('selectedRole') as UserRole;
 
     if (savedEnvironment) {
       setEnvironmentState(savedEnvironment);
     }
     if (savedProvince) {
       setProvinceState(JSON.parse(savedProvince));
+    }
+    if (savedRole) {
+      setSelectedRoleState(savedRole);
     }
 
     // Initialize session from local storage (Node.js Backend Auth)
@@ -218,10 +225,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     setEnvironmentState(null);
     setProvinceState(null);
+    // setSelectedRoleState(null); // We keep the selected role to allow re-login into the same interface
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('environment');
     localStorage.removeItem('province');
+    // localStorage.removeItem('selectedRole'); 
     // تسجيل الخروج من Supabase بشكل صامت
     supabase.auth.signOut().catch(() => {});
   };
@@ -248,6 +257,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('province', JSON.stringify(prov));
     } else {
       localStorage.removeItem('province');
+    }
+  };
+
+  const setSelectedRole = (role: UserRole | null) => {
+    setSelectedRoleState(role);
+    if (role) {
+      localStorage.setItem('selectedRole', role);
+    } else {
+      localStorage.removeItem('selectedRole');
     }
   };
 
@@ -286,7 +304,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setProvince,
     updateUserStats,
     refreshProfiles,
-    isLoading
+    isLoading,
+    selectedRole,
+    setSelectedRole
   };
 
   return (

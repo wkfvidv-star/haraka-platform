@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 export const AuthPage: React.FC = () => {
-  const { login, register, isLoading, environment, setEnvironment, province, setProvince } = useAuth();
+  const { login, register, isLoading, environment, setEnvironment, province, setProvince, selectedRole, setSelectedRole } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,10 +32,10 @@ export const AuthPage: React.FC = () => {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>('');
   const [isSelectingProvince, setIsSelectingProvince] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [retryCooldown, setRetryCooldown] = useState(0);
+  const [skipConfirmation, setSkipConfirmation] = useState(true);
 
   // مؤقت العد التنازلي عند تجاوز حد الطلبات
   useEffect(() => {
@@ -53,6 +53,10 @@ export const AuthPage: React.FC = () => {
     }
   };
 
+  const handleRoleSelect = (role: any) => {
+    setSelectedRole(role);
+  };
+
   const handleProvinceSelect = (selectedProv: any) => {
     setProvince(selectedProv);
     setIsSelectingProvince(false);
@@ -64,7 +68,7 @@ export const AuthPage: React.FC = () => {
     setEmail('');
     setPassword('');
     setError('');
-    setSelectedRole('');
+    setSelectedRole(null);
     setIsSelectingProvince(false);
   };
 
@@ -95,13 +99,25 @@ export const AuthPage: React.FC = () => {
         setError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
         return;
       }
+      
       try {
         const result = await register({ email, password, firstName, lastName, role: selectedRole, environment });
         if (result.success) {
-          setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
+          if (skipConfirmation) {
+            setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري تسجيل الدخول تلقائياً...');
+            // Auto-login after successful registration to "skip" confirmation step
+            setTimeout(async () => {
+              const loginResult = await login(email, password, environment);
+              if (!loginResult.success) {
+                setSuccessMsg('✅ تم إنشاء الحساب! يرجى تفعيل حسابك من البريد الإلكتروني للدخول.');
+              }
+            }, 1000);
+          } else {
+            setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
+            setEmail('');
+            setPassword('');
+          }
           setIsRegistering(false);
-          setEmail('');
-          setPassword('');
         } else {
           // التعامل مع خطأ تجاوز حد الطلبات بشكل خاص
           if (result.isRateLimit || result.error?.includes('limit exceeded')) {
@@ -193,7 +209,7 @@ export const AuthPage: React.FC = () => {
         </div>
         <InterfaceSelector
           environment={environment}
-          onSelectRole={(role) => setSelectedRole(role)}
+          onSelectRole={handleRoleSelect}
           onBack={handleBackToEnvironmentSelection}
         />
       </div>
@@ -448,7 +464,7 @@ export const AuthPage: React.FC = () => {
 
         {/* Back buttons row */}
         <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6 justify-end items-center">
-          <button className="back-btn" onClick={() => setSelectedRole('')}>
+          <button className="back-btn" onClick={() => setSelectedRole(null)}>
             <ArrowRight size={14} />
             <span>تغيير الواجهة</span>
           </button>
@@ -622,6 +638,22 @@ export const AuthPage: React.FC = () => {
                   {password.length < 8 ? 'كلمة المرور ضعيفة - أضف المزيد' : password.length < 12 ? 'كلمة المرور مقبولة' : 'كلمة المرور قوية ✓'}
                 </p>
               </div>
+            )}
+
+            {/* Skip Confirmation (option) */}
+            {isRegistering && (
+                <div className="flex items-center gap-2 px-1">
+                    <input 
+                        type="checkbox" 
+                        id="skipConfirm"
+                        checked={skipConfirmation}
+                        onChange={(e) => setSkipConfirmation(e.target.checked)}
+                        className={`w-4 h-4 rounded border-white/20 bg-white/5 active:scale-95 transition-all cursor-pointer ${isSchool ? 'accent-blue-500' : 'accent-orange-500'}`}
+                    />
+                    <label htmlFor="skipConfirm" className="text-xs font-bold text-white/60 cursor-pointer select-none">
+                        التسجيل بدون تأكيد الحساب (دخول مباشر)
+                    </label>
+                </div>
             )}
 
             {/* Error */}
