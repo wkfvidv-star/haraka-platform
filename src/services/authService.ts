@@ -13,10 +13,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 function translateError(msg: string): string {
     const map: Record<string, string> = {
         'Invalid login credentials': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
-        'Email not confirmed': 'يرجى تأكيد بريدك الإلكتروني أولاً',
+        'Email not confirmed': 'جاري التحقق من الحساب... يرجى إعادة المحاولة إذا لم يتم الدخول تلقائياً (أو تفعيل البريد إذا كان متاحاً)',
         'User already registered': 'هذا البريد الإلكتروني مسجّل مسبقاً',
         'Password should be at least 6 characters': 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
     };
+
     return map[msg] ?? msg;
 }
 
