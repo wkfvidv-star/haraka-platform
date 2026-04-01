@@ -104,16 +104,21 @@ export const AuthPage: React.FC = () => {
         const result = await register({ email, password, firstName, lastName, role: selectedRole, environment });
         if (result.success) {
           if (skipConfirmation) {
-            setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري توجيهك إلى لوحة التحكم...');
-            // إذا لم يتم تسجيل الدخول تلقائياً عبر AuthContext (لأن الإيميل يتطلب تأكيد في Supabase)
-            // سنحاول تسجيل الدخول يدوياً كخطة بديلة
-            setTimeout(async () => {
-              const loginResult = await login(email, password, environment);
-              if (!loginResult.success) {
-                setSuccessMsg('✅ تم إنشاء الحساب! يرجى تفعيل حسابك من البريد الإلكتروني إذا لم يتم توجيهك.');
+            if ((result as any).isEmergencyEntry) {
+              setSuccessMsg('✅ تم تفعيل الدخول المباشر (نظام الطوارئ) لتجاوز ضغط الخادم. جاري التوجيه...');
+            } else {
+              setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري توجيهك إلى لوحة التحكم...');
+            }
+            
+            // التوجيه التلقائي سيحدث عبر AuthContext، ولكن سنضيف تأكيداً
+            setTimeout(() => {
+              if (!isLoading) {
+                // Force redirect if context didn't trigger it
+                window.location.href = '/dashboard';
               }
-            }, 1500);
+            }, 2000);
           } else {
+
             setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
             setEmail('');
             setPassword('');
