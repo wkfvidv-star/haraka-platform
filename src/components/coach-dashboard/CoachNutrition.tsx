@@ -135,7 +135,7 @@ export default function CoachNutrition() {
 
       {/* PDF VIEWER DIALOG FOR NUTRITION */}
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-        <DialogContent className="sm:max-w-[95vw] lg:max-w-[1000px] h-[90vh] md:h-[85vh] p-0 overflow-hidden border-none text-right font-sans rounded-2xl flex flex-col bg-[#eef2f6] !fixed !inset-x-0 !top-[5vh] !mx-auto !translate-x-0 !translate-y-0" dir="rtl">
+        <DialogContent className="w-[95vw] sm:max-w-[95vw] lg:max-w-[1000px] h-[90vh] md:h-[85vh] p-0 overflow-hidden border-none text-right font-sans rounded-2xl flex flex-col bg-[#eef2f6] !fixed !inset-x-0 !top-[5vh] !mx-auto !translate-x-0 !translate-y-0" dir="rtl">
            
            {/* Document Viewer Toolbar */}
            <div className="h-16 bg-slate-900 shrink-0 flex items-center justify-between px-4 md:px-6 shadow-xl relative z-20">
@@ -210,7 +210,7 @@ export default function CoachNutrition() {
            </div>
 
            {/* PDF Document Container */}
-           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-start justify-center custom-scrollbar w-full relative">
+           <div className="flex-1 overflow-auto p-4 md:p-8 flex items-start justify-start lg:justify-center custom-scrollbar w-full relative">
               
               {/* Actual Document Page */}
               <div className="w-[800px] bg-white min-h-[1050px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] rounded-sm p-8 md:p-12 mb-8 relative outline outline-1 outline-slate-200 shrink-0 mx-auto my-auto">

@@ -185,7 +185,7 @@ const CoachDashboardContent = () => {
                      <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
                    )}
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0 rounded-2xl border border-slate-200 shadow-2xl z-[100]" align="end" dir="rtl">
+              <PopoverContent className="w-[90vw] sm:w-80 p-0 rounded-2xl border border-slate-200 shadow-2xl z-[100]" align="end" dir="rtl">
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-2xl">
                   <h3 className="font-bold text-slate-900 text-base">الإشعارات</h3>
                   <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-bold shadow-sm">{notifications.filter(n => !n.isRead).length} جديد</Badge>

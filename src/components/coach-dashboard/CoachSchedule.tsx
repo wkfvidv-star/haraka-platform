@@ -38,7 +38,7 @@ export default function CoachSchedule() {
           <p className="text-lg text-slate-500 mt-2 font-medium">تنظيم الحصص والتدريبات والمتابعات اليومية.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm shrink-0">
+          <div className="flex flex-wrap items-center justify-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm shrink-0">
             <Button onClick={() => toast('تم عرض المواعيد الشهرية')} variant="ghost" className="rounded-lg font-bold text-slate-500 hover:text-slate-900">شهري</Button>
             <Button onClick={() => toast('تم عرض المواعيد الأسبوعية')} variant="ghost" className="rounded-lg font-bold text-slate-500 hover:text-slate-900">أسبوعي</Button>
             <Button onClick={() => toast('تم عرض المواعيد اليومية')} className="rounded-lg font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-none">يومي</Button>

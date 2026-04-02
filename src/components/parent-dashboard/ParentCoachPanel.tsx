@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { parentDataService, Coach, Report, NutritionPlan } from '@/services/parentDataService';
+import { auditService } from '@/services/auditService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,72 +10,7 @@ import {
   ChevronDown, ChevronUp, Dumbbell, User, Phone, MapPin, Award
 } from 'lucide-react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface Coach {
-  id: string;
-  name: string;
-  specialty: string;
-  rating: number;
-  sessions: number;
-  available: string[];
-  location: string;
-  phone: string;
-  price: number;
-}
-
-interface Report {
-  id: string;
-  from: string;
-  fromRole: 'أستاذ' | 'مدرب';
-  date: string;
-  subject: string;
-  content: string;
-  score?: number;
-  read: boolean;
-}
-
-interface NutritionPlan {
-  id: string;
-  name: string;
-  goal: string;
-  meals: { time: string; items: string[] }[];
-}
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const COACHES: Coach[] = [
-  { id: 'c1', name: 'المدرب كريم بوعلام', specialty: 'كرة قدم ⚽', rating: 4.8, sessions: 120, available: ['السبت 10:00', 'الأحد 14:00', 'الثلاثاء 16:00'], location: 'ملعب الشهيد — الشلف', phone: '0555 123 456', price: 1500 },
-  { id: 'c2', name: 'المدربة آمال سعيد', specialty: 'جمباز 🤸', rating: 4.9, sessions: 85, available: ['الجمعة 09:00', 'السبت 11:00'], location: 'قاعة الشهداء — قسنطينة', phone: '0661 789 012', price: 1800 },
-  { id: 'c3', name: 'المدرب رياض مراد', specialty: 'ألعاب قوى 🏃', rating: 4.7, sessions: 200, available: ['الاثنين 08:00', 'الأربعاء 07:30', 'الجمعة 08:00'], location: 'الملعب البلدي — تيزي وزو', phone: '0770 345 678', price: 1200 },
-];
-
-const REPORTS: Report[] = [
-  { id: 'r1', from: 'أستاذ أحمد لعماري', fromRole: 'أستاذ', date: '2026-03-25', subject: 'تقرير الأداء الأسبوعي', content: 'يُبدي ياسين تحسناً ملحوظاً في حصص التربية البدنية. مستواه في الجري تجاوز المتوسط بـ 15%. يُنصح بممارسة تمارين اللياقة البدنية في المنزل 3 مرات أسبوعياً.', score: 16, read: false },
-  { id: 'r2', from: 'المدرب كريم بوعلام', fromRole: 'مدرب', date: '2026-03-22', subject: 'تقييم جلسة التدريب', content: 'ياسين مجتهد ومتحمس. أداؤه في تمارين التحكم بالكرة ممتاز. يحتاج لتطوير القوة في الساق اليسرى. يُوصى بحصة إضافية أسبوعياً.', score: 18, read: false },
-  { id: 'r3', from: 'أستاذ أحمد لعماري', fromRole: 'أستاذ', date: '2026-03-15', subject: 'تقرير الشهر الثاني', content: 'مستوى ممتاز في الصفوف. غياب مرة واحدة مبررة. يتفاعل بإيجابية مع الزملاء ويقود تدريبات المجموعة بكفاءة.', score: 17, read: true },
-];
-
-const NUTRITION_PLANS: NutritionPlan[] = [
-  {
-    id: 'n1', name: 'خطة بناء العضلات', goal: 'كتلة عضلية + قوة',
-    meals: [
-      { time: 'الفطور 07:30', items: ['بيض مسلوق × 3', 'خبز أسمر × 2', 'حليب × 250مل', 'موز'] },
-      { time: 'وجبة خفيفة 10:30', items: ['لوز × 30غ', 'تفاح'] },
-      { time: 'الغداء 13:00', items: ['صدر دجاج × 200غ', 'أرز × 150غ', 'خضار مشوية', 'زيت زيتون'] },
-      { time: 'وجبة خفيفة 16:00', items: ['بروتين شيك', 'موز'] },
-      { time: 'العشاء 20:00', items: ['سمك × 150غ', 'بطاطا × 200غ', 'سلطة خضراء'] },
-    ]
-  },
-  {
-    id: 'n2', name: 'خطة التحمل والرشاقة', goal: 'لياقة قلبية + رشاقة',
-    meals: [
-      { time: 'الفطور 06:30', items: ['شوفان × 80غ', 'حليب قليل الدسم', 'عسل', 'فراولة'] },
-      { time: 'وجبة خفيفة 09:30', items: ['ماء × 500مل', 'جوز × 20غ'] },
-      { time: 'الغداء 12:30', items: ['عدس × 200غ', 'خبز أسمر', 'شوربة خضار', 'زيت زيتون'] },
-      { time: 'وجبة خفيفة 15:30', items: ['عصير لوز طبيعي', 'تمر × 3 حبات'] },
-      { time: 'العشاء 19:30', items: ['دجاج مشوي × 150غ', 'كينوا × 100غ', 'خضار بالبخار'] },
-    ]
-  },
-];
+// Mock Data moved to parentDataService
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function ParentCoachPanel({ parentName }: { parentName: string }) {
@@ -83,6 +20,52 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
   const [bookingDone, setBookingDone] = useState<string[]>([]);
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<NutritionPlan | null>(null);
+
+  const [COACHES, setCoaches] = useState<Coach[]>([]);
+  const [REPORTS, setReports] = useState<Report[]>([]);
+  const [NUTRITION_PLANS, setNutritionPlans] = useState<NutritionPlan[]>([]);
+
+  useEffect(() => {
+    setCoaches(parentDataService.getCoaches());
+    setReports(parentDataService.getReports());
+    setNutritionPlans(parentDataService.getNutritionPlans());
+    
+    // Load existing bookings
+    const existingBookings = parentDataService.getBookings();
+    setBookingDone(existingBookings.map(b => `${b.coachId}-${b.slot}`));
+  }, []);
+
+  const handleReadReport = (report: Report) => {
+    if (expandedReport === report.id) {
+       setExpandedReport(null);
+    } else {
+       setExpandedReport(report.id);
+       if (!report.read) {
+          parentDataService.markReportAsRead(report.id);
+          setReports(parentDataService.getReports());
+       }
+    }
+  };
+
+  const handleDownloadPDF = (report: Report) => {
+    auditService.log(`تحميل تقرير`, `تم تحميل تقرير: ${report.subject}`);
+    const printWindow = window.open('', '_blank');
+    if(printWindow) {
+      printWindow.document.write(`
+        <html dir="rtl"><head><title>${report.subject}</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 40px; text-align: right;">
+          <h1>${report.subject}</h1>
+          <p><strong>من:</strong> ${report.from} (${report.fromRole})</p>
+          <p><strong>التاريخ:</strong> ${report.date}</p>
+          <hr/>
+          <p>${report.content}</p>
+        </body></html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+  };
 
   const sections = [
     { id: 'booking', label: '📅 حجز حصص', icon: Calendar },
@@ -162,6 +145,7 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
                           {selectedSlot && (
                             <button
                               onClick={() => {
+                                parentDataService.addBooking(coach.id, coach.name, selectedSlot);
                                 setBookingDone(b => [...b, `${coach.id}-${selectedSlot}`]);
                                 setSelectedSlot('');
                                 setSelectedCoach(null);
@@ -241,7 +225,7 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
                         </div>
                       )}
                       <button
-                        onClick={() => setExpandedReport(expandedReport === report.id ? null : report.id)}
+                        onClick={() => handleReadReport(report)}
                         className="mt-2 text-xs font-black text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
                       >
                         {expandedReport === report.id ? <><ChevronUp className="w-3 h-3" /> إخفاء</> : <><ChevronDown className="w-3 h-3" /> قراءة التقرير</>}
@@ -249,6 +233,7 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
                       {expandedReport === report.id && (
                         <div className="mt-3 bg-white border border-slate-200 rounded-xl p-4 animate-in fade-in duration-200">
                           <p className="text-slate-600 text-sm font-medium leading-relaxed">{report.content}</p>
+                          <button onClick={() => handleDownloadPDF(report)} className="mt-3 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 px-3 rounded-lg transition-colors border border-slate-200">⬇️ تحميل كـ PDF</button>
                         </div>
                       )}
                     </div>

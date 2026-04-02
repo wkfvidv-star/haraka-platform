@@ -142,7 +142,7 @@ export default function CoachPrograms() {
 
       {/* PDF VIEWER DIALOG */}
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-        <DialogContent className="sm:max-w-[95vw] lg:max-w-[1000px] h-[90vh] md:h-[85vh] p-0 overflow-hidden border-none text-right font-sans rounded-2xl flex flex-col bg-slate-100 !fixed !inset-x-0 !top-[5vh] !mx-auto !translate-x-0 !translate-y-0" dir="rtl">
+        <DialogContent className="w-[95vw] sm:max-w-[95vw] lg:max-w-[1000px] h-[90vh] md:h-[85vh] p-0 overflow-hidden border-none text-right font-sans rounded-2xl flex flex-col bg-slate-100 !fixed !inset-x-0 !top-[5vh] !mx-auto !translate-x-0 !translate-y-0" dir="rtl">
            
            {/* Document Viewer Toolbar */}
            <div className="h-16 bg-slate-900 shrink-0 flex items-center justify-between px-4 md:px-6 shadow-xl relative z-20">
@@ -220,7 +220,7 @@ export default function CoachPrograms() {
            </div>
 
            {/* PDF Document Container */}
-           <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-start justify-center custom-scrollbar w-full bg-slate-100 relative">
+           <div className="flex-1 overflow-auto p-4 md:p-8 flex items-start justify-start lg:justify-center custom-scrollbar w-full bg-slate-100 relative">
               
               {/* Actual Document Page */}
               <div className="w-[800px] bg-white min-h-[1100px] shadow-2xl rounded-sm p-8 md:p-12 mb-8 relative outline outline-1 outline-slate-200 shrink-0 mx-auto my-auto">
@@ -302,8 +302,8 @@ export default function CoachPrograms() {
                     <section>
                        <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><Play className="w-6 h-6 text-orange-500" /> هيكل التدريبات اليومية (عينة)</h3>
                        
-                       <div className="overflow-hidden border border-slate-200 rounded-xl">
-                         <table className="w-full text-right bg-white">
+                       <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                         <table className="w-full min-w-[600px] text-right bg-white">
                             <thead className="bg-slate-900 text-white">
                                <tr>
                                  <th className="py-4 px-4 font-black w-24">اليوم</th>

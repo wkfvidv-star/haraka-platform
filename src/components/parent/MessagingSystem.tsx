@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { parentDataService, Message } from '@/services/parentDataService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,122 +33,18 @@ import {
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
-interface Message {
-  id: string;
-  from: {
-    id: string;
-    name: string;
-    role: 'teacher' | 'principal' | 'coach' | 'ministry';
-    avatar?: string;
-  };
-  to: string[];
-  subject: string;
-  content: string;
-  timestamp: Date;
-  isRead: boolean;
-  isStarred: boolean;
-  priority: 'عادي' | 'مهم' | 'عاجل';
-  category: 'أكاديمي' | 'رياضي' | 'صحي' | 'إداري' | 'عام';
-  attachments?: {
-    name: string;
-    size: string;
-    type: string;
-  }[];
-  relatedChild?: string;
-}
-
-const mockMessages: Message[] = [
-  {
-    id: 'msg_1',
-    from: {
-      id: 'teacher_1',
-      name: 'الأستاذ محمد الصالح',
-      role: 'teacher'
-    },
-    to: ['parent_1'],
-    subject: 'تقرير الأداء الرياضي الأسبوعي لأحمد',
-    content: 'السلام عليكم ورحمة الله وبركاته،\n\nأتشرف بإرسال تقرير الأداء الرياضي الأسبوعي لابنكم أحمد. لقد أظهر تحسناً ملحوظاً في تمارين القوة والتحمل هذا الأسبوع.\n\nالنقاط الإيجابية:\n- تحسن في تمارين القوة بنسبة 15%\n- التزام ممتاز بالحضور\n- روح رياضية عالية\n\nالتوصيات:\n- الاستمرار في التمارين المنزلية\n- زيادة شرب الماء\n- النوم الكافي\n\nمع أطيب التحيات،\nالأستاذ محمد الصالح',
-    timestamp: new Date(2024, 9, 15, 14, 30),
-    isRead: false,
-    isStarred: true,
-    priority: 'مهم',
-    category: 'رياضي',
-    attachments: [
-      { name: 'تقرير_أحمد_الأسبوعي.pdf', size: '2.3 MB', type: 'pdf' }
-    ],
-    relatedChild: 'student_1'
-  },
-  {
-    id: 'msg_2',
-    from: {
-      id: 'principal_1',
-      name: 'مدير المدرسة - أحمد بن عمر',
-      role: 'principal'
-    },
-    to: ['parent_1', 'parent_2'],
-    subject: 'دعوة لحضور اجتماع أولياء الأمور',
-    content: 'بسم الله الرحمن الرحيم\n\nالسادة أولياء الأمور المحترمين،\n\nيسعدنا دعوتكم لحضور اجتماع أولياء الأمور الذي سيعقد يوم الخميس الموافق 25 أكتوبر 2024 في تمام الساعة 4:00 مساءً بقاعة المؤتمرات.\n\nجدول الأعمال:\n1. مناقشة البرنامج الرياضي الجديد\n2. عرض نتائج الفصل الأول\n3. خطة الأنشطة اللاصفية\n4. استقبال اقتراحاتكم وملاحظاتكم\n\nنرجو تأكيد الحضور.\n\nمع فائق الاحترام،\nإدارة المدرسة',
-    timestamp: new Date(2024, 9, 14, 10, 0),
-    isRead: true,
-    isStarred: false,
-    priority: 'مهم',
-    category: 'إداري',
-    relatedChild: 'student_1'
-  },
-  {
-    id: 'msg_3',
-    from: {
-      id: 'coach_1',
-      name: 'المدرب الشخصي - كريم الهادي',
-      role: 'coach'
-    },
-    to: ['parent_2'],
-    subject: 'جدولة حصة تدريب إضافية لفاطمة',
-    content: 'السلام عليكم،\n\nبناءً على التقدم الممتاز الذي أحرزته فاطمة في تمارين السباحة، أقترح إضافة حصة تدريب إضافية أسبوعياً.\n\nالتفاصيل المقترحة:\n- اليوم: الأربعاء\n- الوقت: 5:00 مساءً\n- المدة: 45 دقيقة\n- التركيز: تحسين تقنيات التنفس\n\nيرجى إعلامي بموافقتكم لتأكيد الحجز.\n\nتحياتي،\nالمدرب كريم',
-    timestamp: new Date(2024, 9, 13, 16, 45),
-    isRead: true,
-    isStarred: false,
-    priority: 'عادي',
-    category: 'رياضي',
-    relatedChild: 'student_2'
-  },
-  {
-    id: 'msg_4',
-    from: {
-      id: 'ministry_1',
-      name: 'مديرية التربية والتعليم',
-      role: 'ministry'
-    },
-    to: ['parent_1', 'parent_2', 'parent_3'],
-    subject: 'إطلاق برنامج اللياقة البدنية الوطني',
-    content: 'السادة أولياء الأمور الكرام،\n\nتتشرف مديرية التربية والتعليم بإعلان إطلاق برنامج اللياقة البدنية الوطني للعام الدراسي 2024-2025.\n\nأهداف البرنامج:\n- تحسين اللياقة البدنية للطلاب\n- غرس ثقافة الرياضة والصحة\n- تطوير المهارات الحركية\n- بناء الشخصية والانضباط\n\nسيتم تطبيق البرنامج في جميع المؤسسات التعليمية اعتباراً من الأسبوع القادم.\n\nللمزيد من المعلومات، يرجى زيارة موقعنا الإلكتروني.\n\nوزارة التربية الوطنية',
-    timestamp: new Date(2024, 9, 12, 9, 0),
-    isRead: false,
-    isStarred: false,
-    priority: 'عاجل',
-    category: 'عام'
-  },
-  {
-    id: 'msg_5',
-    from: {
-      id: 'teacher_2',
-      name: 'الأستاذة فاطمة الزهراء',
-      role: 'teacher'
-    },
-    to: ['parent_3'],
-    subject: 'تحديث حول صحة يوسف',
-    content: 'السلام عليكم،\n\nأود إعلامكم أن يوسف قد تعافى تماماً من الإصابة الطفيفة في كاحله وهو جاهز للعودة للأنشطة الرياضية الكاملة.\n\nتوصيات الطبيب:\n- البدء تدريجياً بالتمارين الخفيفة\n- تجنب الجري السريع لأسبوع إضافي\n- استخدام الأحذية الداعمة\n\nسنراقب تقدمه عن كثب.\n\nتحياتي،\nالأستاذة فاطمة',
-    timestamp: new Date(2024, 9, 11, 11, 20),
-    isRead: true,
-    isStarred: false,
-    priority: 'مهم',
-    category: 'صحي',
-    relatedChild: 'student_3'
-  }
-];
+// Mock data moved to parentDataService 
 
 export function MessagingSystem() {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    setMessages(parentDataService.getMessages());
+  }, []);
+
+  const [newMessageTo, setNewMessageTo] = useState('');
+  const [newMessageSubject, setNewMessageSubject] = useState('');
+  const [newMessageContent, setNewMessageContent] = useState('');
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [activeTab, setActiveTab] = useState('inbox');
   const [searchTerm, setSearchTerm] = useState('');
@@ -209,15 +106,26 @@ export function MessagingSystem() {
   });
 
   const markAsRead = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, isRead: true } : msg
-    ));
+    parentDataService.markMessageAsRead(messageId);
+    setMessages(parentDataService.getMessages());
   };
 
   const toggleStar = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, isStarred: !msg.isStarred } : msg
-    ));
+    parentDataService.toggleMessageStar(messageId);
+    setMessages(parentDataService.getMessages());
+  };
+
+  const handleSendMessage = () => {
+    if (newMessageSubject && newMessageContent) {
+      parentDataService.sendMessage(newMessageTo || 'عام', newMessageSubject, newMessageContent);
+      setMessages(parentDataService.getMessages());
+      setShowCompose(false);
+      setNewMessageTo('');
+      setNewMessageSubject('');
+      setNewMessageContent('');
+    } else {
+      alert('الرجاء إدخال الموضوع والمحتوى');
+    }
   };
 
   const unreadCount = messages.filter(msg => !msg.isRead).length;
@@ -368,7 +276,7 @@ export function MessagingSystem() {
                               <Star className="h-4 w-4 text-yellow-500 fill-current" />
                             )}
                             <span className="text-xs text-gray-500">
-                              {format(message.timestamp, 'dd/MM HH:mm')}
+                              {format(new Date(message.timestamp), 'dd/MM HH:mm')}
                             </span>
                           </div>
                         </div>
@@ -430,7 +338,7 @@ export function MessagingSystem() {
                     <div>
                       <CardTitle className="text-lg">{selectedMessage.from.name}</CardTitle>
                       <CardDescription>
-                        {format(selectedMessage.timestamp, 'PPP p', { locale: ar })}
+                        {format(new Date(selectedMessage.timestamp), 'PPP p', { locale: ar })}
                       </CardDescription>
                     </div>
                   </div>
@@ -533,17 +441,18 @@ export function MessagingSystem() {
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">إلى</label>
-                <Input placeholder="اختر المستقبل..." />
+                <Input value={newMessageTo} onChange={e => setNewMessageTo(e.target.value)} placeholder="اختر المستقبل..." />
               </div>
               
               <div>
                 <label className="text-sm font-medium mb-2 block">الموضوع</label>
-                <Input placeholder="موضوع الرسالة..." />
+                <Input value={newMessageSubject} onChange={e => setNewMessageSubject(e.target.value)} placeholder="موضوع الرسالة..." />
               </div>
               
               <div>
                 <label className="text-sm font-medium mb-2 block">الرسالة</label>
                 <Textarea 
+                  value={newMessageContent} onChange={e => setNewMessageContent(e.target.value)}
                   placeholder="اكتب رسالتك هنا..."
                   className="min-h-[200px]"
                 />
@@ -561,7 +470,7 @@ export function MessagingSystem() {
                   >
                     إلغاء
                   </Button>
-                  <Button>
+                  <Button onClick={handleSendMessage}>
                     <Send className="h-4 w-4 mr-2" />
                     إرسال
                   </Button>

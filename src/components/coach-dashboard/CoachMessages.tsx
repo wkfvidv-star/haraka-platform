@@ -34,17 +34,17 @@ export default function CoachMessages() {
   };
 
   return (
-    <div className="space-y-6 max-h-[800px] h-[calc(100vh-140px)] flex flex-col">
+    <div className="space-y-6 lg:max-h-[800px] lg:h-[calc(100vh-140px)] flex flex-col">
       {/* HEADER */}
       <div className="shrink-0 mb-2">
         <h2 className="text-4xl font-black text-slate-900 tracking-tight">المراسلات المباشرة</h2>
         <p className="text-lg text-slate-500 mt-2 font-medium">تواصل مع المتدربين، أرسل تعليقات على الفيديوهات، واستقبل أسئلتهم.</p>
       </div>
 
-      <div className="flex-1 flex gap-6 min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:min-h-0 lg:overflow-hidden">
         
         {/* INBOX (LEFT SIDEBAR) */}
-        <Card className="w-1/3 bg-white border-slate-200 shadow-sm flex flex-col h-full overflow-hidden shrink-0">
+        <Card className="w-full lg:w-1/3 bg-white border-slate-200 shadow-sm flex flex-col h-[60vh] lg:h-full overflow-hidden shrink-0">
           <div className="p-4 border-b border-slate-100 shrink-0">
             <div className="relative">
               <Search className="absolute right-3 top-3 text-slate-400 w-5 h-5" />
@@ -84,7 +84,7 @@ export default function CoachMessages() {
         </Card>
 
         {/* ACTIVE CHAT WORKSPACE */}
-        <Card className="flex-1 bg-white border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
+        <Card className="w-full lg:flex-1 bg-white border-slate-200 shadow-sm flex flex-col h-[70vh] lg:h-full overflow-hidden">
           {/* CHAT HEADER */}
           <div className="h-20 border-b border-slate-100 flex items-center justify-between px-6 shrink-0 bg-slate-50/50">
              <div className="flex items-center gap-4">

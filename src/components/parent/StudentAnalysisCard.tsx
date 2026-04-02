@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
+import { auditService } from '@/services/auditService';
 import { 
   Target, 
   TrendingUp, 
@@ -246,7 +247,13 @@ export const StudentAnalysisCard: React.FC = () => {
 
           {/* Action Button */}
           <Button 
-            onClick={() => setShowDetails(!showDetails)}
+            onClick={() => {
+              const newShowDetails = !showDetails;
+              setShowDetails(newShowDetails);
+              if (newShowDetails && analysisData) {
+                auditService.log('عرض تفاصيل التحليل', `تم عرض تفاصيل التحليل الحركي للابن: ${analysisData.studentName}`);
+              }
+            }}
             className="w-full"
             variant="outline"
           >

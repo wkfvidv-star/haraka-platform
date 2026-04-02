@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { parentDataService, Child as ServiceChild } from '@/services/parentDataService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,93 +55,7 @@ interface Child {
   }[];
 }
 
-const mockChildren: Child[] = [
-  {
-    id: 'student_1',
-    name: 'أحمد محمد علي',
-    age: 14,
-    grade: 'السنة الثالثة متوسط',
-    school: 'متوسطة الشهيد محمد بوضياف',
-    deviceCapabilities: {
-      hasWearable: true,
-      hasBIA: true,
-      hasHeartRate: true,
-      hasGPS: true,
-      hasAdvancedMetrics: true
-    },
-    currentStats: {
-      steps: 8543,
-      stepsGoal: 10000,
-      distance: 6.2,
-      calories: 320,
-      heartRate: 78,
-      activeTime: 180,
-      sedentaryTime: 420
-    },
-    healthStatus: 'ممتاز',
-    lastActivity: 'منذ ساعتين',
-    upcomingSchedule: [
-      { activity: 'تدريب كرة القدم', time: '16:00', type: 'جماعي' },
-      { activity: 'تمرين القوة', time: '18:30', type: 'فردي' }
-    ]
-  },
-  {
-    id: 'student_2',
-    name: 'فاطمة الزهراء',
-    age: 16,
-    grade: 'السنة الثانية ثانوي',
-    school: 'ثانوية عبد الحميد بن باديس',
-    deviceCapabilities: {
-      hasWearable: true,
-      hasBIA: false,
-      hasHeartRate: true,
-      hasGPS: false,
-      hasAdvancedMetrics: false
-    },
-    currentStats: {
-      steps: 9200,
-      stepsGoal: 10000,
-      distance: 7.1,
-      calories: 380,
-      heartRate: 72,
-      activeTime: 210,
-      sedentaryTime: 390
-    },
-    healthStatus: 'جيد',
-    lastActivity: 'منذ 30 دقيقة',
-    upcomingSchedule: [
-      { activity: 'سباحة', time: '15:30', type: 'جماعي' },
-      { activity: 'يوغا', time: '19:00', type: 'فردي' }
-    ]
-  },
-  {
-    id: 'student_3',
-    name: 'يوسف أحمد',
-    age: 12,
-    grade: 'السنة الأولى متوسط',
-    school: 'متوسطة الإمام مالك',
-    deviceCapabilities: {
-      hasWearable: false,
-      hasBIA: false,
-      hasHeartRate: false,
-      hasGPS: false,
-      hasAdvancedMetrics: false
-    },
-    currentStats: {
-      steps: 0,
-      stepsGoal: 8000,
-      distance: 0,
-      calories: 0,
-      activeTime: 0,
-      sedentaryTime: 0
-    },
-    healthStatus: 'متوسط',
-    lastActivity: 'لا توجد بيانات',
-    upcomingSchedule: [
-      { activity: 'تمارين أساسية', time: '14:00', type: 'جماعي' }
-    ]
-  }
-];
+// Mock children moved to parentDataService
 
 interface ChildrenListProps {
   onSelectChild: (childId: string) => void;
@@ -148,7 +63,20 @@ interface ChildrenListProps {
 }
 
 export function ChildrenList({ onSelectChild, selectedChildId }: ChildrenListProps) {
-  const [children] = useState<Child[]>(mockChildren);
+  const [children, setChildren] = useState<Child[]>([]);
+
+  useEffect(() => {
+    setChildren(parentDataService.getChildren() as Child[]);
+  }, []);
+
+  const handleAddChild = () => {
+    const name = window.prompt('أدخل اسم الطفل الجديد:');
+    if (name && name.trim()) {
+      const grade = window.prompt('أدخل المستوى الدراسي (اختياري):', 'غير محدد') || 'غير محدد';
+      const newChild = parentDataService.addChild(name, grade);
+      setChildren([...children, newChild as Child]);
+    }
+  };
 
   const getHealthStatusColor = (status: string) => {
     switch (status) {
@@ -362,7 +290,7 @@ export function ChildrenList({ onSelectChild, selectedChildId }: ChildrenListPro
           <p className="text-sm text-gray-500 mb-4">
             أضف حساب طفل جديد لمتابعة تقدمه الرياضي
           </p>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleAddChild}>
             إضافة طفل
           </Button>
         </CardContent>

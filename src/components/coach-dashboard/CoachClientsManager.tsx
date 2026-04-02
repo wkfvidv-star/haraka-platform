@@ -253,7 +253,7 @@ export default function CoachClientsManager() {
                  {reportingClient === client.id ? (
                     <div className="space-y-4">
                       <h4 className="font-bold text-slate-900">إرسال تقرير أداء لـ {client.name}</h4>
-                      <div className="flex gap-2" dir="ltr">
+                      <div className="flex flex-col sm:flex-row gap-2" dir="ltr">
                          <Input min={0} max={100} type="number" placeholder="البدني (0-100)" className="rounded-xl bg-slate-50 text-right" dir="rtl" />
                          <Input min={0} max={100} type="number" placeholder="المعرفي (0-100)" className="rounded-xl bg-slate-50 text-right" dir="rtl" />
                          <Input min={0} max={100} type="number" placeholder="النفسي (0-100)" className="rounded-xl bg-slate-50 text-right" dir="rtl" />
