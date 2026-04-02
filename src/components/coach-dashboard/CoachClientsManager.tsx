@@ -14,9 +14,10 @@ import { toast } from 'sonner';
 
 export default function CoachClientsManager() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { setActiveTab } = useCoachDashboard();
+  const [reportingClient, setReportingClient] = useState<string | null>(null);
+  const { setActiveTab, trainees, sendPerformanceReport } = useCoachDashboard();
 
-  const filteredClients = coachClients.filter(c => 
+  const filteredClients = trainees.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -249,14 +250,34 @@ export default function CoachClientsManager() {
               
               {/* Modal Footer (Sticky Actions) */}
               <div className="p-4 md:p-6 bg-white border-t border-slate-100 shrink-0">
-                 <div className="flex flex-col sm:flex-row gap-3">
-                    <Button onClick={() => setActiveTab('messages')} variant="outline" className="flex-1 h-14 rounded-xl font-bold border-slate-200 text-slate-700 hover:bg-slate-50 text-base shadow-sm">
-                       <MessageSquare className="w-5 h-5 ml-2 text-blue-600" /> إرسال رسالة مباشرة
-                    </Button>
-                    <Button onClick={() => toast.success('تم فتح نافذة المعسكر المصغر')} className="flex-1 h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-base shadow-md">
-                       <Send className="w-5 h-5 ml-2 text-emerald-400" /> تعيين خطة جديدة
-                    </Button>
-                 </div>
+                 {reportingClient === client.id ? (
+                    <div className="space-y-4">
+                      <h4 className="font-bold text-slate-900">إرسال تقرير أداء لـ {client.name}</h4>
+                      <div className="flex gap-2" dir="ltr">
+                         <Input min={0} max={100} type="number" placeholder="البدني (0-100)" className="rounded-xl bg-slate-50 text-right" dir="rtl" />
+                         <Input min={0} max={100} type="number" placeholder="المعرفي (0-100)" className="rounded-xl bg-slate-50 text-right" dir="rtl" />
+                         <Input min={0} max={100} type="number" placeholder="النفسي (0-100)" className="rounded-xl bg-slate-50 text-right" dir="rtl" />
+                      </div>
+                      <div className="flex gap-3">
+                         <Button onClick={() => setReportingClient(null)} variant="outline" className="flex-1 rounded-xl font-bold border-slate-200">إلغاء</Button>
+                         <Button onClick={() => {
+                            sendPerformanceReport(client.id, {});
+                            setReportingClient(null);
+                         }} className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold text-white shadow-md">
+                           إرسال التقرير <Send className="w-4 h-4 mr-2" />
+                         </Button>
+                      </div>
+                    </div>
+                 ) : (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                       <Button onClick={() => setActiveTab('messages')} variant="outline" className="flex-1 h-14 rounded-xl font-bold border-slate-200 text-slate-700 hover:bg-slate-50 text-base shadow-sm">
+                          <MessageSquare className="w-5 h-5 ml-2 text-blue-600" /> إرسال رسالة مباشرة
+                       </Button>
+                       <Button onClick={() => setReportingClient(client.id)} className="flex-1 h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-base shadow-md">
+                          <Activity className="w-5 h-5 ml-2 text-emerald-400" /> إرسال تقرير أداء
+                       </Button>
+                    </div>
+                 )}
               </div>
 
             </DialogContent>

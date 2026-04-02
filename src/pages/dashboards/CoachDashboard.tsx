@@ -22,7 +22,7 @@ import CoachAnalytics from '@/components/coach-dashboard/CoachAnalytics';
 import CoachMessages from '@/components/coach-dashboard/CoachMessages';
 import CoachVideoReview from '@/components/coach-dashboard/CoachVideoReview';
 import { CoachOnboarding } from '@/components/coach-dashboard/CoachOnboarding';
-import { CoachDashboardContext, useCoachDashboard } from '@/contexts/CoachDashboardContext';
+import { CoachDashboardProvider, useCoachDashboard } from '@/contexts/CoachDashboardContext';
 import { RatingSystem } from '@/components/shared/RatingSystem';
 import { ChatSystem } from '@/components/shared/ChatSystem';
 import CoachLibrary from '@/components/coach-dashboard/CoachLibrary';
@@ -44,7 +44,7 @@ const TABS = [
 ];
 
 const CoachDashboardContent = () => {
-  const { activeTab, setActiveTab } = useCoachDashboard();
+  const { activeTab, setActiveTab, notifications, markNotificationsAsRead } = useCoachDashboard();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -181,41 +181,36 @@ const CoachDashboardContent = () => {
             <Popover>
               <PopoverTrigger className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors relative border-none outline-none focus:ring-2 focus:ring-blue-500">
                    <Bell className="w-6 h-6" />
-                   <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+                   {notifications.filter(n => !n.isRead).length > 0 && (
+                     <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+                   )}
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0 rounded-2xl border border-slate-200 shadow-2xl z-[100]" align="end" dir="rtl">
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-2xl">
                   <h3 className="font-bold text-slate-900 text-base">الإشعارات</h3>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-bold shadow-sm">2 جديد</Badge>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-bold shadow-sm">{notifications.filter(n => !n.isRead).length} جديد</Badge>
                 </div>
                 <div className="max-h-80 overflow-y-auto p-2 space-y-1">
-                  <div className="p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-200 shadow-sm hover:shadow-md">
-                    <div className="flex gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
-                        <Video className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-900">رحيم قد رفع فيديو جديد</p>
-                        <p className="text-xs text-slate-500 mt-1 font-medium bg-slate-100 inline-block px-2 py-0.5 rounded-md">تمرين الرفعة الميتة (Deadlift)</p>
-                        <span className="text-[10px] text-slate-400 mt-2 block font-medium">منذ 10 دقائق</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-200 shadow-sm hover:shadow-md">
-                    <div className="flex gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
-                        <Calendar className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-900">طلب موعد جديد</p>
-                        <p className="text-xs text-slate-500 mt-1 leading-snug">عبدالله طلب موعداً لجلسة تقييم غداً</p>
-                        <span className="text-[10px] text-slate-400 mt-2 block font-medium">منذ ساعتين</span>
+                  {notifications.map(notification => (
+                    <div key={notification.id} className={`p-3 ${notification.isRead ? 'opacity-70' : 'bg-slate-50'} rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-200 shadow-sm hover:shadow-md`}>
+                      <div className="flex gap-3">
+                        <div className={`w-10 h-10 rounded-full ${notification.type === 'calendar' ? 'bg-emerald-100 text-emerald-600' : notification.type === 'video' ? 'bg-blue-100 text-blue-600' : notification.type === 'report' ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-600'} flex items-center justify-center shrink-0 shadow-inner`}>
+                          {notification.type === 'calendar' ? <Calendar className="w-5 h-5" /> : notification.type === 'video' ? <Video className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-slate-900">{notification.title}</p>
+                          <p className={`text-xs ${notification.type === 'video' ? 'mt-1 font-medium bg-slate-100 inline-block px-2 py-0.5 rounded-md text-slate-500' : 'text-slate-500 mt-1 leading-snug'}`}>{notification.message}</p>
+                          <span className="text-[10px] text-slate-400 mt-2 block font-medium">{notification.timeAgo}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
+                  {notifications.length === 0 && (
+                    <div className="p-4 text-center text-sm font-medium text-slate-500">لا توجد إشعارات جديدة</div>
+                  )}
                 </div>
                 <div className="p-3 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
-                  <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-xl font-bold">تعيين الكل كمقروء</Button>
+                  <Button onClick={markNotificationsAsRead} variant="ghost" className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-xl font-bold">تعيين الكل كمقروء</Button>
                 </div>
               </PopoverContent>
             </Popover>
@@ -255,15 +250,14 @@ const CoachDashboardContent = () => {
 
 export default function CoachDashboard() {
   const [showOnboarding, setShowOnboarding] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <CoachDashboardContext.Provider value={{ activeTab, setActiveTab }}>
+    <CoachDashboardProvider>
       {showOnboarding ? (
         <CoachOnboarding onComplete={() => setShowOnboarding(false)} />
       ) : (
         <CoachDashboardContent />
       )}
-    </CoachDashboardContext.Provider>
+    </CoachDashboardProvider>
   );
 }
