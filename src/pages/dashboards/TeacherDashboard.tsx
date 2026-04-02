@@ -213,7 +213,7 @@ export default function TeacherDashboard() {
                     </div>
                     <div className="max-h-80 overflow-y-auto">
                        {/* Notification 1: Student */}
-                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
+                       <div onClick={() => { setActiveTab('video-review'); setShowNotifications(false); console.log('[Audit Log] الأستاذ تصفح إشعار استلام عمل التلميذ'); }} className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
                           <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                              <Video className="w-5 h-5" />
                           </div>
@@ -225,7 +225,7 @@ export default function TeacherDashboard() {
                        </div>
                        
                        {/* Notification 2: Principal */}
-                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
+                       <div onClick={() => { setActiveTab('reports'); setShowNotifications(false); console.log('[Audit Log] الأستاذ تصفح إشعار طلب إدارة الأكاديمية للتقارير'); }} className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
                           <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
                              <ClipboardList className="w-5 h-5" />
                           </div>
@@ -237,7 +237,7 @@ export default function TeacherDashboard() {
                        </div>
 
                        {/* Notification 3: Parent */}
-                       <div className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
+                       <div onClick={() => { setActiveTab('class'); setShowNotifications(false); console.log('[Audit Log] الأستاذ تصفح إشعار استفسار ولي أمر'); }} className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start">
                           <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
                              <Users className="w-5 h-5" />
                           </div>

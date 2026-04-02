@@ -286,6 +286,10 @@ export function TeacherVideoReview() {
       clearCanvas();
       setIsDrawingMode(false);
       
+      // Audit Log Background Execution
+      console.log(`[Audit Log] ${new Date().toISOString()} - الأستاذ قيّم عمل التلميذ ${activeVideo.studentName} بنتيجة ${totalScore}`);
+      console.log(`[Audit Log] ${new Date().toISOString()} - إرسال إشعار للمستلم: ${activeVideo.studentName}`);
+
       toast({
         title: "اكتمل التقييم بنجاح! ✅",
         description: `تم حفظ النتائج وإرسال إشعار فوري للتلميذ بدرجاته (${totalScore} XP).`,

@@ -82,11 +82,16 @@ export function TeacherReports() {
           date: new Date().toISOString()
         });
         localStorage.setItem('haraka_sent_reports', JSON.stringify(existing));
+        
+        // Audit Log
+        console.log(`[Audit Log] ${new Date().toISOString()} - الأستاذ استخرج تقريراً (${reportType}) للتلميذ ${selectedStudent.name}`);
+        console.log(`[Audit Log] ${new Date().toISOString()} - إرسال التقرير بنجاح عبر إشعار PDF للجهة: ${exportRecipient === 'parent' ? 'ولي الأمر' : 'الإدارة'}`);
+        
       } catch(e) {}
 
       toast({
         title: "تم الإرسال والحفظ",
-        description: exportRecipient === 'parent' ? 'تم إرسال التقرير بنجاح لواجهة ولي الأمر.' : 'تم إرسال التقرير بنجاح لواجهة مدير المؤسسة.',
+        description: exportRecipient === 'parent' ? 'تم إرسال التقرير بنجاح لواجهة ولي الأمر مع رابط PDF.' : 'تم إرسال التقرير بنجاح لواجهة مدير المؤسسة مع رابط PDF.',
         className: "bg-emerald-50 border-emerald-200 text-emerald-900"
       });
     }, 2000);

@@ -6,11 +6,20 @@ import { useTeacherClassData } from '@/hooks/useTeacherClassData';
 
 export function TeacherClassManager() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState('الكل');
+  const [messagingStudent, setMessagingStudent] = useState<any>(null);
+  const [messageType, setMessageType] = useState<'text' | 'meeting'>('text');
+  const [messageText, setMessageText] = useState('');
+  const [isSendingMsg, setIsSendingMsg] = useState(false);
   const { students: teacherStudents, stats } = useTeacherClassData();
 
   const filteredStudents = useMemo(() => {
-    return teacherStudents.filter(s => s.name.includes(searchTerm));
-  }, [searchTerm, teacherStudents]);
+    return teacherStudents.filter(s => {
+      const matchSearch = s.name.includes(searchTerm);
+      const matchLevel = levelFilter === 'الكل' || (s.level && s.level.includes(levelFilter));
+      return matchSearch && matchLevel;
+    });
+  }, [searchTerm, levelFilter, teacherStudents]);
 
   const totalStudents = stats.totalStudents;
   const activeStudents = stats.activeStudents;
@@ -21,7 +30,7 @@ export function TeacherClassManager() {
     <div className="max-w-[1400px] mx-auto p-6 md:p-10 space-y-8 bg-[#F9F9F8] min-h-full">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
              <Users className="w-8 h-8 text-blue-600" />
@@ -39,12 +48,68 @@ export function TeacherClassManager() {
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button variant="outline" className="h-12 px-6 text-base font-bold text-slate-700 bg-white border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50">
-            <Filter className="w-5 h-5 ml-2" />
-            تصفية
-          </Button>
+          <select 
+            value={levelFilter}
+            onChange={e => setLevelFilter(e.target.value)}
+            className="h-12 px-4 text-base font-bold text-slate-700 bg-white border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 appearance-none pr-8 cursor-pointer relative"
+          >
+            <option value="الكل">جميع المستويات</option>
+            <option value="ابتدائي">الابتدائي</option>
+            <option value="متوسط">المتوسط</option>
+            <option value="ثانوي">الثانوي</option>
+          </select>
         </div>
       </div>
+
+      {/* MESSAGING MODAL */}
+      {messagingStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative overflow-hidden">
+            <h3 className="text-2xl font-black text-slate-900 mb-2">التواصل مع ولي الأمر</h3>
+            <p className="text-sm font-bold text-slate-500 mb-6">ولي التلميذ: {messagingStudent.name}</p>
+            
+            <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl">
+              <button onClick={() => setMessageType('text')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${messageType === 'text' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}>رسالة نصية</button>
+              <button onClick={() => setMessageType('meeting')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${messageType === 'meeting' ? 'bg-white shadow text-emerald-600' : 'text-slate-500 hover:text-slate-800'}`}>طلب اجتماع</button>
+            </div>
+
+            {messageType === 'text' ? (
+              <textarea 
+                placeholder="اكتب رسالتك لولي الأمر هنا..."
+                className="w-full h-32 p-4 border-2 border-slate-200 rounded-xl resize-none focus:ring-4 focus:ring-blue-50/50 outline-none transition-colors hover:border-blue-300 font-medium text-slate-800"
+                value={messageText}
+                onChange={e => setMessageText(e.target.value)}
+              />
+            ) : (
+              <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl text-emerald-800">
+                <p className="font-bold mb-2">سيتم إرسال دعوة لاجتماع افتراضي:</p>
+                <input type="datetime-local" className="w-full p-3 rounded-lg border border-emerald-200 bg-white font-medium text-sm mt-2" />
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-6">
+              <Button 
+                onClick={() => {
+                  setIsSendingMsg(true);
+                  setTimeout(() => {
+                    setIsSendingMsg(false);
+                    setMessagingStudent(null);
+                    setMessageText('');
+                    // Mock Audit Log
+                    const typeStr = messageType === 'text' ? 'رسالة نصية' : 'طلب اجتماع';
+                    console.log(`[Audit Log] الأستاذ أرسل ${typeStr} لولي أمر التلميذ ${messagingStudent.name}`);
+                  }, 1500);
+                }}
+                disabled={isSendingMsg || (messageType === 'text' && !messageText.trim())}
+                className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md"
+              >
+                {isSendingMsg ? 'جاري الإرسال...' : 'إرسال لولي الأمر'}
+              </Button>
+              <Button variant="outline" onClick={() => setMessagingStudent(null)} className="h-12 w-24 rounded-xl font-bold border-slate-200 text-slate-600">إلغاء</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TOP KPI WIDGETS (BENTO GRID STYLE) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -170,7 +235,7 @@ export function TeacherClassManager() {
                   <Button className="w-full bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors h-12 shadow-md">
                     الملف الشخصي
                   </Button>
-                  <Button variant="outline" className="w-full font-bold rounded-xl border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors h-12">
+                  <Button onClick={() => setMessagingStudent(student)} variant="outline" className="w-full font-bold rounded-xl border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors h-12">
                     <MessageSquare className="w-4 h-4 ml-2" /> مراسلة
                   </Button>
                </div>
