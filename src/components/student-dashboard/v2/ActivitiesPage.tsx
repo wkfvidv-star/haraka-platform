@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Flame, Play, Clock, Zap, Shield, Wind, Heart,
     Brain, Activity, CheckCircle2, ChevronDown, ChevronRight,
-    Star, Trophy, Users, Calendar, MapPin,
+    Star, Trophy, Users, Calendar, MapPin, User,
     Sparkles, Target, Eye, ArrowRight,
     TrendingUp, Award, BarChart2, School, Building2, Flag, Dumbbell
 } from 'lucide-react';
@@ -22,6 +22,8 @@ import { VideoSubmissionModal } from './VideoSubmissionModal';
 import { AssignmentPlayer, TeacherAssignment } from './AssignmentPlayer';
 import { BaseExercise } from '@/types/ExerciseTypes';
 import { MOTOR_PROGRAMS_DB } from '@/data/motorProgramsDb';
+import { youthDataService } from '@/services/youthDataService';
+import { auditService } from '@/services/auditService';
 
 // ─────────────────────────────────────────
 //  Types
@@ -517,6 +519,9 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
             xpReward: xp,
             stages: generatedStages
         });
+
+        // BACKGROUND AUDIT LOG 
+        auditService.log('بدء جلسة', `بدأ التلميذ جلسة: ${name} (فئة: ${category})`, 'youth');
     };
 
     return (
@@ -664,6 +669,107 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
             </motion.section>
 
             {/* ══════════════════════════════════════════
+                1.5 SESSIONS & TASKS  ★ NEW
+            ══════════════════════════════════════════ */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                {/* UPCOMING SESSIONS */}
+                <motion.section
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 }}
+                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 shadow-sm"
+                >
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">جدول الحصص القادمة</h3>
+                    </div>
+                    <div className="space-y-4">
+                        {youthDataService.getSessions().length === 0 ? (
+                            <p className="text-center py-8 text-slate-400 font-bold">لا توجد حصص قادمة حالياً.</p>
+                        ) : (
+                            youthDataService.getSessions().map(session => (
+                                <div key={session.id} className="group bg-slate-50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-blue-500/30 p-5 rounded-2xl transition-all flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={cn(
+                                            "w-3 h-12 rounded-full",
+                                            session.category === 'physical' ? 'bg-orange-500' : session.category === 'cognitive' ? 'bg-emerald-500' : 'bg-purple-500'
+                                        )} />
+                                        <div>
+                                            <h4 className="font-black text-slate-900 dark:text-white text-lg">{session.title}</h4>
+                                            <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
+                                                <Clock className="w-4 h-4" /> {session.time} · {session.date} · {session.coach}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className={cn(
+                                            "text-[10px] font-black px-3 py-1 rounded-full",
+                                            session.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+                                        )}>
+                                            {session.status === 'confirmed' ? 'مؤكد' : 'قيد الانتظار'}
+                                        </span>
+                                        <p className="text-[10px] text-slate-400 font-bold">{session.location || 'أونلاين'}</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </motion.section>
+
+                {/* PENDING TASKS */}
+                <motion.section
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 shadow-sm"
+                >
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                            <Target className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">المهام والواجبات</h3>
+                    </div>
+                    <div className="space-y-4">
+                        {youthDataService.getTasks().filter(t => t.status !== 'completed').length === 0 ? (
+                            <p className="text-center py-8 text-slate-400 font-bold">لا توجد مهام معلقة. أحسنت!</p>
+                        ) : (
+                            youthDataService.getTasks().filter(t => t.status !== 'completed').map(task => (
+                                <div key={task.id} className="group bg-slate-50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-rose-500/30 p-5 rounded-2xl transition-all flex flex-col gap-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="font-black text-slate-900 dark:text-white text-lg">{task.title}</h4>
+                                            <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
+                                                <User className="w-3.5 h-3.5" /> {task.coach}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className={cn("text-xs font-black", task.status === 'late' ? 'text-rose-500' : 'text-slate-400')}>
+                                                موعد التسليم: {task.dueDate}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100 dark:border-white/5">
+                                        <p className="text-xs text-slate-400 font-bold flex-1 pr-4">{task.details}</p>
+                                        <button 
+                                            onClick={() => {
+                                                auditService.log('بدء مهمة', `بدأ التلميذ العمل على مهمة: ${task.title}`, 'youth');
+                                                handleRequestVideoSubmission(task.title);
+                                            }}
+                                            className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-black px-4 py-2 rounded-xl shadow-lg shadow-rose-500/20 transition-all flex items-center gap-2"
+                                        >
+                                            إرسال الواجب <ArrowRight className="w-3 h-3 mirror-rtl" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </motion.section>
+            </div>
+
+            {/* ══════════════════════════════════════════
                 2. MOVEMENT FINGERPRINT SUMMARY
             ══════════════════════════════════════════ */}
             <motion.section
@@ -749,6 +855,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                                     whileHover={{ y: -3, scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => {
+                                        auditService.log('اختيار توصية ذكية', `اختار التوصية: ${s.name}`, 'youth');
                                         if (s.route === 'motor') setActiveMotorGameId({ id: s.gameId, title: s.name });
                                         else if (s.route === 'cognitive') setActiveCognitiveGameId(s.gameId);
                                         else if (s.route === 'psych') setActivePsychGameId(s.gameId);

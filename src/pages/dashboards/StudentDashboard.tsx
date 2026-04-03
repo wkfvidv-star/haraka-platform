@@ -16,13 +16,18 @@ import { VideoRecordingPage }       from '@/components/student-dashboard/v2/Vide
 import { StudentProfileSettingsPage } from '@/components/student-dashboard/v2/StudentProfileSettingsPage';
 import { SupportHelpPage }            from '@/components/student-dashboard/v2/SupportHelpPage';
 import { GPSActivityHub }           from '@/components/youth-dashboard/gps/GPSActivityHub';
+import { StudentMessaging }         from '@/components/student-dashboard/v2/StudentMessaging';
+import { StudentReports }           from '@/components/student-dashboard/v2/StudentReports';
+import { NutritionExercisePlans }   from '@/components/student-dashboard/v2/NutritionExercisePlans';
+import { youthDataService }         from '@/services/youthDataService';
+import { auditService }             from '@/services/auditService';
 
 // ─── Shared / Service Components ────────────────────────────────────
 import { SmartAccessModal }  from '@/components/access/SmartAccessModal';
 import { HealthSurveyModal } from '@/components/health/HealthSurveyModal';
 import { PostHealthActivitiesModal } from '@/components/health/PostHealthActivitiesModal';
 import { VideoSubmissionModal } from '@/components/student-dashboard/v2/VideoSubmissionModal';
-import { MOCK_TEACHER_ASSIGNMENTS, COACH_EXERCISES } from '@/data/mockAssignments';
+import { MOCK_TEACHER_ASSIGNMENTS } from '@/data/mockAssignments';
 import { db, VideoSubmissionRecord } from '@/lib/mockDatabase';
 import { profileService }    from '@/services/profileService';
 import { cn } from '@/lib/utils';
@@ -37,13 +42,16 @@ import {
   Settings, HelpCircle, LogOut, Bell, Search, Zap, Target,
   Shield, Brain, Trophy, Star, Play, ChevronRight, MessageSquare,
   Dumbbell, Clock, CheckCircle2, Activity, Sparkles, PlayCircle, RefreshCw, Video, Camera, Users, ArrowUpRight,
-  Navigation, MapPin
+  Navigation, MapPin, FileText, Utensils
 } from 'lucide-react';
 
 // ─── Tab definition ──────────────────────────────────────────────────
 const TABS = [
   { id: 'home',        labelAr: 'الرئيسية',             icon: LayoutDashboard },
-  { id: 'training',    labelAr: 'أهدافي وتماريني',       icon: Target },
+  { id: 'training',    labelAr: 'المختبر الحركي',       icon: Target },
+  { id: 'reports',     labelAr: 'التقارير والتقييم',      icon: FileText },
+  { id: 'nutrition',   labelAr: 'التغذية والخطط',       icon: Utensils },
+  { id: 'messaging',   labelAr: 'تواصل مع أستاذك',      icon: MessageSquare },
   { id: 'fingerprint', labelAr: 'تحليلي ومواهبي',        icon: Fingerprint },
   { id: 'videos',      labelAr: 'سجل أدائك (فيديو)',   icon: Camera },
   { id: 'progress',    labelAr: 'التحديات والمنافسات',  icon: Trophy },
@@ -251,7 +259,7 @@ function ChallengesBento() {
 
 // ── Error Boundary for Debugging ──────────────────────────────
 class AppErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
-  constructor(props) {
+  constructor(props: {children: React.ReactNode}) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -271,6 +279,11 @@ class AppErrorBoundary extends React.Component<{children: React.ReactNode}, {has
     return this.props.children;
   }
 }
+
+const COACH_EXERCISES = [
+  { id: 'ce1', exerciseName: 'تحليل تكنيك السكوات', coachName: 'الكابتن أحمد', status: 'pending' },
+  { id: 'ce2', exerciseName: 'اختبار الرشاقة الميداني', coachName: 'الكابتن أحمد', status: 'pending' }
+];
 
 // ── Teacher & Coach Hub (New Request) ──────────────────────────────
 function TeacherCoachHubBento({ onSelectExercise }: { onSelectExercise: () => void }) {
@@ -355,14 +368,18 @@ function TeacherCoachHubBento({ onSelectExercise }: { onSelectExercise: () => vo
           </div>
 
           <div className="grid grid-cols-1 gap-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-            {MOCK_TEACHER_ASSIGNMENTS.map(assign => (
+            {/* Show Teacher Assignments from youthDataService */}
+            {youthDataService.getTasks().filter(t => t.status !== 'completed').map(assign => (
                <motion.div key={assign.id} whileHover={{ scale: 1.01 }} onClick={onSelectExercise} className="bg-gradient-to-l from-indigo-500/10 to-transparent border border-indigo-500/30 hover:bg-indigo-500/20 cursor-pointer rounded-2xl p-5 flex items-center justify-between transition-all">
                   <div>
-                    <span className="text-[10px] font-black text-white bg-rose-500 px-2 py-0.5 rounded-full mb-2 inline-block">مطلوب من المعلم</span>
+                    <span className="text-[10px] font-black text-white bg-rose-500 px-2 py-0.5 rounded-full mb-2 inline-block">مهمة تعليمية</span>
                     <h4 className="font-black text-white text-lg">{assign.title}</h4>
-                    <p className="text-sm text-indigo-200 font-bold mt-1 flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {assign.teacherName}</p>
+                    <p className="text-sm text-indigo-200 font-bold mt-1 flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {assign.coach}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"><Play className="w-5 h-5 fill-white translate-x-0.5" /></div>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"><Play className="w-5 h-5 fill-white translate-x-0.5" /></div>
+                    <span className="text-[10px] text-rose-300 font-bold">موعد: {assign.dueDate}</span>
+                  </div>
                </motion.div>
             ))}
             {COACH_EXERCISES.map(ce => (
@@ -658,7 +675,38 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab]             = useState<TabId | 'settings' | 'help'>('home');
   const [isSidebarOpen, setIsSidebarOpen]     = useState(true);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
-  const [showPostHealthModal, setShowPostHealthModal] = useState(false); // New state for post-health activity selection
+  const [showPostHealthModal, setShowPostHealthModal] = useState(false); 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Sync notifications with real service data
+  useEffect(() => {
+    const syncData = () => {
+      const reports = youthDataService.getReports();
+      const messages = youthDataService.getMessages();
+      
+      const newNotifs = [
+        ...reports.filter(r => r.status === 'new').map(r => ({
+          id: `r-${r.id}`,
+          text: `تقرير جديد: ${r.title}`,
+          time: r.date,
+          type: 'report'
+        })),
+        ...messages.filter(m => m.sender === 'coach' && m.status === 'unseen').map(m => ({
+          id: `m-${m.id}`,
+          text: `رسالة جديدة من المدرب: ${m.text.substring(0, 30)}...`,
+          time: 'الآن',
+          type: 'message'
+        }))
+      ];
+      
+      setNotifications(newNotifs);
+      setUnreadCount(newNotifs.length);
+    };
+
+    syncData();
+    const interval = setInterval(syncData, 5000); // Poll for updates
+    return () => clearInterval(interval);
+  }, []);
 
   // Modals & Navigation
   const [showSmartAccess, setShowSmartAccess] = useState(false); // Added
@@ -1192,6 +1240,33 @@ export default function StudentDashboard() {
                     exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
                   >
                     <ActivitiesPage onComplete={fetchDashboardData} />
+                  </motion.div>
+                )}
+
+                {activeTab === 'reports' && (
+                  <motion.div key="reports"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
+                  >
+                    <StudentReports />
+                  </motion.div>
+                )}
+
+                {activeTab === 'nutrition' && (
+                  <motion.div key="nutrition"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
+                  >
+                    <NutritionExercisePlans />
+                  </motion.div>
+                )}
+
+                {activeTab === 'messaging' && (
+                  <motion.div key="messaging"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
+                  >
+                    <StudentMessaging />
                   </motion.div>
                 )}
 

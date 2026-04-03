@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,36 +7,7 @@ import {
   ChevronLeft, User, Dumbbell, Wifi, AlertCircle 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface Session {
-  id: string;
-  title: string;
-  coach: string;
-  time: string;
-  date: string;
-  type: 'in-person' | 'online' | 'group';
-  location?: string;
-  status: 'upcoming' | 'confirmed' | 'completed' | 'cancelled';
-  duration: string;
-}
-
-const mockSessions: Session[] = [
-  {
-    id: 's1', title: 'حصة القوة والتحمل', coach: 'م. يوسف بن علي',
-    time: '10:00 ص', date: 'الثلاثاء 26 مارس', type: 'in-person',
-    location: 'القاعة A', status: 'confirmed', duration: '60 دقيقة'
-  },
-  {
-    id: 's2', title: 'تدريب الإدراك الحركي', coach: 'م. يوسف بن علي',
-    time: '06:00 م', date: 'الأربعاء 27 مارس', type: 'online',
-    status: 'upcoming', duration: '45 دقيقة'
-  },
-  {
-    id: 's3', title: 'تمرين الفريق الأسبوعي', coach: 'م. يوسف بن علي',
-    time: '08:00 ص', date: 'الجمعة 29 مارس', type: 'group',
-    location: 'الملعب الرئيسي', status: 'upcoming', duration: '90 دقيقة'
-  }
-];
+import { youthDataService, YouthSession } from '@/services/youthDataService';
 
 const typeConfig = {
   'in-person': { label: 'حضوري', color: 'bg-emerald-50 text-emerald-700', icon: MapPin },
@@ -48,18 +19,26 @@ const statusConfig = {
   upcoming: { label: 'قادمة', dot: 'bg-orange-400' },
   confirmed: { label: 'مؤكدة', dot: 'bg-green-500' },
   completed: { label: 'مكتملة', dot: 'bg-slate-400' },
-  cancelled: { label: 'ملغاة', dot: 'bg-red-400' }
+  cancelled: { label: 'ملغاة', dot: 'bg-red-400' },
+  postponed: { label: 'مؤجلة', dot: 'bg-yellow-400' }
 };
 
 export function CoachScheduledSessions() {
-  const [confirmedIds, setConfirmedIds] = useState<string[]>([]);
+  const [sessions, setSessions] = useState<YouthSession[]>([]);
 
-  const confirm = (id: string) => setConfirmedIds(prev => [...prev, id]);
+  useEffect(() => {
+    setSessions(youthDataService.getSessions());
+  }, []);
 
-  const sessions = mockSessions.map(s => ({
-    ...s,
-    status: confirmedIds.includes(s.id) ? 'confirmed' as const : s.status
-  }));
+  const confirm = (id: string) => {
+    youthDataService.updateSessionStatus(id, 'confirmed');
+    setSessions(youthDataService.getSessions());
+  };
+
+  const cancel = (id: string) => {
+    youthDataService.updateSessionStatus(id, 'cancelled');
+    setSessions(youthDataService.getSessions());
+  };
 
   const upcoming = sessions.filter(s => s.status !== 'completed' && s.status !== 'cancelled');
 
@@ -131,13 +110,23 @@ export function CoachScheduledSessions() {
 
                 <div className="flex items-center gap-2">
                   {s.status === 'upcoming' && (
-                    <Button
-                      size="sm"
-                      onClick={() => confirm(s.id)}
-                      className="bg-slate-900 hover:bg-slate-800 text-white font-bold h-9 px-4 rounded-xl flex-1"
-                    >
-                      <CheckCircle2 className="w-4 h-4 ml-1" /> تأكيد الحضور
-                    </Button>
+                    <div className="flex-1 flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => confirm(s.id)}
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-bold h-9 px-4 rounded-xl flex-1"
+                      >
+                        <CheckCircle2 className="w-4 h-4 ml-1" /> تأكيد الحضور
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => cancel(s.id)}
+                        className="border-red-100 text-red-500 hover:bg-red-50 font-bold h-9 px-3 rounded-xl"
+                      >
+                        إلغاء
+                      </Button>
+                    </div>
                   )}
                   {s.type === 'online' && (
                     <Button

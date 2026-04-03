@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -7,21 +7,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { youthDataService, YouthMeal } from '@/services/youthDataService';
 
-interface Meal {
-  id: string;
-  name: string;
-  time: string;
-  emoji: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  foods: { name: string; qty: string; cal: number }[];
-  completed: boolean;
-}
-
-const mockPlan = {
+const defaultPlan = {
   targetCalories: 2400,
   targetProtein: 160,
   date: 'الثلاثاء، 26 مارس',
@@ -74,28 +62,37 @@ const mockPlan = {
         { name: 'زبادي', qty: '150 غرام', cal: 85 }
       ]
     }
-  ] as Meal[]
+  ] as YouthMeal[]
 };
 
 export function CoachNutritionPlan() {
-  const [completedMeals, setCompletedMeals] = useState<string[]>(['m1', 'm2']);
+  const [meals, setMeals] = useState<YouthMeal[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  useEffect(() => {
+    const existing = youthDataService.getNutritionPlan();
+    if (existing.length === 0) {
+       youthDataService.saveNutritionPlan(defaultPlan.meals);
+       setMeals(defaultPlan.meals);
+    } else {
+       setMeals(existing);
+    }
+  }, []);
+
   const toggleMeal = (id: string) => {
-    setCompletedMeals(prev => 
-      prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
-    );
+    youthDataService.toggleMealCompletion(id);
+    setMeals(youthDataService.getNutritionPlan());
   };
 
-  const consumedCal = mockPlan.meals
-    .filter(m => completedMeals.includes(m.id))
+  const consumedCal = meals
+    .filter(m => m.completed)
     .reduce((sum, m) => sum + m.calories, 0);
-  const consumedProtein = mockPlan.meals
-    .filter(m => completedMeals.includes(m.id))
+  const consumedProtein = meals
+    .filter(m => m.completed)
     .reduce((sum, m) => sum + m.protein, 0);
 
-  const calProgress = Math.round((consumedCal / mockPlan.targetCalories) * 100);
-  const proteinProgress = Math.round((consumedProtein / mockPlan.targetProtein) * 100);
+  const calProgress = Math.round((consumedCal / defaultPlan.targetCalories) * 100);
+  const proteinProgress = Math.round((consumedProtein / defaultPlan.targetProtein) * 100);
 
   return (
     <div className="space-y-4">
@@ -104,7 +101,7 @@ export function CoachNutritionPlan() {
           <Utensils className="w-5 h-5 text-emerald-500" />
           البرنامج الغذائي اليومي
         </h3>
-        <div className="text-xs font-bold text-slate-400">{mockPlan.date}</div>
+        <div className="text-xs font-bold text-slate-400">{defaultPlan.date}</div>
       </div>
 
       {/* Daily Progress Card */}
@@ -115,12 +112,12 @@ export function CoachNutritionPlan() {
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">إجمالي اليوم</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-black text-white">{consumedCal}</span>
-              <span className="text-slate-400 font-bold text-sm">/ {mockPlan.targetCalories} سعر</span>
+              <span className="text-slate-400 font-bold text-sm">/ {defaultPlan.targetCalories} سعر</span>
             </div>
           </div>
           <div className="text-right">
             <p className="text-slate-400 text-xs font-bold mb-1">البروتين</p>
-            <p className="text-xl font-black text-emerald-400">{consumedProtein}g <span className="text-slate-500 text-sm font-bold">/ {mockPlan.targetProtein}g</span></p>
+            <p className="text-xl font-black text-emerald-400">{consumedProtein}g <span className="text-slate-500 text-sm font-bold">/ {defaultPlan.targetProtein}g</span></p>
           </div>
         </div>
         <div className="space-y-2 relative z-10">
@@ -138,14 +135,14 @@ export function CoachNutritionPlan() {
           </div>
         </div>
         <p className="text-slate-500 text-xs font-medium mt-3 relative z-10">
-          خطة غذائية من: {mockPlan.coach}
+          خطة غذائية من: {defaultPlan.coach}
         </p>
       </div>
 
       {/* Meals */}
       <div className="space-y-2">
-        {mockPlan.meals.map((meal) => {
-          const isCompleted = completedMeals.includes(meal.id);
+        {meals.map((meal) => {
+          const isCompleted = meal.completed;
           const isOpen = expanded === meal.id;
           
           return (

@@ -8,7 +8,8 @@ import {
   Map, Crosshair, Crown, Zap, BarChart3, Users, 
   TestTube, ShieldAlert, Sparkles, BookOpen, Clock, AlertTriangle,
   Coins, User, Home, Calendar, Camera, Wind, Sun, LogOut, Video,
-  Navigation, Satellite, Menu, X, Gift
+  Navigation, Satellite, Menu, X, Gift, 
+  History, Utensils, MessageSquare, BellRing
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -51,6 +52,11 @@ import { GPSActivityHub } from '@/components/youth-dashboard/gps/GPSActivityHub'
 import { PhysicalPerformanceSection } from '@/components/youth-dashboard/development/PhysicalPerformanceSection';
 import { RehabilitationSection } from '@/components/youth-dashboard/development/RehabilitationSection';
 import { ARTrainingSection } from '@/components/youth-dashboard/innovation/ARTrainingSection';
+import { CoachScheduledSessions } from '@/components/youth-dashboard/CoachScheduledSessions';
+import { CoachNutritionPlan } from '@/components/youth-dashboard/CoachNutritionPlan';
+import { YouthAuditLogWidget } from '@/components/youth-dashboard/YouthAuditLogWidget';
+import { youthDataService } from '@/services/youthDataService';
+import { useToast } from '@/hooks/use-toast';
 
 
 
@@ -58,6 +64,7 @@ export default function YouthDashboard() {
   const { language } = useLanguage();
   const isRTL = language === 'ar';
   const { user, logout } = useAuth();
+  const { toast } = useToast();
   
   // Mandatory Onboarding Flow State
   const [onboardingPhase, setOnboardingPhase] = useState<'slides' | 'questionnaire' | 'tech-intro' | 'test' | 'complete'>('slides');
@@ -70,9 +77,18 @@ export default function YouthDashboard() {
   const [hceInsights, setHCEInsights] = useState<any>(null);
 
   useEffect(() => {
-    // Force onboarding every time as requested by user
-    // The onboarding phase state initializes to 'slides'
-  }, []);
+    // Listen for new messages
+    const handleNewMessage = (e: any) => {
+      toast({
+        title: "✉️ رسالة جديدة من المدرب",
+        description: e.detail.text.substring(0, 50) + "...",
+        variant: "default"
+      });
+    };
+
+    window.addEventListener('haraka_new_coach_message', handleNewMessage);
+    return () => window.removeEventListener('haraka_new_coach_message', handleNewMessage);
+  }, [toast]);
 
   const completeOnboarding = () => {
     // Don't save to localStorage so it runs every time
@@ -100,9 +116,15 @@ export default function YouthDashboard() {
       { id: 'rewards', label: 'نظام المكافآت', icon: Gift },
     ],
     development: [
+      { id: 'physical', label: 'الأداء الحركي', icon: Flame },
       { id: 'cognitive', label: 'التطوير الذهني', icon: Brain },
       { id: 'academic', label: 'التطوير الأكاديمي', icon: BookOpen },
       { id: 'mental', label: 'الدعم النفسي', icon: Wind },
+    ],
+    management: [
+      { id: 'sessions', label: 'حصصي المجدولة', icon: Calendar },
+      { id: 'nutrition', label: 'النظام الغذائي', icon: Utensils },
+      { id: 'audit-log', label: 'سجل النشاط', icon: History },
     ]
   };
 
@@ -258,10 +280,30 @@ export default function YouthDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
              <div className="lg:col-span-8 flex flex-col gap-5">
-                {/* Inbox replaces standard components layout */}
+                {/* Unified Inbox & Communication Hub */}
                 <CoachInboxWidget />
+                
+                {/* Recent Sessions Quick View */}
+                <Card className="bg-white/5 border-white/5 overflow-hidden">
+                   <CardHeader className="pb-2 border-b border-white/5">
+                      <CardTitle className="text-white text-sm font-black flex items-center justify-between">
+                         <span>الحصص القادمة</span>
+                         <Button variant="ghost" size="sm" onClick={() => setActiveTab('sessions')} className="text-[10px] text-indigo-400">عرض الكل</Button>
+                      </CardTitle>
+                   </CardHeader>
+                   <CardContent className="p-0">
+                      <CoachScheduledSessions />
+                   </CardContent>
+                </Card>
              </div>
              <div className="lg:col-span-4 flex flex-col gap-5">
+                <Button 
+                   onClick={() => setShowBooking(true)}
+                   className="h-16 bg-gradient-to-r from-orange-500 to-rose-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-orange-500/20 gap-3 border-none group"
+                >
+                   <Calendar className="w-6 h-6 group-hover:scale-110 transition-transform" /> 
+                   حجز حصة جديدة
+                </Button>
                 <SmartMetricsWidget />
                 <DailyMissionCard onStart={() => setActiveTab('competitions')} />
              </div>
@@ -297,6 +339,11 @@ export default function YouthDashboard() {
     if (activeTab === 'cognitive') return <CognitiveSection />;
     if (activeTab === 'academic') return <AcademicSection />;
     if (activeTab === 'mental') return <MentalWellBeingSection />;
+    
+    // --- Management Integration ---
+    if (activeTab === 'sessions') return <CoachScheduledSessions />;
+    if (activeTab === 'nutrition') return <CoachNutritionPlan />;
+    if (activeTab === 'audit-log') return <YouthAuditLogWidget />;
     
     // Fallback for missing tabs
     return (
@@ -388,16 +435,28 @@ export default function YouthDashboard() {
                   </div>
 
                   {/* Innovation */}
-                  <div>
-                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">المختبر الرقمي</div>
-                     <div className="space-y-1">
-                        {[...navigationGroups.innovation, ...navigationGroups.community].map(tab => (
-                           <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-xs", activeTab === tab.id ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:text-white hover:bg-white/5")}>
-                              <tab.icon className="h-4 w-4" /> {tab.label}
-                           </button>
-                        ))}
-                     </div>
-                  </div>
+                   <div>
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">المختبر الرقمي</div>
+                      <div className="space-y-1">
+                         {[...navigationGroups.innovation, ...navigationGroups.community].map(tab => (
+                            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-xs", activeTab === tab.id ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:text-white hover:bg-white/5")}>
+                               <tab.icon className="h-4 w-4" /> {tab.label}
+                            </button>
+                         ))}
+                      </div>
+                   </div>
+
+                   {/* Management */}
+                   <div>
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">إدارة الحصص والخطط</div>
+                      <div className="space-y-1">
+                         {navigationGroups.management.map(tab => (
+                            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setIsSidebarOpen(false); }} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all font-bold text-xs", activeTab === tab.id ? "bg-emerald-500/10 text-emerald-400" : "text-slate-400 hover:text-white hover:bg-white/5")}>
+                               <tab.icon className="h-4 w-4" /> {tab.label}
+                            </button>
+                         ))}
+                      </div>
+                   </div>
                </div>
             </div>
 

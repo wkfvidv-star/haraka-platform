@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon, Clock, User, ChevronLeft, ChevronRight, Check
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { youthDataService } from '@/services/youthDataService';
 
 interface CoachBookingModalProps {
   isOpen: boolean;
@@ -35,18 +36,18 @@ export function CoachBookingModal({ isOpen, onClose }: CoachBookingModalProps) {
   });
 
   const handleConfirm = () => {
-    const existing = JSON.parse(localStorage.getItem('haraka_pending_bookings') || '[]');
-    const newBooking = {
-      id: Date.now().toString(),
-      type: '1-on-1 Session',
-      studentName: 'Redha',
-      coachId: selectedCoach, // e.g. 'c1'
-      date: selectedDate,
-      time: selectedTime,
-      status: 'pending',
-      timestamp: new Date().toISOString()
-    };
-    localStorage.setItem('haraka_pending_bookings', JSON.stringify([newBooking, ...existing]));
+    const coach = coaches.find(c => c.id === selectedCoach);
+    
+    youthDataService.addSession({
+      title: `جلسة مع ${coach?.name}`,
+      coach: coach?.name || 'مدرب مجهول',
+      date: selectedDate ? `2024-03-${selectedDate.toString().padStart(2, '0')}` : '2024-03-30',
+      time: selectedTime || '10:00 ص',
+      type: 'in-person',
+      category: 'physical',
+      status: 'upcoming',
+      duration: '60 دقيقة'
+    });
 
     setStep(3);
     setTimeout(() => {
