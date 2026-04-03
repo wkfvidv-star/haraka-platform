@@ -13,7 +13,7 @@ import {
 // Mock Data moved to parentDataService
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export function ParentCoachPanel({ parentName }: { parentName: string }) {
+export function ParentCoachPanel({ parentName, childName }: { parentName: string, childName?: string }) {
   const [activeSection, setActiveSection] = useState<'booking' | 'rating' | 'reports' | 'nutrition'>('booking');
   const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
@@ -99,7 +99,7 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
       {activeSection === 'booking' && (
         <div className="space-y-4 animate-in fade-in duration-300">
           <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 shadow-lg">
-            <h3 className="text-white font-black text-xl">احجز حصة تدريبية لابنك 🏋️</h3>
+            <h3 className="text-white font-black text-xl">احجز حصة تدريبية لـ {childName || 'ابنك'} 🏋️</h3>
             <p className="text-blue-200 text-sm font-medium mt-1">اختر المدرب المناسب وحدد الموعد</p>
           </div>
           <div className="space-y-4">
@@ -176,7 +176,7 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
       {activeSection === 'rating' && (
         <div className="space-y-4 animate-in fade-in duration-300">
           <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 shadow-lg">
-            <h3 className="text-white font-black text-xl">⭐ قيّم مدرب ابنك</h3>
+            <h3 className="text-white font-black text-xl">⭐ قيّم مدرب {childName || 'ابنك'}</h3>
             <p className="text-amber-100 text-sm font-medium mt-1">مساهمتك تساعد في رفع جودة التدريب</p>
           </div>
           <RatingSystem
@@ -193,7 +193,7 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
         <div className="space-y-4 animate-in fade-in duration-300">
           <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 shadow-lg flex items-center justify-between">
             <div>
-              <h3 className="text-white font-black text-xl">📋 تقارير ابنك</h3>
+              <h3 className="text-white font-black text-xl">📋 تقارير {childName || 'ابنك'}</h3>
               <p className="text-emerald-200 text-sm font-medium mt-1">من الأساتذة والمدربين</p>
             </div>
             <span className="bg-white/20 text-white font-black text-lg px-3 py-1.5 rounded-xl">{REPORTS.length}</span>
@@ -289,7 +289,7 @@ export function ParentCoachPanel({ parentName }: { parentName: string }) {
                   ))}
                 </div>
                 <button className="w-full mt-5 bg-green-600 text-white font-black py-3 rounded-xl hover:bg-green-700 transition-colors shadow-md">
-                  📥 طلب هذه الخطة الغذائية لابني
+                  📥 طلب هذه الخطة الغذائية لـ {childName || 'ابني'}
                 </button>
               </CardContent>
             </Card>

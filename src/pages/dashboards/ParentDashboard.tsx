@@ -19,19 +19,23 @@ import { ParentAIAssistant } from '@/components/parent-dashboard/v2/ParentAIAssi
 import { ParentCoachPanel } from '@/components/parent-dashboard/ParentCoachPanel';
 import { ParentOnboarding } from '@/components/parent-dashboard/ParentOnboarding';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
+import { EmptyDashboardState } from '@/components/parent-dashboard/v2/EmptyDashboardState';
+import { AddChildForm } from '@/components/parent-dashboard/v2/AddChildForm';
+import { ChildContextView } from '@/components/parent-dashboard/v2/ChildContextView';
 
 // Existing Sub-Systems (Wrapped to keep functionality)
 import { ChildrenList } from '@/components/parent/ChildrenList';
 import { SchedulingSystem } from '@/components/parent/SchedulingSystem';
 import { MessagingSystem } from '@/components/parent/MessagingSystem';
 import StudentAnalysisCard from '@/components/parent/StudentAnalysisCard'; // Keeping this for reports tab
-import { familyService } from '@/services/familyService';
+import { parentDataService, Child } from '@/services/parentDataService';
 
 export default function ParentDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedChildId, setSelectedChildId] = useState<string | undefined>();
-  const [children, setChildren] = useState<ChildSummary[]>([]);
+  const [children, setChildren] = useState<Child[]>([]);
   const [loadingChildren, setLoadingChildren] = useState(false);
+  const [isAddChildOpen, setIsAddChildOpen] = useState(false);
   const { t, language } = useTranslation();
   const { user, logout } = useAuth();
   const isRTL = language === 'ar';
@@ -40,138 +44,126 @@ export default function ParentDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Onboarding Status
-  // ALWAYS true initially as requested by the user: "وضع السلايدس التعريفية كل ما ادخل للواجهة اجدهم"
   const [showOnboarding, setShowOnboarding] = useState<boolean>(true);
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
 
   useEffect(() => {
-    // Show onboarding on every dashboard mount
     setShowOnboarding(true);
     setIsNewUser(true);
   }, []);
 
-  useEffect(() => {
-    const fetchFamily = async () => {
-      if (user?.id) {
-        setLoadingChildren(true);
-        try {
-          const data = await familyService.getChildren(user.id);
-          setChildren(data);
-        } catch (error) {
-          console.error("Failed to fetch family data", error);
-        } finally {
-          setLoadingChildren(false);
-        }
+  const fetchFamily = () => {
+    setLoadingChildren(true);
+    try {
+      const data = parentDataService.getChildren();
+      setChildren(data);
+      if (data.length > 0 && !selectedChildId) {
+        setSelectedChildId(data[0].id);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch family data", error);
+    } finally {
+      setLoadingChildren(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFamily();
   }, [user]);
 
+  const selectedChild = children.find(c => c.id === selectedChildId);
+
   const navigationTabs = [
-    { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard },
-    { id: 'children', label: 'الأطفال', icon: Users },
-    { id: 'schedule', label: 'الجدول العائلي', icon: Calendar },
-    { id: 'reports', label: 'تقارير الأداء', icon: BarChart3 },
+    { id: 'dashboard', label: 'ملف الطفل', icon: LayoutDashboard },
+    { id: 'family_overview', label: 'نظرة العائلة', icon: Users },
     { id: 'messages', label: 'صندوق الوارد', icon: MessageSquare },
-    { id: 'coaching', label: 'التدريب والتغذية', icon: Activity },
-    { id: 'ratings', label: 'تقييم طفلي', icon: Star },
     { id: 'chat', label: 'مجتمع الأولياء', icon: MessageCircle },
+    { id: 'schedule', label: 'الجدول العام', icon: Calendar },
   ];
 
-  const renderDashboardContent = () => (
-    <div className="space-y-8 pb-10">
+  const renderDashboardContent = () => {
+    if (children.length === 0) {
+      return <EmptyDashboardState onAddChild={() => setIsAddChildOpen(true)} />;
+    }
 
-      {/* 1. Identity & Overview Section */}
-      <section data-tour="parent_identity" className="animate-in slide-in-from-bottom-2 fade-in duration-500 fill-mode-both">
-        <ParentIdentityCard
-          parentName={user?.name || "ولي الأمر"}
-          onViewMessages={() => setActiveTab('messages')}
-        />
-      </section>
+    return (
+      <div className="space-y-10 pb-10">
+        {/* Child Selector (Top Tabs) */}
+        <section className="flex items-center gap-4 p-2 bg-white/5 backdrop-blur-xl border border-white/5 rounded-[28px] overflow-x-auto no-scrollbar scroll-smooth shadow-inner">
+           {children.map((child) => (
+              <button
+                key={child.id}
+                onClick={() => setSelectedChildId(child.id)}
+                className={`flex items-center gap-3 px-6 py-4 rounded-[22px] transition-all duration-500 whitespace-nowrap
+                  ${selectedChildId === child.id 
+                    ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/30' 
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black
+                    ${selectedChildId === child.id ? 'bg-white/20' : 'bg-slate-800'}`}>
+                   {child.name.charAt(0)}
+                </div>
+                <span className="font-bold tracking-tight">{child.name}</span>
+              </button>
+           ))}
+           <button 
+             onClick={() => setIsAddChildOpen(true)}
+             className="px-6 py-4 rounded-[22px] border-2 border-dashed border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-all flex items-center gap-2"
+           >
+              <Plus className="w-5 h-5" />
+              أضف طفلاً
+           </button>
+        </section>
 
-      {/* 2. Family Pulse Section (Timeline & Children Quick View) */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 animate-in slide-in-from-bottom-4 fade-in duration-700 delay-100 fill-mode-both" data-tour="family_activity">
-          <FamilyActivityHub />
-        </div>
-        <div className="lg:col-span-1 animate-in slide-in-from-bottom-6 fade-in duration-700 delay-200 fill-mode-both" data-tour="children_overview">
-          <ChildrenOverview
-            children={children}
-            onViewChild={(id) => { setSelectedChildId(id); setActiveTab('children'); }}
+        {selectedChildId && children.find(c => c.id === selectedChildId) ? (
+          <ChildContextView 
+            child={children.find(c => c.id === selectedChildId)!} 
+            parentName={user?.name || 'ولي الأمر'}
           />
-        </div>
-      </section>
-
-      {/* 3. Engagement & Notifications */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8" data-tour="parent_engagement">
-        <div className="animate-in slide-in-from-bottom-6 fade-in duration-700 delay-300 fill-mode-both">
-           <DinnerDiscussionCard />
-        </div>
-        <div className="animate-in slide-in-from-bottom-6 fade-in duration-700 delay-400 fill-mode-both">
-            <NotificationCenter />
-        </div>
-      </section>
-
-    </div>
-  );
+        ) : (
+          <div className="text-center py-20 text-slate-500">اختر طفلاً لعرض البيانات</div>
+        )}
+      </div>
+    );
+  };
 
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'dashboard': return renderDashboardContent();
-      case 'children': return <ChildrenList onSelectChild={setSelectedChildId} selectedChildId={selectedChildId} />;
-      case 'schedule': return <SchedulingSystem />;
-      case 'reports': return (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 mb-8">
-             <div className="p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20">
-                <BarChart3 className="w-6 h-6" />
-             </div>
-             <div>
-                <h2 className="text-3xl font-black text-white">التقارير التفصيلية</h2>
-                <p className="text-slate-400 mt-1">تابع تقدم طفلك الأكاديمي والرياضي</p>
-             </div>
-          </div>
-          <StudentAnalysisCard />
-        </div>
-      );
-      case 'messages': return <MessagingSystem />;
-      case 'coaching': return (
-        <div className="space-y-6" dir="rtl">
-          <div className="flex items-center gap-3 mb-8">
-             <div className="p-3 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-500/20">
-                <Activity className="w-6 h-6" />
-             </div>
-             <div>
-                <h2 className="text-3xl font-black text-white">مركز التدريب والتغذية</h2>
-                <p className="text-slate-400 mt-1">احجز حصصاً وقيّم المدربين واستلم تقارير ابنك</p>
-             </div>
-          </div>
-          <ParentCoachPanel parentName={user?.name || 'ولي الأمر'} />
-        </div>
-      );
-      case 'ratings': return (
-        <div className="space-y-6" dir="rtl">
+      case 'family_overview': return (
+        <div className="space-y-8">
            <div className="flex items-center gap-3 mb-8">
-             <div className="p-3 rounded-2xl bg-gradient-to-tr from-yellow-400 to-amber-500 text-white shadow-lg shadow-amber-500/20">
-                <Star className="w-6 h-6 fill-white" />
-             </div>
-             <div>
-                <h2 className="text-3xl font-black text-white">تقييم طفلي</h2>
-                <p className="text-slate-400 mt-1">استعرض التقييمات المسجّلة لولدك من الأساتذة والمدربين</p>
-             </div>
-          </div>
-          <RatingSystem
-            raterRole="ولي الأمر"
-            raterName={user?.name || 'ولي الأمر'}
-            receiverId="st1"
-            receiverName="تلميذ"
-            mode="view"
-          />
+              <div className="p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20">
+                 <Users className="w-6 h-6" />
+              </div>
+              <div>
+                 <h2 className="text-3xl font-black text-white">نظرة عامة على العائلة</h2>
+                 <p className="text-slate-400 mt-1">ملخص مجمع لجميع أبنائك المسجلين في المنصة</p>
+              </div>
+           </div>
+           
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                  <FamilyActivityHub />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <DinnerDiscussionCard />
+                     <NotificationCenter />
+                  </div>
+              </div>
+              <div className="lg:col-span-1">
+                  <ChildrenOverview
+                    children={children as any}
+                    onViewChild={(id) => { setSelectedChildId(id); setActiveTab('dashboard'); }}
+                  />
+              </div>
+           </div>
         </div>
       );
+      case 'schedule': return <SchedulingSystem />;
+      case 'messages': return <MessagingSystem />;
       case 'chat': return (
         <div className="space-y-6" dir="rtl">
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-8 ltr:flex-row-reverse ltr:text-right">
              <div className="p-3 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20">
                 <MessageCircle className="w-6 h-6" />
              </div>
@@ -213,11 +205,26 @@ export default function ParentDashboard() {
       </div>
 
       <MobileBottomNav
-        items={navigationTabs.slice(0, 5)}
+        items={navigationTabs.slice(0, 5).map(t => ({
+          ...t,
+          disabled: children.length === 0 && t.id !== 'dashboard'
+        }))}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         accentColor="blue"
       />
+
+      {isAddChildOpen && (
+        <AddChildForm 
+          onClose={() => setIsAddChildOpen(false)}
+          onSuccess={(child) => {
+            setIsAddChildOpen(false);
+            fetchFamily();
+            setSelectedChildId(child.id);
+            setActiveTab('dashboard');
+          }}
+        />
+      )}
 
       {showOnboarding && (
         <ParentOnboarding
@@ -257,14 +264,19 @@ export default function ParentDashboard() {
         <nav className="flex-1 py-8 px-4 space-y-2 overflow-y-auto no-scrollbar scroll-smooth" data-tour="parent_navigation">
           {navigationTabs.map(tab => {
             const isActive = activeTab === tab.id;
+            const isDisabled = children.length === 0 && tab.id !== 'dashboard';
+            
             return (
               <button
                 key={tab.id}
+                disabled={isDisabled}
                 onClick={() => { setActiveTab(tab.id); setIsMobileMenuOpen(false); }}
                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all duration-300 group relative overflow-hidden
                   ${isActive 
                     ? 'text-white bg-white/10 shadow-lg' 
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'}
+                    : isDisabled 
+                      ? 'text-slate-600 opacity-40 cursor-not-allowed'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'}
                 `}
                 title={!isSidebarOpen ? tab.label : undefined}
               >

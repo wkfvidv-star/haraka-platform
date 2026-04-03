@@ -5,9 +5,12 @@ export interface Child {
   id: string;
   name: string;
   age: number;
+  birthDate?: string;
+  gender?: 'ذكر' | 'أنثى';
   grade: string;
   school: string;
   avatar?: string;
+  targetGoal?: 'تحسين اللياقة' | 'تحسين التركيز' | 'الرفاه النفسي' | 'رياضة تنافسية';
   deviceCapabilities: {
     hasWearable: boolean;
     hasBIA: boolean;
@@ -175,26 +178,30 @@ class ParentDataService {
 
   // Children
   public getChildren(): Child[] {
-    return this.get('children', INITIAL_CHILDREN);
+    return this.get('children', []); // Changing default to empty for fresh experience
   }
 
-  public addChild(name: string, grade: string) {
+  public addChild(data: Partial<Child>) {
     const children = this.getChildren();
     const newChild: Child = {
       id: `student_${Date.now()}`,
-      name,
-      age: 10,
-      grade,
-      school: 'غير محدد',
+      name: data.name || 'طفل جديد',
+      age: data.age || 10,
+      birthDate: data.birthDate,
+      gender: data.gender,
+      grade: data.grade || 'غير محدد',
+      school: data.school || 'غير محدد',
+      targetGoal: data.targetGoal,
+      avatar: data.avatar,
       deviceCapabilities: { hasWearable: false, hasBIA: false, hasHeartRate: false, hasGPS: false, hasAdvancedMetrics: false },
       currentStats: { steps: 0, stepsGoal: 10000, distance: 0, calories: 0, activeTime: 0, sedentaryTime: 0 },
       healthStatus: 'متوسط',
-      lastActivity: 'لا توجد بيانات',
+      lastActivity: 'تمت الإضافة مؤخراً',
       upcomingSchedule: []
     };
     children.push(newChild);
     this.set('children', children);
-    auditService.log('إضافة طفل', `تمت إضافة طفل جديد: ${name}`);
+    auditService.log('إضافة طفل', `تمت إضافة طفل جديد: ${newChild.name}`);
     return newChild;
   }
 

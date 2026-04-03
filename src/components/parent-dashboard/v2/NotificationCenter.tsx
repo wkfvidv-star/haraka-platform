@@ -15,7 +15,11 @@ interface Notification {
     isRead: boolean;
 }
 
-export const NotificationCenter: React.FC = () => {
+interface NotificationCenterProps {
+    targetChildName?: string;
+}
+
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ targetChildName }) => {
     // Mock Data + Dynamic State
     const [notifications, setNotifications] = React.useState<Notification[]>([
         {
@@ -116,7 +120,10 @@ export const NotificationCenter: React.FC = () => {
             <CardContent className="flex-1 min-h-0 pt-6 relative z-10">
                 <ScrollArea className="h-[320px] pr-4 -mr-4">
                     <div className="space-y-4">
-                        {notifications.map((notification) => (
+                        {(targetChildName 
+                            ? notifications.filter(n => !n.childName || n.childName.includes(targetChildName)) 
+                            : notifications
+                        ).map((notification) => (
                             <div
                                 key={notification.id}
                                 className={`p-4 rounded-2xl border transition-all duration-300 group/notif relative overflow-hidden
