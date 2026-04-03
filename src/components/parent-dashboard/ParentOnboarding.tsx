@@ -11,45 +11,60 @@ import {
     MessageCircleQuestion,
     UserCheck,
     HeartHandshake,
-    LayoutDashboard
+    LayoutDashboard,
+    Sparkles,
+    ShieldCheck,
+    TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/contexts/ThemeContext';
 
-// Define metadata for each section that we might want to highlight
-const SECTION_METADATA: Record<string, { title: string, description: string, icon: React.ElementType }> = {
-    parent_navigation: {
-        title: 'أدوات التنقل الأساسية',
-        description: 'تنقل بسهولة بين لوحة التحكم الرئيسية، قائمة أطفالك، الجدول الزمني للمواعيد، والرسائل الواردة.',
-        icon: LayoutDashboard
+interface SlideData {
+    id: string;
+    title: string;
+    description: string;
+    icon: React.ElementType;
+    color: string;
+}
+
+const ONBOARDING_SLIDES: SlideData[] = [
+    {
+        id: 'welcome',
+        title: 'مرحباً بك في عالم الحركة',
+        description: 'بصفتك ولي الأمر، نضع بين يديك كل ما يخص نمو أطفالك وتطورهم في بيئة رياضية وصحية متكاملة.',
+        icon: Sparkles,
+        color: 'from-blue-600 to-indigo-600 shadow-blue-500/50'
     },
-    parent_identity: {
-        title: 'نظرة شاملة لحسابك',
-        description: 'يضم هذا القسم ملخص الرسائل غير المقروءة والواجبات المدرسية التي تتطلب انتباهك بخصوص أبنائك.',
-        icon: UserCheck
+    {
+        id: 'navigation',
+        title: 'أدوات التحكم الشاملة',
+        description: 'تنقل بسهولة بين لوحة التحكم، الرسائل، وجدول المواعيد. كل ما تحتاجه في متناول يدك.',
+        icon: LayoutDashboard,
+        color: 'from-emerald-500 to-teal-600 shadow-emerald-500/50'
     },
-    family_activity: {
-        title: 'سجل نشاط العائلة',
-        description: 'تابع خط الزمن (Timeline) للأحداث والتدريبات الروتينية لجميع أفراد الأسرة بتحديثات حية ومستمرة.',
-        icon: Activity
+    {
+        id: 'child_centric',
+        title: 'تجربة محورها الطفل',
+        description: 'تحول الواجهة ديناميكياً بناءً على الطفل المختار، لتعرض إحصائياته الخاصة وتقدمه بشكل دقيق.',
+        icon: Users,
+        color: 'from-orange-500 to-rose-600 shadow-orange-500/50'
     },
-    children_overview: {
-        title: 'ملخص أداء الأطفال',
-        description: 'اضغط هنا لمشاهدة تفاصيل أداء كل طفل على حدة من الجانب المعرفي، الحركي، والنفسي لليوم الحالي.',
-        icon: Users
+    {
+        id: 'smart_alerts',
+        title: 'تنبيهات ذكية ولحظية',
+        description: 'ابقَ على اطلاع دائم بحضور طفلك، أدائه، والرسائل الهامة من المدربين عبر نظام إشعارات ذكي.',
+        icon: TrendingUp,
+        color: 'from-violet-600 to-purple-600 shadow-violet-500/50'
     },
-    parent_engagement: {
-        title: 'التفاعل والإشعارات',
-        description: 'استقبل هنا أهم التنبيهات من المدربين واطلع على مقترحات لمواضيع نقاش بناءة مع أطفالك على طاولة العشاء.',
-        icon: HeartHandshake
-    },
-    parent_assistant: {
+    {
+        id: 'ai_assistant',
         title: 'المساعد الذكي لولي الأمر',
-        description: 'تحدث مع الذكاء الاصطناعي للاستفسار عن سلوك ابنك، طلب نصائح تربوية، أو تحليل تقدمه الأسبوعي بسهولة.',
-        icon: Brain
+        description: 'استخدم الذكاء الاصطناعي لتحليل تقدم طفلك وطلب نصائح تربوية ورياضية مخصصة بسهولة تامة.',
+        icon: Brain,
+        color: 'from-blue-400 to-cyan-500 shadow-cyan-500/50'
     }
-};
+];
 
 interface ParentOnboardingProps {
     onComplete: () => void;
@@ -57,101 +72,22 @@ interface ParentOnboardingProps {
     isNewUser?: boolean;
 }
 
-interface SlideData {
-    id: string;
-    title: string;
-    description: string;
-    icon: React.ElementType;
-    targetElement?: Element;
-}
-
 export function ParentOnboarding({ onComplete, onSkip, isNewUser = false }: ParentOnboardingProps) {
     const [currentStep, setCurrentStep] = useState(0);
-    const [slides, setSlides] = useState<SlideData[]>([]);
     const [isVisible, setIsVisible] = useState(true);
-    const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     const { language } = useTranslation();
     const isRTL = language === 'ar';
 
-    // Discover and build slides based on what's visible on the screen
     useEffect(() => {
-        // We always start with an intro slide
-        const initialSlide: SlideData = {
-            id: 'welcome',
-            title: isNewUser ? 'مرحباً بك في منصة العائلة' : 'عودة حميدة إلى منصة العائلة',
-            description: isNewUser
-                ? 'بصفتك ولي الأمر، نضع بين يديك كل ما يخص نمو أطفالك وتطورهم. دعنا نلقي نظرة سريعة على واجهتك.'
-                : 'دعنا نستعرض أحدث الإشعارات وتطورات اليوم لأبنائك ضمن بيئة حركة.',
-            icon: Target
-        };
-
-        const discoveredSlides: SlideData[] = [initialSlide];
-
-        // Find all elements with data-tour attribute
-        const tourElements = document.querySelectorAll('[data-tour]');
-
-        tourElements.forEach((el) => {
-            const sectionId = el.getAttribute('data-tour');
-            if (sectionId && SECTION_METADATA[sectionId]) {
-                discoveredSlides.push({
-                    id: sectionId,
-                    ...SECTION_METADATA[sectionId],
-                    targetElement: el
-                });
-            }
-        });
-
-        setSlides(discoveredSlides);
-
         // Lock body scroll when onboarding is active
         document.body.style.overflow = 'hidden';
-
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [isNewUser]);
-
-    // Update highlight rectangle based on current slide's target
-    useEffect(() => {
-        if (slides.length > 0 && currentStep > 0 && currentStep < slides.length) {
-            const currentSlide = slides[currentStep];
-            if (currentSlide.targetElement) {
-                // Calculate position
-                const rect = currentSlide.targetElement.getBoundingClientRect();
-                setTargetRect(rect);
-
-                // Scroll element into view smoothly, keeping it roughly in the center
-                currentSlide.targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-
-                // Add a highlight class to the target element
-                currentSlide.targetElement.classList.add('tour-highlight-active');
-
-                return () => {
-                    currentSlide.targetElement?.classList.remove('tour-highlight-active');
-                };
-            }
-        } else {
-            setTargetRect(null);
-        }
-    }, [currentStep, slides]);
-
-    // Recalculate rectangle on window resize
-    useEffect(() => {
-        const handleResize = () => {
-            if (slides.length > 0 && currentStep > 0 && slides[currentStep]?.targetElement) {
-                setTargetRect(slides[currentStep].targetElement!.getBoundingClientRect());
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [currentStep, slides]);
+    }, []);
 
     const handleNext = () => {
-        if (currentStep < slides.length - 1) {
+        if (currentStep < ONBOARDING_SLIDES.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {
             finishOnboarding();
@@ -168,134 +104,135 @@ export function ParentOnboarding({ onComplete, onSkip, isNewUser = false }: Pare
         setIsVisible(false);
         setTimeout(() => {
             onComplete();
-            if (onSkip) onSkip();
-        }, 400); // Wait for fade out animation
+        }, 400); 
     };
 
-    if (!isVisible || slides.length === 0) return null;
+    if (!isVisible) return null;
 
-    const currentSlide = slides[currentStep];
+    const currentSlide = ONBOARDING_SLIDES[currentStep];
     const Icon = currentSlide.icon;
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none" dir={isRTL ? "rtl" : "ltr"}>
-            {/* Dark Backdrop */}
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 lg:p-0" dir={isRTL ? "rtl" : "ltr"}>
+            {/* Cinematic Backdrop */}
             <AnimatePresence>
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-blue-950/80 pointer-events-auto backdrop-blur-[3px] transition-all duration-300"
-                    onClick={handleNext}
+                    className="absolute inset-0 bg-slate-950/90 pointer-events-auto backdrop-blur-md"
                 />
             </AnimatePresence>
-
-            {/* Target Element Highlighting Cutout */}
-            {targetRect && currentStep > 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{
-                        opacity: 1,
-                        top: targetRect.top - 16,
-                        left: targetRect.left - 16,
-                        width: targetRect.width + 32,
-                        height: targetRect.height + 32,
-                    }}
-                    transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 30,
-                        opacity: { duration: 0.2 }
-                    }}
-                    className="absolute rounded-2xl border-[3px] border-emerald-400 shadow-[0_0_0_9999px_rgba(23,37,84,0.7)] z-[201] pointer-events-none bg-transparent"
-                    style={{
-                        boxShadow: '0 0 0 9999px rgba(23,37,84,0.85), 0 0 40px rgba(52, 211, 153, 0.4) inset'
-                    }}
-                />
-            )}
 
             {/* Slide Content Card */}
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentStep}
-                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -30, scale: 0.95 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: -30 }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                     className={cn(
-                        "relative z-[202] w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden pointer-events-auto font-cairo",
-                        "border border-slate-200 dark:border-slate-800",
-                        // Position near the highlighted element if there is one, otherwise center
-                        targetRect && currentStep > 0 ? "absolute" : "mx-4"
+                        "relative z-[202] w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl overflow-hidden pointer-events-auto font-sans border border-white/5",
+                        "flex flex-col md:flex-row h-auto min-h-[480px]"
                     )}
-                    style={targetRect && currentStep > 0 ? {
-                        // Position below the element if there's room, otherwise above
-                        top: targetRect.bottom + 40 + 300 > window.innerHeight
-                            ? Math.max(20, targetRect.top - 320)
-                            : targetRect.bottom + 40,
-                        // Center horizontally relative to the element, but keep within viewport
-                        left: Math.max(20, Math.min(
-                            window.innerWidth - 420 /* max-w width approx */,
-                            targetRect.left + (targetRect.width / 2) - 200
-                        ))
-                    } : {}}
                 >
-                    {/* Header Progress Bar */}
-                    <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800">
+                    {/* Visual Side */}
+                    <div className={cn(
+                        "md:w-5/12 bg-gradient-to-br flex flex-col items-center justify-center p-10 text-white relative overflow-hidden transition-all duration-700",
+                        currentSlide.color
+                    )}>
                         <motion.div
-                            className="h-full bg-emerald-500"
-                            initial={{ width: `${((currentStep) / slides.length) * 100}%` }}
-                            animate={{ width: `${((currentStep + 1) / slides.length) * 100}%` }}
-                            transition={{ duration: 0.3 }}
+                            initial={{ scale: 0.5, rotate: -20, opacity: 0 }}
+                            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                            transition={{ delay: 0.2, type: "spring" }}
+                            className="relative z-10 p-8 bg-white/20 backdrop-blur-2xl rounded-[32px] border border-white/30 shadow-2xl"
+                        >
+                            <Icon className="w-20 h-20" />
+                        </motion.div>
+                        
+                        {/* Decorative background shapes */}
+                        <motion.div 
+                            animate={{ 
+                                scale: [1, 1.2, 1],
+                                opacity: [0.3, 0.5, 0.3] 
+                            }}
+                            transition={{ duration: 4, repeat: Infinity }}
+                            className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full -mr-24 -mt-24 blur-3xl" 
                         />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/20 rounded-full -ml-24 -mb-24 blur-3xl" />
                     </div>
 
-                    <div className="p-6 sm:p-8">
-                        <div className="flex justify-between items-start mb-6">
-                            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                <Icon className="w-7 h-7" />
+                    {/* Content Side */}
+                    <div className="flex-1 p-8 md:p-12 flex flex-col justify-between bg-white dark:bg-slate-900">
+                        <div>
+                            <div className="flex justify-between items-start mb-12">
+                                <div className="space-y-2">
+                                    <h4 className="text-blue-600 dark:text-blue-400 font-black text-xs uppercase tracking-[0.2em] opacity-80">جولة تعريفية</h4>
+                                    <div className="flex gap-1.5">
+                                        {ONBOARDING_SLIDES.map((_, idx) => (
+                                            <div 
+                                                key={idx} 
+                                                className={cn(
+                                                    "h-1.5 rounded-full transition-all duration-500",
+                                                    idx === currentStep ? "w-10 bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" : "w-2.5 bg-slate-200 dark:bg-slate-800"
+                                                )}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={onSkip || finishOnboarding}
+                                    className="text-slate-400 hover:text-rose-500 font-bold hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all rounded-xl"
+                                >
+                                    تخطي
+                                </Button>
                             </div>
-                            <button
-                                onClick={finishOnboarding}
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+
+                            <motion.div
+                                initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 }}
                             >
-                                <X className="w-5 h-5" />
-                            </button>
+                                <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-6 leading-[1.2]">
+                                    {currentSlide.title}
+                                </h3>
+
+                                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-10">
+                                    {currentSlide.description}
+                                </p>
+                            </motion.div>
                         </div>
 
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3 tracking-wide">
-                            {currentSlide.title}
-                        </h3>
-
-                        <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8">
-                            {currentSlide.description}
-                        </p>
-
                         {/* Controls */}
-                        <div className="flex items-center justify-between">
-                            <div className="text-sm font-bold text-slate-500">
-                                {currentStep + 1} / {slides.length}
+                        <div className="flex items-center justify-between mt-auto">
+                            <div className="text-2xl font-black text-slate-200 dark:text-slate-800 font-mono tracking-tighter select-none" dir="ltr">
+                                {currentStep + 1} <span className="text-slate-100 dark:text-slate-800/50">/</span> {ONBOARDING_SLIDES.length}
                             </div>
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-4">
                                 {currentStep > 0 && (
                                     <Button
                                         variant="outline"
-                                        size="icon"
+                                        size="lg"
                                         onClick={handlePrev}
-                                        className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white"
+                                        className="rounded-[20px] border-slate-200 dark:border-slate-800 bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 px-6 h-14 font-bold"
                                     >
-                                        {isRTL ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+                                        {isRTL ? <ChevronRight className="w-6 h-6 ml-2" /> : <ChevronLeft className="w-6 h-6 mr-2" />}
+                                        السابق
                                     </Button>
                                 )}
 
                                 <Button
+                                    size="lg"
                                     onClick={handleNext}
-                                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-8 font-bold shadow-lg shadow-emerald-500/20"
+                                    className="rounded-[20px] bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-12 h-14 font-black shadow-2xl transition-all active:scale-95"
                                 >
-                                    {currentStep === slides.length - 1 ? 'إنهاء الجولة' : 'التالي'}
-                                    {currentStep !== slides.length - 1 && (
-                                        isRTL ? <ChevronLeft className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 ml-2" />
+                                    {currentStep === ONBOARDING_SLIDES.length - 1 ? 'ابدأ الاستخدام' : 'التالي'}
+                                    {currentStep !== ONBOARDING_SLIDES.length - 1 && (
+                                        isRTL ? <ChevronLeft className="w-6 h-6 mr-2" /> : <ChevronRight className="w-6 h-6 ml-2" />
                                     )}
                                 </Button>
                             </div>

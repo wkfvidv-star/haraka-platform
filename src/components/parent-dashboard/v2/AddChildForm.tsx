@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, User, Calendar, ChevronRight, ChevronLeft, 
   Check, School, Target, Dumbbell, Brain, Heart, Trophy,
-  Baby, GraduationCap
+  Baby, GraduationCap, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,6 +93,23 @@ export const AddChildForm: React.FC<AddChildFormProps> = ({ onClose, onSuccess }
                 className="space-y-6"
               >
                 <div className="space-y-4">
+                  {/* Photo Upload Placeholder */}
+                  <div className="flex flex-col items-center justify-center mb-6">
+                    <Label className="text-slate-300 mb-2 block w-full text-right font-bold">صورة شخصية (اختياري)</Label>
+                    <div className="relative group cursor-pointer">
+                      <div className="w-28 h-28 rounded-full bg-white/5 border-2 border-dashed border-white/20 flex items-center justify-center text-slate-400 group-hover:border-blue-500 group-hover:text-blue-500 transition-all overflow-hidden relative">
+                        {formData.avatar ? (
+                          <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-12 h-12" />
+                        )}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity flex-col gap-2">
+                          <Plus className="w-6 h-6 text-white" />
+                          <span className="text-[10px] text-white font-bold">رفع صورة</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div className="grid gap-2">
                     <Label htmlFor="name" className="text-slate-300">الاسم الكامل</Label>
                     <div className="relative">

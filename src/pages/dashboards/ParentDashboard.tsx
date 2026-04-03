@@ -3,7 +3,7 @@ import { useTranslation } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
-import { LogOut, Home, Users, BarChart3, Calendar, MessageSquare, LayoutDashboard, PlayCircle, Star, MessageCircle, Menu, X, ChevronLeft, ChevronRight, Activity, XCircle } from 'lucide-react';
+import { LogOut, Home, Users, BarChart3, Calendar, MessageSquare, LayoutDashboard, PlayCircle, Star, MessageCircle, Menu, X, ChevronLeft, ChevronRight, Activity, XCircle, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 import { RatingSystem } from '@/components/shared/RatingSystem';
@@ -44,12 +44,18 @@ export default function ParentDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Onboarding Status
-  const [showOnboarding, setShowOnboarding] = useState<boolean>(true);
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
 
   useEffect(() => {
-    setShowOnboarding(true);
-    setIsNewUser(true);
+    // Check if user has already dismissed onboarding in this session
+    const hasSeenThisSession = sessionStorage.getItem('parent_has_seen_onboarding');
+    if (!hasSeenThisSession) {
+      setShowOnboarding(true);
+    }
+    
+    // For "New User" logic, we can check if they have any children
+    setIsNewUser(parentDataService.getChildren().length === 0);
   }, []);
 
   const fetchFamily = () => {
@@ -182,6 +188,7 @@ export default function ParentDashboard() {
   };
 
   const handleCompleteOnboarding = () => {
+    sessionStorage.setItem('parent_has_seen_onboarding', 'true');
     setShowOnboarding(false);
   };
 
