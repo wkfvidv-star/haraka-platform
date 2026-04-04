@@ -102,8 +102,53 @@ export default function CoachOverviewPanel() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
         {/* LEFT COLUMN: TASKS & SUMMARY (2/3 width) */}
-        <div className="xl:col-span-2 space-y-8">
+        <div className="xl:col-span-2 space-y-6">
           
+          {/* COACH INSIGHTS PANEL (NEW: Advanced) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-4 flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-2">
+                   <h4 className="font-black text-indigo-900 text-sm">أفضل فرصة اليوم</h4>
+                   <Sparkles className="w-4 h-4 text-indigo-500" />
+                </div>
+                <div>
+                  <h5 className="font-extrabold text-slate-800 text-base mb-1">عمر خالد - 96% توافق</h5>
+                   <p className="text-xs font-bold text-slate-500">يتطابق مع تخصص القوة العضلية.</p>
+                </div>
+                <Button onClick={() => setActiveTab('discover')} variant="ghost" size="sm" className="mt-2 w-full bg-white/50 hover:bg-white text-indigo-700 font-bold h-8 text-xs">
+                   عرض التفاصيل
+                </Button>
+             </div>
+
+             <div className="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-100 rounded-2xl p-4 flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-2">
+                   <h4 className="font-black text-orange-900 text-sm">يحتاج إلى متابعة</h4>
+                   <Activity className="w-4 h-4 text-orange-500 animate-pulse" />
+                </div>
+                <div>
+                  <h5 className="font-extrabold text-slate-800 text-base mb-1">رامي (19 عام)</h5>
+                   <p className="text-xs font-bold text-slate-500">ضعف بالثبات المفصلي (ركبة).</p>
+                </div>
+                <Button onClick={() => setActiveTab('athletes')} variant="ghost" size="sm" className="mt-2 w-full bg-white/50 hover:bg-white text-orange-700 font-bold h-8 text-xs">
+                   مراجعة الملف
+                </Button>
+             </div>
+
+             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-4 flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-2">
+                   <h4 className="font-black text-emerald-900 text-sm">مؤشر الاستجابة</h4>
+                   <Target className="w-4 h-4 text-emerald-500" />
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1 mb-1">
+                     <h5 className="font-extrabold text-slate-800 text-2xl">91%</h5>
+                     <span className="text-xs font-bold text-emerald-600">+4% مقارنة بالشهر الماضي</span>
+                  </div>
+                   <p className="text-xs font-bold text-slate-500">معدل التزام وتجاوب عالٍ.</p>
+                </div>
+             </div>
+          </div>
+
           {/* QUICK SUMMARY (KPIs) */}
           <div className="grid grid-cols-2 gap-4">
             <Card className="bg-white border-slate-200 shadow-sm">
@@ -112,7 +157,7 @@ export default function CoachOverviewPanel() {
                   <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">إجمالي المتدربين</span>
                   <Users className="w-5 h-5 text-blue-500" />
                 </div>
-                <div className="text-4xl font-black text-slate-900">42</div>
+                <div className="text-3xl lg:text-4xl font-black text-slate-900">42</div>
               </CardContent>
             </Card>
             <Card className="bg-white border-slate-200 shadow-sm">

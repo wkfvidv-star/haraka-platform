@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCoachDashboard } from '@/contexts/CoachDashboardContext';
-import { UserPlus, X, Sparkles, Target, Flame, TrendingUp } from 'lucide-react';
+import { UserPlus, X, Sparkles, Target, Flame, TrendingUp, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function CoachDiscover() {
@@ -28,11 +28,18 @@ export default function CoachDiscover() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {discoveredYouths.map((youth) => (
           <Card key={youth.id} className="border-none shadow-md hover:shadow-xl transition-all overflow-hidden group bg-white flex flex-col relative">
-            <div className="absolute top-4 right-4 z-10 w-full flex justify-between pr-4 pl-8" dir="rtl">
-              <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none font-black flex items-center gap-1.5 shadow-sm px-3 py-1.5 rounded-lg mr-auto">
-                <Sparkles className="w-4 h-4" />
-                {youth.matchPercentage}% توافق 
-              </Badge>
+            <div className="absolute top-4 right-4 z-10 w-full flex justify-between pr-4 pl-4" dir="rtl">
+              <div className="flex flex-col gap-1 items-start">
+                <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none font-black flex items-center gap-1.5 shadow-sm px-3 py-1 rounded-lg">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {youth.matchPercentage}% توافق 
+                </Badge>
+                {youth.tags && youth.tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none font-bold px-2 py-0.5 text-[10px] rounded-md">
+                    {tag === 'Recommended' ? 'مُوصى به' : tag === 'Match' ? 'متطابق' : tag === 'High Potential' ? 'قدرات عالية' : tag === 'Beginner' ? 'مبتدئ' : tag}
+                  </Badge>
+                ))}
+              </div>
             </div>
             
             <div className="h-28 bg-gradient-to-br from-indigo-50 to-blue-50 flex justify-center items-end relative p-4">
@@ -43,7 +50,12 @@ export default function CoachDiscover() {
             
             <CardContent className="pt-14 pb-6 px-5 text-center bg-white relative z-10 flex-1 flex flex-col">
               <h3 className="text-xl font-black text-slate-900 mb-1 tracking-tight">{youth.name}</h3>
-              <p className="text-sm font-bold text-slate-500 mb-5">{youth.age} سنة</p>
+              <p className="text-sm font-bold text-slate-500 mb-3">{youth.age} سنة</p>
+              
+              <div className="bg-purple-50 rounded-xl p-2.5 mb-5 border border-purple-100 flex items-start gap-2 text-right">
+                 <Bot className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
+                 <p className="text-xs font-bold text-slate-700 leading-relaxed">{youth.matchReason || 'تم تحديد توافق استناداً لبيانات منصة الذكاء الاصطناعي.'}</p>
+              </div>
               
               <div className="space-y-3 mb-6 mt-auto text-right">
                 <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">

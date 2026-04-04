@@ -20,6 +20,8 @@ export type DiscoveredYouth = {
   goal: string;
   level: string;
   matchPercentage: number;
+  matchReason: string;
+  tags: string[];
 };
 
 export type TrainingRequest = {
@@ -29,6 +31,7 @@ export type TrainingRequest = {
   goal: string;
   details: string;
   status: 'pending' | 'accepted' | 'rejected' | 'offered';
+  tags: string[];
 };
 
 export type BookingRequest = {
@@ -78,7 +81,7 @@ interface CoachDashboardContextType {
   ignoreYouth: (youthId: string | number) => void;
   acceptTrainingRequest: (id: string | number) => void;
   rejectTrainingRequest: (id: string | number) => void;
-  sendOffer: (id: string | number) => void;
+  sendOffer: (id: string | number, offerDetails?: any) => void;
 }
 
 export const CoachDashboardContext = createContext<CoachDashboardContextType>({
@@ -125,15 +128,15 @@ export const CoachDashboardProvider: React.FC<{ children: ReactNode }> = ({ chil
   ]);
 
   const [trainingRequests, setTrainingRequests] = useState<TrainingRequest[]>([
-    { id: 1, senderName: 'ولي أمر أحمد', senderType: 'parent', goal: 'تأهيل بدني وبناء ثقة', details: 'ابني عمره ١٤ سنة يحتاج لبرنامج تقوية وتأهيل من إصابة خفيفة مسبقة.', status: 'pending' },
-    { id: 2, senderName: 'ياسين محمود', senderType: 'youth', goal: 'احتراف كرة القدم', details: 'أبحث عن مدرب لرفع سرعتي ولياقتي في الجري، أتدرب ٣ أيام أسبوعياً حالياً.', status: 'pending' },
+    { id: 1, senderName: 'ولي أمر أحمد', senderType: 'parent', goal: 'تأهيل بدني وبناء ثقة', details: 'ابني عمره ١٤ سنة يحتاج لبرنامج تقوية وتأهيل من إصابة خفيفة مسبقة.', status: 'pending', tags: ['Urgent', 'Rehab'] },
+    { id: 2, senderName: 'ياسين محمود', senderType: 'youth', goal: 'احتراف كرة القدم', details: 'أبحث عن مدرب لرفع سرعتي ولياقتي في الجري، أتدرب ٣ أيام أسبوعياً حالياً.', status: 'pending', tags: ['High Potential'] },
   ]);
 
   const [discoveredYouths, setDiscoveredYouths] = useState<DiscoveredYouth[]>([
-    { id: 'dy1', name: 'عمر خالد', age: 16, goal: 'تضخيم عضلي وزيادة قوة', level: 'متوسط', matchPercentage: 96 },
-    { id: 'dy2', name: 'سيف الدين', age: 15, goal: 'إنقاص وزن ولياقة عامة', level: 'مبتدئ', matchPercentage: 88 },
-    { id: 'dy3', name: 'طارق زياد', age: 17, goal: 'تحضير لبطولة ألعاب قوى', level: 'متقدم', matchPercentage: 75 },
-    { id: 'dy4', name: 'ريان أحمد', age: 14, goal: 'لياقة وتأسيس سليم', level: 'مبتدئ', matchPercentage: 62 },
+    { id: 'dy1', name: 'عمر خالد', age: 16, goal: 'تضخيم عضلي وزيادة قوة', level: 'متوسط', matchPercentage: 96, matchReason: 'تطابق كامل في التخصص الجسدي وطلب القوة', tags: ['Recommended', 'Match'] },
+    { id: 'dy2', name: 'سيف الدين', age: 15, goal: 'إنقاص وزن ولياقة عامة', level: 'مبتدئ', matchPercentage: 88, matchReason: 'محتاج لتأسيس بدني يتوافق مع أسلوبك', tags: ['Beginner'] },
+    { id: 'dy3', name: 'طارق زياد', age: 17, goal: 'تحضير لبطولة ألعاب قوى', level: 'متقدم', matchPercentage: 75, matchReason: 'نفس الاهتمامات السابقة في التدريب', tags: ['High Potential', 'Pro'] },
+    { id: 'dy4', name: 'ريان أحمد', age: 14, goal: 'لياقة وتأسيس سليم', level: 'مبتدئ', matchPercentage: 62, matchReason: 'قريب جغرافياً في التدريب', tags: [] },
   ]);
 
   const [trainees, setTrainees] = useState<any[]>(coachClients);
@@ -212,8 +215,9 @@ export const CoachDashboardProvider: React.FC<{ children: ReactNode }> = ({ chil
     toast.error('تم رفض الطلب');
   };
 
-  const sendOffer = (id: string | number) => {
+  const sendOffer = (id: string | number, offerDetails?: any) => {
     setTrainingRequests(prev => prev.filter(r => r.id !== id));
+    console.log('Sent offer details: ', offerDetails);
     toast.success('تم إرسال العرض المخصص بنجاح');
   };
 
