@@ -1,25 +1,31 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, MoreVertical, MessageSquare, AlertCircle, TrendingUp, ChevronDown, MapPin, Users, CheckCircle2, Activity, AlertTriangle, ChevronLeft } from 'lucide-react';
+import { Search, Filter, MoreVertical, MessageSquare, AlertCircle, TrendingUp, ChevronDown, MapPin, Users, CheckCircle2, Activity, AlertTriangle, ChevronLeft, FileText, Video } from 'lucide-react';
 import { useTeacherClassData } from '@/hooks/useTeacherClassData';
 
-export function TeacherClassManager() {
+interface TeacherClassManagerProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export function TeacherClassManager({ onNavigate }: TeacherClassManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('الكل');
   const [messagingStudent, setMessagingStudent] = useState<any>(null);
   const [messageType, setMessageType] = useState<'text' | 'meeting'>('text');
   const [messageText, setMessageText] = useState('');
   const [isSendingMsg, setIsSendingMsg] = useState(false);
-  const { students: teacherStudents, stats } = useTeacherClassData();
+  const [selectedStudentProfile, setSelectedStudentProfile] = useState<any>(null);
+  const [profileTab, setProfileTab] = useState('overview');
+  const { activeClassStudents, stats } = useTeacherClassData();
 
   const filteredStudents = useMemo(() => {
-    return teacherStudents.filter(s => {
+    return activeClassStudents.filter(s => {
       const matchSearch = s.name.includes(searchTerm);
       const matchLevel = levelFilter === 'الكل' || (s.level && s.level.includes(levelFilter));
       return matchSearch && matchLevel;
     });
-  }, [searchTerm, levelFilter, teacherStudents]);
+  }, [searchTerm, levelFilter, activeClassStudents]);
 
   const totalStudents = stats.totalStudents;
   const activeStudents = stats.activeStudents;
@@ -106,6 +112,151 @@ export function TeacherClassManager() {
                 {isSendingMsg ? 'جاري الإرسال...' : 'إرسال لولي الأمر'}
               </Button>
               <Button variant="outline" onClick={() => setMessagingStudent(null)} className="h-12 w-24 rounded-xl font-bold border-slate-200 text-slate-600">إلغاء</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STUDENT PROFILE MODAL */}
+      {selectedStudentProfile && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm rtl">
+          <div className="bg-white rounded-[2rem] w-full max-w-4xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="p-8 border-b border-slate-100 flex items-start justify-between bg-slate-50/50 shrink-0">
+               <div className="flex gap-6 items-center">
+                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-4xl shadow-xl shadow-blue-900/20">
+                    {selectedStudentProfile.name.charAt(0)}
+                 </div>
+                 <div>
+                    <h2 className="text-3xl font-black text-slate-900">{selectedStudentProfile.name}</h2>
+                    <div className="flex gap-3 mt-2">
+                      <span className="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-lg text-sm">{selectedStudentProfile.level}</span>
+                      <span className={`font-bold px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
+                        selectedStudentProfile.status === 'نشط' ? 'bg-emerald-100 text-emerald-700' : 
+                        selectedStudentProfile.status === 'متأخر' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+                      }`}>
+                         <div className={`w-2 h-2 rounded-full ${selectedStudentProfile.status === 'نشط' ? 'bg-emerald-500' : selectedStudentProfile.status === 'متأخر' ? 'bg-amber-500' : 'bg-rose-500'}`}></div>
+                         {selectedStudentProfile.status}
+                      </span>
+                    </div>
+                 </div>
+               </div>
+               <Button variant="ghost" onClick={() => setSelectedStudentProfile(null)} className="rounded-xl w-12 h-12 bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900">
+                  <span className="text-xl">✕</span>
+               </Button>
+            </div>
+
+            {/* Profile Tabs */}
+            <div className="px-8 border-b border-slate-200 flex gap-6 shrink-0 bg-white">
+              {['overview', 'activities', 'reports', 'evaluation'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setProfileTab(tab)}
+                  className={`py-4 px-2 font-bold text-base transition-all border-b-4 ${
+                    profileTab === tab 
+                      ? 'border-blue-600 text-blue-600' 
+                      : 'border-transparent text-slate-400 hover:text-slate-700'
+                  }`}
+                >
+                  {tab === 'overview' ? 'نظرة عامة' : tab === 'activities' ? 'النشاطات' : tab === 'reports' ? 'التقارير' : 'التقييم'}
+                </button>
+              ))}
+            </div>
+
+            {/* Profile Content */}
+            <div className="p-8 flex-1 overflow-y-auto bg-slate-50/30">
+              
+              {/* --- OVERVIEW TAB --- */}
+              {profileTab === 'overview' && (
+                 <div className="space-y-8">
+                   <div className="grid grid-cols-2 gap-4">
+                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center">
+                        <p className="text-slate-400 font-bold mb-1">التقدم المنهجي</p>
+                        <h4 className={`text-4xl font-black ${selectedStudentProfile.progress > 75 ? 'text-emerald-600' : selectedStudentProfile.progress > 40 ? 'text-amber-600' : 'text-rose-600'}`}>
+                          {selectedStudentProfile.progress}%
+                        </h4>
+                     </div>
+                     <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-center">
+                        <p className="text-slate-400 font-bold mb-1">النقاط الكلية</p>
+                        <h4 className="text-4xl font-black text-blue-600">{selectedStudentProfile.points}</h4>
+                     </div>
+                   </div>
+
+                   <div className="grid grid-cols-2 gap-4">
+                     <div className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100">
+                        <h4 className="text-emerald-800 font-black mb-3">نقاط القوة</h4>
+                        <div className="flex flex-wrap gap-2">
+                           {selectedStudentProfile.strengths.length > 0 ? selectedStudentProfile.strengths.map((s: string) => (
+                             <span key={s} className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-sm font-bold">{s}</span>
+                           )) : <span className="text-emerald-600/50 text-sm font-bold">لا يوجد بيانات</span>}
+                        </div>
+                     </div>
+                     <div className="bg-rose-50/50 p-6 rounded-2xl border border-rose-100">
+                        <h4 className="text-rose-800 font-black mb-3">نقاط الضعف</h4>
+                        <div className="flex flex-wrap gap-2">
+                           {selectedStudentProfile.weaknesses.length > 0 ? selectedStudentProfile.weaknesses.map((w: string) => (
+                             <span key={w} className="bg-rose-100 text-rose-700 px-3 py-1 rounded-lg text-sm font-bold">{w}</span>
+                           )) : <span className="text-rose-600/50 text-sm font-bold">لا توجد ملاحظات سلبية</span>}
+                        </div>
+                     </div>
+                   </div>
+                 </div>
+              )}
+
+              {/* --- ACTIVITIES TAB --- */}
+              {profileTab === 'activities' && (
+                 <div className="space-y-4">
+                    <h3 className="font-bold text-slate-800 text-lg mb-4">النشاطات الأخيرة</h3>
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                        <div>
+                           <h4 className="font-bold text-slate-900">تمرين التوازن - المستوى {i}</h4>
+                           <p className="text-sm font-medium text-slate-500 mt-1">تم الإنجاز بنجاح</p>
+                        </div>
+                        <span className="text-sm font-bold text-emerald-600">منذ {i} أيام</span>
+                      </div>
+                    ))}
+                 </div>
+              )}
+
+              {/* --- REPORTS TAB --- */}
+              {profileTab === 'reports' && (
+                 <div className="space-y-4">
+                    <h3 className="font-bold text-slate-800 text-lg mb-4">التقارير الدورية</h3>
+                    <div className="bg-white p-8 rounded-2xl border border-dashed border-slate-300 text-center">
+                       <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                       <h4 className="font-bold text-slate-700 mb-1">توليد تقرير جديد</h4>
+                       <p className="text-sm text-slate-500 mb-4">تصدير تقرير شامل لأداء التلميذ مع توصيات الذكاء الاصطناعي</p>
+                       <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl px-6">إنشاء الآن</Button>
+                    </div>
+                 </div>
+              )}
+
+              {/* --- EVALUATION TAB --- */}
+              {profileTab === 'evaluation' && (
+                 <div className="space-y-4">
+                    <h3 className="font-bold text-slate-800 text-lg mb-4">المهام قيد التقييم</h3>
+                    <div className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between">
+                       <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                             <Video className="w-6 h-6" />
+                          </div>
+                          <div>
+                             <h4 className="font-black text-slate-900">اختبار التوازن والثبات (فيديو)</h4>
+                             <p className="text-sm font-medium text-slate-500 mt-1">تم الرفع اليوم, بانتظار تقييمك وتسجيل الملاحظات.</p>
+                          </div>
+                       </div>
+                       <Button onClick={() => {
+                          setSelectedStudentProfile(null);
+                          if (onNavigate) onNavigate('video-review');
+                       }} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 h-12 shadow-md">
+                          مراجعة
+                       </Button>
+                    </div>
+                 </div>
+              )}
+
             </div>
           </div>
         </div>
@@ -232,7 +383,7 @@ export function TeacherClassManager() {
 
                {/* Actions */}
                <div className="mt-auto grid grid-cols-2 gap-3">
-                  <Button className="w-full bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors h-12 shadow-md">
+                  <Button onClick={() => { setSelectedStudentProfile(student); setProfileTab('overview'); }} className="w-full bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors h-12 shadow-md">
                     الملف الشخصي
                   </Button>
                   <Button onClick={() => setMessagingStudent(student)} variant="outline" className="w-full font-bold rounded-xl border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors h-12">

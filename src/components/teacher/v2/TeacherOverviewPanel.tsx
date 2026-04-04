@@ -20,14 +20,14 @@ interface TeacherOverviewPanelProps {
 }
 
 export function TeacherOverviewPanel({ onNavigate }: TeacherOverviewPanelProps) {
-  const { students, stats, settings } = useTeacherClassData();
+  const { activeClassStudents, stats, activeClass } = useTeacherClassData();
   
   // Get active alerts based on student status/progress
   const alerts = useMemo(() => {
-    return students
+    return activeClassStudents
       .filter(s => s.weaknesses.length > 0 || s.status !== 'نشط' || s.progress > 90)
       .slice(0, 4);
-  }, [students]);
+  }, [activeClassStudents]);
 
   return (
     <div className="max-w-7xl mx-auto p-10 space-y-10 bg-white min-h-full">
@@ -36,7 +36,7 @@ export function TeacherOverviewPanel({ onNavigate }: TeacherOverviewPanelProps) 
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">مرحباً أستاذ 👋</h1>
-          <p className="text-lg text-slate-500 mt-2">إليك ملخص أداء فصولك المستمد من البيانات الحية لـ <span className="font-bold text-slate-700">{settings?.schoolName || 'مؤسستك'}</span>.</p>
+          <p className="text-lg text-slate-500 mt-2">إليك ملخص أداء فصولك المستمد من البيانات الحية لـ <span className="font-bold text-slate-700">{activeClass ? activeClass.name : 'مؤسستك'}</span>.</p>
         </div>
         
         {/* QUICK ACTIONS */}

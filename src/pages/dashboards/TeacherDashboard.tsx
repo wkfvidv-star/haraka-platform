@@ -19,6 +19,10 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RatingSystem } from '@/components/shared/RatingSystem';
 import { ChatSystem } from '@/components/shared/ChatSystem';
+import { useTeacherClassData } from '@/hooks/useTeacherClassData';
+import { Button } from '@/components/ui/button';
+import { Database, Plus, Building2 } from 'lucide-react';
+
 
 // Import new modular components
 import { TeacherOverviewPanel } from '@/components/teacher/v2/TeacherOverviewPanel';
@@ -49,6 +53,12 @@ export default function TeacherDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const { user, logout } = useAuth();
   const isRTL = true;
+  const { isLoaded, hasSetup, classes, activeClassId, setActiveClassId, createClass, seedData } = useTeacherClassData();
+
+  const handleCreateMockClass = () => {
+    createClass('القسم التجريبي الجديد', 'ابتدائي');
+  };
+
 
   const STUDENT_TARGETS = [
     { id: 'st1', name: 'ياسين محمود', role: 'تلميذ - السنة 4' },
@@ -93,10 +103,55 @@ export default function TeacherDashboard() {
     }
   };
 
+  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>;
+
+  if (!hasSetup) {
+    return (
+      <div dir="rtl" className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-slate-900 font-sans relative overflow-hidden">
+        {/* Background Decorations */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-[100px] opacity-60 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100 rounded-full blur-[100px] opacity-60 pointer-events-none"></div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-[2.5rem] p-10 md:p-16 max-w-2xl w-full shadow-2xl relative z-10 border border-slate-100 text-center"
+        >
+          <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner shadow-blue-200 border border-blue-100">
+            <GraduationCap className="w-12 h-12" />
+          </div>
+          <h1 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">مرحباً أستاذ</h1>
+          <p className="text-lg text-slate-500 font-medium mb-12">ابدأ بإنشاء قسمك أو ربطه بالمؤسسة التربوية للوصول إلى لوحة التحكم الخاصة بك.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button onClick={handleCreateMockClass} className="h-16 text-lg font-bold rounded-2xl bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/10 flex items-center gap-3">
+              <Plus className="w-6 h-6" /> إنشاء قسم جديد
+            </Button>
+            <Button variant="outline" className="h-16 text-lg font-bold rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3">
+              <Building2 className="w-6 h-6" /> ربط مع مؤسسة
+            </Button>
+          </div>
+
+          <div className="mt-8 flex items-center justify-center">
+             <div className="h-px bg-slate-200 flex-1"></div>
+             <span className="px-4 text-slate-400 font-bold text-sm uppercase tracking-widest">أو للـتـجـربـة</span>
+             <div className="h-px bg-slate-200 flex-1"></div>
+          </div>
+
+          <Button onClick={seedData} variant="ghost" className="w-full mt-6 h-14 text-base font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-2xl">
+            <Database className="w-5 h-5 ml-2" />
+            استخدام بيانات تجريبية (Seed Data)
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <>
       <TeacherOnboarding />
       <div 
+ 
         dir={isRTL ? 'rtl' : 'ltr'}
         className={`flex h-screen overflow-hidden bg-slate-50/30 text-slate-900 font-sans ${isRTL ? 'rtl' : 'ltr'}`}
       >
@@ -187,8 +242,26 @@ export default function TeacherDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative">
+          <div className="flex items-center gap-6">
+            
+            {classes.length > 0 && (
+              <div className="hidden md:flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                <span className="text-sm font-bold text-slate-500 pr-2">القسم:</span>
+                <select 
+                  value={activeClassId || ''} 
+                  onChange={(e) => setActiveClassId(e.target.value)}
+                  className="bg-white border text-sm border-slate-200 text-slate-900 font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none min-w-[150px] cursor-pointer"
+                >
+                  {classes.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="flex items-center gap-4">
+              <div className="relative">
+
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors relative"
@@ -255,6 +328,7 @@ export default function TeacherDashboard() {
                 )}
               </AnimatePresence>
             </div>
+            </div>
             
             <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md border-0 shrink-0">
               {user?.name ? user.name.charAt(0) : 'E'}
@@ -262,10 +336,8 @@ export default function TeacherDashboard() {
           </div>
         </header>
 
-        {/* Setup Modal will automatically show if no classes are selected */}
-        <TeacherSetupModal />
-
         {/* Dashboard Content */}
+
         <div className="flex-1 overflow-auto rounded-xl">
           <div className="max-w-[1600px] mx-auto p-6 lg:p-10">
             <AnimatePresence mode="wait">

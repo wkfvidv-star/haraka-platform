@@ -1,51 +1,72 @@
 import { useState, useEffect, useMemo } from 'react';
-import { allDistrictStudents, TeacherStudent, getTeacherStats } from '@/data/mockTeacherData';
-
-export interface TeacherSettings {
-  schoolName: string;
-  classes: string[];
-  skipped?: boolean;
-}
+import { teacherDataService, TeacherDashboardData } from '@/services/teacherDataService';
 
 export function useTeacherClassData() {
-  const [settings, setSettings] = useState<TeacherSettings | null>(null);
+  const [data, setData] = useState<TeacherDashboardData>(teacherDataService.getData());
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('haraka_teacher_settings');
-    if (saved) {
-      try {
-        setSettings(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse teacher settings', e);
-      }
-    }
     setIsLoaded(true);
+    const handleDataChange = () => {
+      setData({ ...teacherDataService.getData() });
+    };
+
+    window.addEventListener('teacherDataChanged', handleDataChange);
+    return () => {
+      window.removeEventListener('teacherDataChanged', handleDataChange);
+    };
   }, []);
 
-  const saveSettings = (newSettings: TeacherSettings) => {
-    localStorage.setItem('haraka_teacher_settings', JSON.stringify(newSettings));
-    setSettings(newSettings);
+  const setActiveClassId = (classId: string | null) => {
+    teacherDataService.setActiveClassId(classId);
   };
 
-  // Filter students: if no classes chosen or skipped, return all defaults to avoid blank screens.
-  const filteredStudents = useMemo(() => {
-    if (!settings || !settings.classes || settings.classes.length === 0 || settings.skipped) {
-      return allDistrictStudents.slice(0, 34); // Default to seeing 34 students
-    }
-    return allDistrictStudents.filter(s => settings.classes.includes(s.className));
-  }, [settings]);
+  const activeClass = useMemo(() => {
+    return data.classes.find(c => c.id === data.activeClassId) || null;
+  }, [data.classes, data.activeClassId]);
+
+  const activeClassStudents = useMemo(() => {
+    if (!data.activeClassId) return [];
+    return data.students.filter(s => s.classId === data.activeClassId);
+  }, [data.students, data.activeClassId]);
 
   const stats = useMemo(() => {
-    return getTeacherStats(filteredStudents);
-  }, [filteredStudents]);
+    const students = activeClassStudents;
+    const totalStudents = students.length;
+    
+    if (totalStudents === 0) {
+      return { totalStudents: 0, activeStudents: 0, inactiveStudents: 0, averageProgress: 0, pendingVideosCount: 0 };
+    }
+
+    const activeStudents = students.filter(s => s.status === 'نشط').length;
+    const inactiveStudents = students.filter(s => s.status !== 'نشط').length;
+    const averageProgress = Math.round(students.reduce((acc, s) => acc + s.progress, 0) / totalStudents);
+    
+    // For pending videos, we look at evaluations related to these students
+    const studentIds = new Set(students.map(s => s.id));
+    const pendingVideosCount = data.evaluations.filter(e => studentIds.has(e.studentId) && e.status === 'pending').length;
+
+    return {
+      totalStudents,
+      activeStudents,
+      inactiveStudents,
+      averageProgress,
+      pendingVideosCount
+    };
+  }, [activeClassStudents, data.evaluations]);
 
   return {
-    settings,
     isLoaded,
-    saveSettings,
-    students: filteredStudents,
+    hasSetup: data.hasSetup,
+    classes: data.classes,
+    activeClassId: data.activeClassId,
+    activeClass,
+    students: data.students,
+    evaluations: data.evaluations,
+    activeClassStudents,
     stats,
-    hasSetup: !!settings && (settings.classes.length > 0 || settings.skipped === true)
+    setActiveClassId,
+    createClass: (name: string, level: string) => teacherDataService.createClass(name, level),
+    seedData: () => teacherDataService.seedData()
   };
 }

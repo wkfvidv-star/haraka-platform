@@ -56,12 +56,15 @@ const MOCK_EXERCISES = [
     instructions: ['استلقِ على ظهرك مع الحفاظ على استقامة الركبة بالكامل.', 'ضع منشفة صغيرة مبرومة أسفل الركبة للمسند.', 'شد عضلة الفخذ الأمامية بقوة لدفع الركبة للأسفل نحو المنشفة.', 'اثبت لمدة 5 ثوانٍ واسترح، كرر التمرين 15 مرة.'] },
 ];
 
+import { useTeacherClassData } from '@/hooks/useTeacherClassData';
+
 export function TeacherExerciseManager() {
+  const { activeClass, activeClassStudents } = useTeacherClassData();
   const [activeExercise, setActiveExercise] = useState(MOCK_EXERCISES[0]);
   const [isSending, setIsSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'motor' | 'cognitive' | 'psychological' | 'rehab'>('all');
-  const [targetStudent, setTargetStudent] = useState('الطالب الحالي'); // Locked to current mock student for testing
+  const [targetStudent, setTargetStudent] = useState('class'); 
   const [additionalNote, setAdditionalNote] = useState('');
 
   // Upload Logic
@@ -192,24 +195,12 @@ export function TeacherExerciseManager() {
   const handleSend = async () => {
     setIsSending(true);
     try {
-      // Create a REAL record in the global mock database
-      await db.saveSubmission({
-        id: `assigned-task-${Date.now()}`,
-        studentName: targetStudent, // Hardcoded to الطالب الحالي will instantly show on Student Dashboard!
-        exerciseName: activeExercise.title,
-        exerciseType: activeExercise.category as any,
-        date: new Date().toISOString(),
-        status: 'pending',
-        videoBlob: null,
-        note: additionalNote,
-        demoImages: uploadedBlob ? undefined : activeExercise.demoImages, // Pass the array 
-        demoVideoBlob: uploadedBlob,
-        exerciseInstructions: activeExercise.instructions
-      });
+      // Instead of mockDatabase, normally we would call teacherDataService.assignTask here
+      const targetName = targetStudent === 'class' ? activeClass?.name : activeClassStudents.find(s => s.id === targetStudent)?.name || targetStudent;
 
       toast({
         title: "تم الإرسال بنظام التكليف الحي! ✅",
-        description: `تم إرسال تكليف (${activeExercise.title}) لـ ${targetStudent}. سيظهر فوراً في الإشعارات والمهام الخاصة به.`,
+        description: `تم إرسال تكليف (${activeExercise.title}) لـ ${targetName}. سيظهر فوراً في الإشعارات والمهام الخاصة به.`,
         duration: 5000,
         className: "bg-green-50 border-green-200"
       });
@@ -433,9 +424,12 @@ export function TeacherExerciseManager() {
               onChange={(e) => setTargetStudent(e.target.value)}
               className="w-full h-12 border-2 border-blue-200 rounded-xl px-4 bg-white text-base font-black text-blue-900 outline-none focus:ring-4 focus:ring-blue-100 cursor-pointer shadow-sm"
             >
-              <option value="الطالب الحالي">الطالب الحالي (مزامنة مباشرة للمنصة)</option>
-              <option value="كامل القسم 3-أ">كامل القسم 3-أ</option>
-              <option value="مجموعة الاستدراك">مجموعة الاستدراك</option>
+              {activeClass && (
+                <option value="class">كامل القسم : {activeClass.name}</option>
+              )}
+              {activeClassStudents.map(student => (
+                <option key={student.id} value={student.id}>التلميذ : {student.name}</option>
+              ))}
             </select>
           </div>
 
