@@ -13,6 +13,24 @@ export type CoachSession = {
   date?: string;
 };
 
+export type DiscoveredYouth = {
+  id: string | number;
+  name: string;
+  age: number;
+  goal: string;
+  level: string;
+  matchPercentage: number;
+};
+
+export type TrainingRequest = {
+  id: string | number;
+  senderName: string;
+  senderType: 'parent' | 'youth';
+  goal: string;
+  details: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'offered';
+};
+
 export type BookingRequest = {
   id: string | number;
   client: string;
@@ -42,7 +60,10 @@ interface CoachDashboardContextType {
   // State
   sessions: CoachSession[];
   bookingRequests: BookingRequest[];
+  trainingRequests: TrainingRequest[];
+  discoveredYouths: DiscoveredYouth[];
   trainees: any[];
+  setTrainees: React.Dispatch<React.SetStateAction<any[]>>;
   notifications: NotificationType[];
   auditLogs: AuditLogEntry[];
   // Actions
@@ -53,6 +74,11 @@ interface CoachDashboardContextType {
   cancelSession: (id: string | number) => void;
   sendPerformanceReport: (traineeId: string, details: any) => void;
   markNotificationsAsRead: () => void;
+  requestToTrain: (youthId: string | number) => void;
+  ignoreYouth: (youthId: string | number) => void;
+  acceptTrainingRequest: (id: string | number) => void;
+  rejectTrainingRequest: (id: string | number) => void;
+  sendOffer: (id: string | number) => void;
 }
 
 export const CoachDashboardContext = createContext<CoachDashboardContextType>({
@@ -60,7 +86,10 @@ export const CoachDashboardContext = createContext<CoachDashboardContextType>({
   setActiveTab: () => {},
   sessions: [],
   bookingRequests: [],
+  trainingRequests: [],
+  discoveredYouths: [],
   trainees: [],
+  setTrainees: () => {},
   notifications: [],
   auditLogs: [],
   addAuditLog: () => {},
@@ -70,6 +99,11 @@ export const CoachDashboardContext = createContext<CoachDashboardContextType>({
   cancelSession: () => {},
   sendPerformanceReport: () => {},
   markNotificationsAsRead: () => {},
+  requestToTrain: () => {},
+  ignoreYouth: () => {},
+  acceptTrainingRequest: () => {},
+  rejectTrainingRequest: () => {},
+  sendOffer: () => {},
 });
 
 export const useCoachDashboard = () => useContext(CoachDashboardContext);
@@ -88,6 +122,18 @@ export const CoachDashboardProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>([
     { id: 1, client: 'محمد', details: 'اليوم, 08:00 م - تدريب أوزان حرة', status: 'pending' },
     { id: 2, client: 'عبد الله', details: 'غداً, 05:00 م - لياقة بدنية', status: 'pending' },
+  ]);
+
+  const [trainingRequests, setTrainingRequests] = useState<TrainingRequest[]>([
+    { id: 1, senderName: 'ولي أمر أحمد', senderType: 'parent', goal: 'تأهيل بدني وبناء ثقة', details: 'ابني عمره ١٤ سنة يحتاج لبرنامج تقوية وتأهيل من إصابة خفيفة مسبقة.', status: 'pending' },
+    { id: 2, senderName: 'ياسين محمود', senderType: 'youth', goal: 'احتراف كرة القدم', details: 'أبحث عن مدرب لرفع سرعتي ولياقتي في الجري، أتدرب ٣ أيام أسبوعياً حالياً.', status: 'pending' },
+  ]);
+
+  const [discoveredYouths, setDiscoveredYouths] = useState<DiscoveredYouth[]>([
+    { id: 'dy1', name: 'عمر خالد', age: 16, goal: 'تضخيم عضلي وزيادة قوة', level: 'متوسط', matchPercentage: 96 },
+    { id: 'dy2', name: 'سيف الدين', age: 15, goal: 'إنقاص وزن ولياقة عامة', level: 'مبتدئ', matchPercentage: 88 },
+    { id: 'dy3', name: 'طارق زياد', age: 17, goal: 'تحضير لبطولة ألعاب قوى', level: 'متقدم', matchPercentage: 75 },
+    { id: 'dy4', name: 'ريان أحمد', age: 14, goal: 'لياقة وتأسيس سليم', level: 'مبتدئ', matchPercentage: 62 },
   ]);
 
   const [trainees, setTrainees] = useState<any[]>(coachClients);
@@ -144,6 +190,33 @@ export const CoachDashboardProvider: React.FC<{ children: ReactNode }> = ({ chil
     toast.error('تم رفض الحجز وإشعار الشاب');
   };
 
+  const requestToTrain = (youthId: string | number) => {
+    setDiscoveredYouths(prev => prev.filter(y => y.id !== youthId));
+    toast.success('تم إرسال طلب التدريب للشاب بنجاح');
+  };
+
+  const ignoreYouth = (youthId: string | number) => {
+    setDiscoveredYouths(prev => prev.filter(y => y.id !== youthId));
+  };
+
+  const acceptTrainingRequest = (id: string | number) => {
+    const req = trainingRequests.find(r => r.id === id);
+    if (!req) return;
+
+    setTrainingRequests(prev => prev.filter(r => r.id !== id));
+    toast.success(`تم قبول طلب ${req.senderName} وهو الآن بانتظار إتمام الدفع أو التأكيد`);
+  };
+
+  const rejectTrainingRequest = (id: string | number) => {
+    setTrainingRequests(prev => prev.filter(r => r.id !== id));
+    toast.error('تم رفض الطلب');
+  };
+
+  const sendOffer = (id: string | number) => {
+    setTrainingRequests(prev => prev.filter(r => r.id !== id));
+    toast.success('تم إرسال العرض المخصص بنجاح');
+  };
+
   const createSession = (session: Partial<CoachSession>) => {
     const newSession = {
       id: Math.random().toString(36).substring(7),
@@ -197,9 +270,10 @@ export const CoachDashboardProvider: React.FC<{ children: ReactNode }> = ({ chil
   return (
     <CoachDashboardContext.Provider value={{
       activeTab, setActiveTab,
-      sessions, bookingRequests, trainees, notifications, auditLogs,
+      sessions, bookingRequests, trainingRequests, discoveredYouths, trainees, setTrainees, notifications, auditLogs,
       addAuditLog, approveBooking, rejectBooking, createSession, cancelSession,
-      sendPerformanceReport, markNotificationsAsRead
+      sendPerformanceReport, markNotificationsAsRead,
+      requestToTrain, ignoreYouth, acceptTrainingRequest, rejectTrainingRequest, sendOffer
     }}>
       {children}
     </CoachDashboardContext.Provider>

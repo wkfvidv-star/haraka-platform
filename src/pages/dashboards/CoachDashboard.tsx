@@ -23,28 +23,37 @@ import CoachMessages from '@/components/coach-dashboard/CoachMessages';
 import CoachVideoReview from '@/components/coach-dashboard/CoachVideoReview';
 import { CoachOnboarding } from '@/components/coach-dashboard/CoachOnboarding';
 import { CoachDashboardProvider, useCoachDashboard } from '@/contexts/CoachDashboardContext';
+import CoachDiscover from '@/components/coach-dashboard/CoachDiscover';
+import CoachRequests from '@/components/coach-dashboard/CoachRequests';
 import { RatingSystem } from '@/components/shared/RatingSystem';
 import { ChatSystem } from '@/components/shared/ChatSystem';
 import CoachLibrary from '@/components/coach-dashboard/CoachLibrary';
 import CoachGPSHub from '@/components/coach-dashboard/gps/CoachGPSHub';
 
-const TABS = [
-  { id: 'overview',    label: 'اللوحة الرئيسية',  icon: LayoutDashboard },
-  { id: 'gps-hub',     label: 'التدريب الميداني', icon: MapPin },
+const PRIMARY_TABS = [
   { id: 'clients',     label: 'المتدربين',        icon: Users },
-  { id: 'video-review',label: 'تحليل الفيديو',   icon: Video },
   { id: 'programs',    label: 'البرامج',           icon: Target },
+  { id: 'discover',    label: 'اكتشاف رياضي',     icon: Search },
+  { id: 'requests',    label: 'طلبات التدريب',    icon: Bell },
+];
+
+const SECONDARY_TABS = [
+  { id: 'overview',    label: 'اللوحة الرئيسية',  icon: LayoutDashboard },
   { id: 'schedule',    label: 'الجدول',            icon: Calendar },
-  { id: 'library',     label: 'مكتبة التمارين',  icon: Dumbbell },
-  { id: 'nutrition',   label: 'الأنظمة الغذائية', icon: Apple },
   { id: 'analytics',   label: 'التحليلات والنمو', icon: LineChart },
+  { id: 'nutrition',   label: 'الأنظمة الغذائية', icon: Apple },
+  { id: 'library',     label: 'مكتبة التمارين',  icon: Dumbbell },
   { id: 'messages',    label: 'صندوق الرسائل',  icon: MessageSquare },
+  { id: 'video-review',label: 'تحليل الفيديو',   icon: Video },
+  { id: 'gps-hub',     label: 'التدريب الميداني', icon: MapPin },
   { id: 'ratings',     label: 'تقييم المتدربين',  icon: Star },
   { id: 'chat',        label: 'غرفة المدربين',  icon: MessageCircle },
 ];
 
+const ALL_TABS = [...PRIMARY_TABS, ...SECONDARY_TABS];
+
 const CoachDashboardContent = () => {
-  const { activeTab, setActiveTab, notifications, markNotificationsAsRead } = useCoachDashboard();
+  const { activeTab, setActiveTab, notifications, markNotificationsAsRead, trainees } = useCoachDashboard();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -59,7 +68,31 @@ const CoachDashboardContent = () => {
     switch (activeTab) {
       case 'overview': return <CoachOverviewPanel />;
       case 'gps-hub': return <CoachGPSHub />;
-      case 'clients': return <CoachClientsManager />;
+      case 'clients': 
+        if (trainees.length === 0) {
+          return (
+            <div className="h-[70vh] flex items-center justify-center p-6">
+              <div className="max-w-md w-full bg-white rounded-3xl p-8 text-center shadow-xl border border-slate-100 flex flex-col items-center">
+                <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                  <Users className="w-12 h-12" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mb-2 mt-2">لا يوجد لديك متدربين حالياً</h2>
+                <p className="text-slate-500 font-medium mb-8">ابدأ بإضافة رياضي يدوياً أو اكتشف رياضيين جدد للبدء في مسيرتك التدريبية عبر المنصة.</p>
+                <div className="flex flex-col gap-3 w-full">
+                  <Button onClick={() => setActiveTab('discover')} className="h-14 font-bold rounded-xl flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white shadow-md text-lg">
+                    <Search className="w-5 h-5 ml-2" /> اكتشف رياضيين
+                  </Button>
+                  <Button variant="outline" className="h-14 font-bold rounded-xl flex items-center justify-center border-slate-200 text-slate-700 text-lg">
+                    <Plus className="w-5 h-5 ml-2" /> إضافة رياضي
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return <CoachClientsManager />;
+      case 'discover': return <CoachDiscover />;
+      case 'requests': return <CoachRequests />;
       case 'video-review': return <CoachVideoReview />;
       case 'programs': return <CoachPrograms />;
       case 'schedule': return <CoachSchedule />;
@@ -119,24 +152,51 @@ const CoachDashboardContent = () => {
             </div>
 
             <ScrollArea className="flex-1 py-6 px-4">
-              <div className="space-y-2">
-                {TABS.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-base font-bold ${
-                        activeTab === tab.id
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-                      }`}
-                    >
-                      <Icon className={`w-6 h-6 ${activeTab === tab.id ? 'opacity-100' : 'opacity-70'}`} />
-                      {tab.label}
-                    </button>
-                  );
-                })}
+              <div className="space-y-8">
+                {/* Primary Navigation */}
+                <div className="space-y-2">
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 mb-3">الوظائف الأساسية</h3>
+                  {PRIMARY_TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all text-base font-bold ${
+                          activeTab === tab.id
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20'
+                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 ${activeTab === tab.id ? 'opacity-100' : 'opacity-70'}`} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Secondary Navigation */}
+                <div className="space-y-2 relative">
+                  <div className="absolute top-0 right-4 left-4 h-px bg-slate-800/50 -mt-4"></div>
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 mb-3 mt-1">أدوات إضافية</h3>
+                  {SECONDARY_TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all text-sm font-semibold ${
+                          activeTab === tab.id
+                            ? 'bg-slate-800 text-white shadow-sm'
+                            : 'text-slate-500 hover:bg-slate-800/50 hover:text-white'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 ${activeTab === tab.id ? 'opacity-100' : 'opacity-60'}`} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </ScrollArea>
             
@@ -170,7 +230,7 @@ const CoachDashboardContent = () => {
               <Menu className="w-6 h-6" />
             </button>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">{TABS.find(t => t.id === activeTab)?.label}</h1>
+              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">{ALL_TABS.find(t => t.id === activeTab)?.label}</h1>
               <p className="text-sm font-semibold text-slate-500">متصل الآن بالنظام الموحد</p>
             </div>
           </div>

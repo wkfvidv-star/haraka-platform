@@ -15,7 +15,15 @@ import { toast } from 'sonner';
 export default function CoachClientsManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [reportingClient, setReportingClient] = useState<string | null>(null);
+  const [activeProfileTab, setActiveProfileTab] = useState('overview');
   const { setActiveTab, trainees, sendPerformanceReport } = useCoachDashboard();
+
+  const PROFILE_TABS = [
+    { id: 'overview', label: 'نظرة عامة' },
+    { id: 'training', label: 'التدريب' },
+    { id: 'progress', label: 'التقدم' },
+    { id: 'reports', label: 'التقارير' }
+  ];
 
   const filteredClients = trainees.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -162,89 +170,123 @@ export default function CoachClientsManager() {
               </div>
 
               {/* Scrollable Content inside Modal */}
-              <div className="flex-1 overflow-y-auto bg-slate-50/50 p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar relative z-10">
+              <div className="flex-1 overflow-y-auto bg-slate-50/50 p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar relative z-10 w-full min-h-[400px]">
                 
-                {/* 1. Key Statistics Cards */}
-                <div>
-                   <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2"><Activity className="w-5 h-5 text-blue-600" /> ملخص المؤشرات الحيوية</h3>
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-                         <span className="text-[11px] font-black text-slate-400 uppercase mb-2">الوزن المفقود</span>
-                         <span className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">4.5 <span className="text-sm text-slate-400 font-bold">KG</span></span>
-                      </div>
-                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-                         <span className="text-[11px] font-black text-slate-400 uppercase mb-2">أيام النشاط (الشهر)</span>
-                         <span className="text-2xl md:text-3xl font-black text-blue-600 tracking-tight">21 <span className="text-sm text-blue-400 font-bold">يوم</span></span>
-                      </div>
-                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-                         <span className="text-[11px] font-black text-slate-400 uppercase mb-2">البرنامج الحالي</span>
-                         <span className="text-lg font-black text-slate-900 truncate">تأسيس القوة</span>
-                      </div>
-                      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-2xl shadow-sm border border-emerald-100 flex flex-col justify-center">
-                         <span className="text-[11px] font-black text-emerald-600 uppercase mb-2">نسبة الحضور المباشر</span>
-                         <span className="text-2xl md:text-3xl font-black text-emerald-700 tracking-tight">92%</span>
-                      </div>
-                   </div>
+                {/* Internal Tabs */}
+                <div className="flex gap-4 border-b border-slate-200 w-full px-2">
+                  {PROFILE_TABS.map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveProfileTab(tab.id)}
+                      className={`px-4 py-3 font-bold text-sm transition-colors border-b-2 -mb-px outline-none ${
+                        activeProfileTab === tab.id
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
 
-                {/* 2. Review & Approvals Queue */}
-                <div className="space-y-4">
-                   <h3 className="text-lg font-black text-slate-900 flex items-center gap-2"><PlaySquare className="w-5 h-5 text-indigo-600" /> المرفقات تحتاج تقييم</h3>
-                   <div className="bg-white p-4 md:p-5 rounded-3xl border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between shadow-sm gap-4 hover:border-indigo-200 transition-colors group">
-                      <div className="flex items-center gap-4">
-                         <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                            <PlaySquare className="w-6 h-6" />
-                         </div>
-                         <div>
-                            <h4 className="font-black text-slate-900 text-lg">تحليل تمرين السكوات</h4>
-                            <p className="text-sm font-bold text-slate-500 mt-0.5">مُرسل منذ ساعتين - زاوية الركبة تحتاج تصحيح</p>
-                         </div>
-                      </div>
-                      <Button onClick={() => setActiveTab('video-review')} className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 font-bold rounded-xl shadow-lg shadow-indigo-200 h-12 px-6">
-                         بدء التحليل
-                      </Button>
-                   </div>
-                </div>
+                {/* Tab: Overview */}
+                {activeProfileTab === 'overview' && (
+                  <div>
+                     <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2"><Activity className="w-5 h-5 text-blue-600" /> ملخص المؤشرات الحيوية</h3>
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                           <span className="text-[11px] font-black text-slate-400 uppercase mb-2">الوزن المفقود</span>
+                           <span className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">4.5 <span className="text-sm text-slate-400 font-bold">KG</span></span>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                           <span className="text-[11px] font-black text-slate-400 uppercase mb-2">أيام النشاط (الشهر)</span>
+                           <span className="text-2xl md:text-3xl font-black text-blue-600 tracking-tight">21 <span className="text-sm text-blue-400 font-bold">يوم</span></span>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                           <span className="text-[11px] font-black text-slate-400 uppercase mb-2">البرنامج الحالي</span>
+                           <span className="text-lg font-black text-slate-900 truncate">تأسيس القوة</span>
+                        </div>
+                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-2xl shadow-sm border border-emerald-100 flex flex-col justify-center">
+                           <span className="text-[11px] font-black text-emerald-600 uppercase mb-2">نسبة الحضور المباشر</span>
+                           <span className="text-2xl md:text-3xl font-black text-emerald-700 tracking-tight">92%</span>
+                        </div>
+                     </div>
+                  </div>
+                )}
 
-                {/* 3. Assigned Documents */}
-                <div className="space-y-4">
-                   <h3 className="text-lg font-black text-slate-900 flex items-center gap-2"><Target className="w-5 h-5 text-orange-500" /> المستندات المسندة حالياً</h3>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-                        <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
-                           <FileText className="w-6 h-6" />
+                {/* Tab: Progress */}
+                {activeProfileTab === 'progress' && (
+                  <div className="space-y-4">
+                     <h3 className="text-lg font-black text-slate-900 flex items-center gap-2"><PlaySquare className="w-5 h-5 text-indigo-600" /> المرفقات تحتاج تقييم</h3>
+                     <div className="bg-white p-4 md:p-5 rounded-3xl border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between shadow-sm gap-4 hover:border-indigo-200 transition-colors group">
+                        <div className="flex items-center gap-4">
+                           <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                              <PlaySquare className="w-6 h-6" />
+                           </div>
+                           <div>
+                              <h4 className="font-black text-slate-900 text-lg">تحليل تمرين السكوات</h4>
+                              <p className="text-sm font-bold text-slate-500 mt-0.5">مُرسل منذ ساعتين - زاوية الركبة تحتاج تصحيح</p>
+                           </div>
                         </div>
-                        <div className="flex-1 hidden sm:block">
-                           <h5 className="font-bold text-slate-900">برنامج ضخامة (متقدم)</h5>
-                           <p className="text-xs text-slate-400 font-bold mt-1">مسار التدريب الرياضي</p>
-                        </div>
-                        <Button 
-                           onClick={() => setActiveTab('programs')} 
-                           variant="outline" 
-                           size="sm" 
-                           className="h-10 w-full sm:w-auto rounded-lg font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
-                        >تعديل/عرض</Button>
-                      </div>
+                        <Button onClick={() => setActiveTab('video-review')} className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 font-bold rounded-xl shadow-lg shadow-indigo-200 h-12 px-6">
+                           بدء التحليل
+                        </Button>
+                     </div>
+                  </div>
+                )}
 
-                      <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-                        <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-                           <Apple className="w-6 h-6" />
+                {/* Tab: Training */}
+                {activeProfileTab === 'training' && (
+                  <div className="space-y-4">
+                     <h3 className="text-lg font-black text-slate-900 flex items-center gap-2"><Target className="w-5 h-5 text-orange-500" /> المستندات المسندة حالياً</h3>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                          <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                             <FileText className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1 hidden sm:block">
+                             <h5 className="font-bold text-slate-900">برنامج ضخامة (متقدم)</h5>
+                             <p className="text-xs text-slate-400 font-bold mt-1">مسار التدريب الرياضي</p>
+                          </div>
+                          <Button 
+                             onClick={() => setActiveTab('programs')} 
+                             variant="outline" 
+                             size="sm" 
+                             className="h-10 w-full sm:w-auto rounded-lg font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
+                          >تعديل/عرض</Button>
                         </div>
-                        <div className="flex-1 hidden sm:block">
-                           <h5 className="font-bold text-slate-900">خطة التنشيف - 1800K</h5>
-                           <p className="text-xs text-slate-400 font-bold mt-1">تتبع التغذية</p>
-                        </div>
-                        <Button 
-                           onClick={() => setActiveTab('nutrition')} 
-                           variant="outline" 
-                           size="sm" 
-                           className="h-10 w-full sm:w-auto rounded-lg font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
-                        >تعديل/عرض</Button>
-                      </div>
 
-                   </div>
-                </div>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+                             <Apple className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1 hidden sm:block">
+                             <h5 className="font-bold text-slate-900">خطة التنشيف - 1800K</h5>
+                             <p className="text-xs text-slate-400 font-bold mt-1">تتبع التغذية</p>
+                          </div>
+                          <Button 
+                             onClick={() => setActiveTab('nutrition')} 
+                             variant="outline" 
+                             size="sm" 
+                             className="h-10 w-full sm:w-auto rounded-lg font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
+                          >تعديل/عرض</Button>
+                        </div>
+
+                     </div>
+                  </div>
+                )}
+
+                {/* Tab: Reports */}
+                {activeProfileTab === 'reports' && (
+                  <div className="space-y-4">
+                     <h3 className="text-lg font-black text-slate-900 mb-4">تقارير الأداء السابقة</h3>
+                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-slate-500 py-12">
+                        <Activity className="w-10 h-10 mb-3 opacity-30 text-blue-400" />
+                        <p className="font-bold text-sm">لا توجد تقارير أداء سابقة لعرضها.</p>
+                     </div>
+                  </div>
+                )}
 
               </div>
               
