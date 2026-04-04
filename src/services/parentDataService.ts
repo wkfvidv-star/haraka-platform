@@ -34,6 +34,22 @@ export interface Child {
     time: string;
     type: 'فردي' | 'جماعي';
   }[];
+  // Gamification & Performance
+  streak: number;
+  xp: number;
+  level: number;
+  mood?: 'سعيد' | 'متعب' | 'متحمس' | 'قلق' | 'هادئ';
+  dailyTasks: {
+    id: string;
+    title: string;
+    completed: boolean;
+    category: 'بدني' | 'معرفي' | 'نفسي';
+  }[];
+  performance: {
+    physical: number;
+    cognitive: number;
+    psychological: number;
+  };
 }
 
 export interface Message {
@@ -70,6 +86,8 @@ export interface Coach {
   location: string;
   phone: string;
   price: number;
+  aiMatchScore: number;
+  avatar?: string;
 }
 
 export interface Report {
@@ -104,26 +122,45 @@ const INITIAL_CHILDREN: Child[] = [
   {
     id: 'student_1',
     name: 'أحمد محمد علي',
-    age: 14,
-    grade: 'السنة الثالثة متوسط',
+    age: 12,
+    grade: 'السنة الثانية متوسط',
     school: 'متوسطة الشهيد محمد بوضياف',
     deviceCapabilities: { hasWearable: true, hasBIA: true, hasHeartRate: true, hasGPS: true, hasAdvancedMetrics: true },
     currentStats: { steps: 8543, stepsGoal: 10000, distance: 6.2, calories: 320, heartRate: 78, activeTime: 180, sedentaryTime: 420 },
     healthStatus: 'ممتاز',
     lastActivity: 'منذ ساعتين',
-    upcomingSchedule: [{ activity: 'تدريب كرة القدم', time: '16:00', type: 'جماعي' }, { activity: 'تمرين القوة', time: '18:30', type: 'فردي' }]
+    upcomingSchedule: [{ activity: 'تدريب كرة القدم', time: '16:00', type: 'جماعي' }, { activity: 'تمرين القوة', time: '18:30', type: 'فردي' }],
+    streak: 5,
+    xp: 1250,
+    level: 4,
+    mood: 'سعيد',
+    dailyTasks: [
+      { id: 't1', title: 'تمرين الضغط (20)', completed: true, category: 'بدني' },
+      { id: 't2', title: 'حل لغز منطقي', completed: false, category: 'معرفي' },
+      { id: 't3', title: 'تأمل لمدة 5 دقائق', completed: false, category: 'نفسي' }
+    ],
+    performance: { physical: 85, cognitive: 72, psychological: 90 }
   },
   {
     id: 'student_2',
-    name: 'فاطمة الزهراء',
-    age: 16,
-    grade: 'السنة الثانية ثانوي',
-    school: 'ثانوية عبد الحميد بن باديس',
+    name: 'سارة ياسمين',
+    age: 10,
+    grade: 'السنة الخامسة ابتدائي',
+    school: 'ابتدائية الفارابي',
     deviceCapabilities: { hasWearable: true, hasBIA: false, hasHeartRate: true, hasGPS: false, hasAdvancedMetrics: false },
-    currentStats: { steps: 9200, stepsGoal: 10000, distance: 7.1, calories: 380, heartRate: 72, activeTime: 210, sedentaryTime: 390 },
+    currentStats: { steps: 4200, stepsGoal: 8000, distance: 3.1, calories: 150, heartRate: 82, activeTime: 90, sedentaryTime: 360 },
     healthStatus: 'جيد',
-    lastActivity: 'منذ 30 دقيقة',
-    upcomingSchedule: [{ activity: 'سباحة', time: '15:30', type: 'جماعي' }, { activity: 'يوغا', time: '19:00', type: 'فردي' }]
+    lastActivity: 'منذ ساعة',
+    upcomingSchedule: [{ activity: 'السباحة', time: '17:00', type: 'جماعي' }],
+    streak: 3,
+    xp: 850,
+    level: 2,
+    mood: 'متحمس',
+    dailyTasks: [
+      { id: 't4', title: 'سباحة حرة (30 دقيقة)', completed: false, category: 'بدني' },
+      { id: 't5', title: 'قراءة قصة قصيرة', completed: true, category: 'معرفي' }
+    ],
+    performance: { physical: 78, cognitive: 88, psychological: 82 }
   }
 ];
 
@@ -144,8 +181,10 @@ const INITIAL_MESSAGES: Message[] = [
 ];
 
 const INITIAL_COACHES: Coach[] = [
-  { id: 'c1', name: 'المدرب كريم بوعلام', specialty: 'كرة قدم ⚽', rating: 4.8, sessions: 120, available: ['السبت 10:00', 'الأحد 14:00', 'الثلاثاء 16:00'], location: 'ملعب الشهيد — الشلف', phone: '0555 123 456', price: 1500 },
-  { id: 'c2', name: 'المدربة آمال سعيد', specialty: 'جمباز 🤸', rating: 4.9, sessions: 85, available: ['الجمعة 09:00', 'السبت 11:00'], location: 'قاعة الشهداء — قسنطينة', phone: '0661 789 012', price: 1800 }
+  { id: 'c1', name: 'المدرب كريم بوعلام', specialty: 'كرة قدم ⚽', rating: 4.8, sessions: 120, available: ['السبت 10:00', 'الأحد 14:00', 'الثلاثاء 16:00'], location: 'ملعب الشهيد — الشلف', phone: '0555 123 456', price: 1500, aiMatchScore: 95 },
+  { id: 'c2', name: 'المدربة آمال سعيد', specialty: 'جمباز 🤸', rating: 4.9, sessions: 85, available: ['الجمعة 09:00', 'السبت 11:00'], location: 'قاعة الشهداء — قسنطينة', phone: '0661 789 012', price: 1800, aiMatchScore: 88 },
+  { id: 'c3', name: 'المدرب وليد جاسم', specialty: 'تنس طاولة 🏓', rating: 4.5, sessions: 210, available: ['الإثنين 17:00'], location: 'نادي النصر — الجزائر', phone: '0770 112 233', price: 1200, aiMatchScore: 92 },
+  { id: 'c4', name: 'المدربة مريم بن يحيى', specialty: 'يوغا وسكينة 🧘', rating: 4.7, sessions: 150, available: ['الثلاثاء 10:00'], location: 'مركز الراحة — تيبازة', phone: '0552 445 566', price: 2000, aiMatchScore: 85 }
 ];
 
 const INITIAL_REPORTS: Report[] = [
@@ -178,7 +217,7 @@ class ParentDataService {
 
   // Children
   public getChildren(): Child[] {
-    return this.get('children', []); // Changing default to empty for fresh experience
+    return this.get('children', INITIAL_CHILDREN);
   }
 
   public addChild(data: Partial<Child>) {
@@ -197,12 +236,47 @@ class ParentDataService {
       currentStats: { steps: 0, stepsGoal: 10000, distance: 0, calories: 0, activeTime: 0, sedentaryTime: 0 },
       healthStatus: 'متوسط',
       lastActivity: 'تمت الإضافة مؤخراً',
-      upcomingSchedule: []
+      upcomingSchedule: [],
+      streak: 0,
+      xp: 0,
+      level: 1,
+      mood: 'هادئ',
+      dailyTasks: [],
+      performance: { physical: 50, cognitive: 50, psychological: 50 }
     };
     children.push(newChild);
     this.set('children', children);
     auditService.log('إضافة طفل', `تمت إضافة طفل جديد: ${newChild.name}`);
     return newChild;
+  }
+
+  public updateMood(childId: string, mood: Child['mood']) {
+    const children = this.getChildren();
+    const child = children.find(c => c.id === childId);
+    if (child) {
+      child.mood = mood;
+      this.set('children', children);
+      auditService.log('تحديث الحالة المزاجية', `تم تحديث مزاج ${child.name} إلى ${mood}`);
+    }
+  }
+
+  public toggleTask(childId: string, taskId: string) {
+    const children = this.getChildren();
+    const child = children.find(c => c.id === childId);
+    if (child) {
+      const task = child.dailyTasks.find(t => t.id === taskId);
+      if (task) {
+        task.completed = !task.completed;
+        if (task.completed) {
+          child.xp += 50;
+          if (child.xp >= child.level * 500) {
+            child.level += 1;
+          }
+        }
+        this.set('children', children);
+        auditService.log('تحديث مهمة', `تم ${task.completed ? 'إتمام' : 'إلغاء'} مهمة "${task.title}" لـ ${child.name}`);
+      }
+    }
   }
 
   // Coaches & Bookings

@@ -3,7 +3,7 @@ import { useTranslation } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
-import { LogOut, Home, Users, BarChart3, Calendar, MessageSquare, LayoutDashboard, PlayCircle, Star, MessageCircle, Menu, X, ChevronLeft, ChevronRight, Activity, XCircle, Plus } from 'lucide-react';
+import { LogOut, Home, Users, BarChart3, Calendar, MessageSquare, LayoutDashboard, PlayCircle, Star, MessageCircle, Menu, X, ChevronLeft, ChevronRight, Activity, XCircle, Plus, ShoppingBag, FileSpreadsheet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 import { RatingSystem } from '@/components/shared/RatingSystem';
@@ -22,6 +22,8 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { EmptyDashboardState } from '@/components/parent-dashboard/v2/EmptyDashboardState';
 import { AddChildForm } from '@/components/parent-dashboard/v2/AddChildForm';
 import { ChildContextView } from '@/components/parent-dashboard/v2/ChildContextView';
+import { Marketplace } from '@/components/parent-dashboard/v2/Marketplace';
+import { PerformanceReports } from '@/components/parent-dashboard/v2/PerformanceReports';
 
 // Existing Sub-Systems (Wrapped to keep functionality)
 import { ChildrenList } from '@/components/parent/ChildrenList';
@@ -81,6 +83,8 @@ export default function ParentDashboard() {
 
   const navigationTabs = [
     { id: 'dashboard', label: 'ملف الطفل', icon: LayoutDashboard },
+    { id: 'marketplace', label: 'المتجر (Coaches)', icon: ShoppingBag },
+    { id: 'reports', label: 'التقارير الشاملة', icon: FileSpreadsheet },
     { id: 'family_overview', label: 'نظرة العائلة', icon: Users },
     { id: 'messages', label: 'صندوق الوارد', icon: MessageSquare },
     { id: 'chat', label: 'مجتمع الأولياء', icon: MessageCircle },
@@ -95,29 +99,49 @@ export default function ParentDashboard() {
     return (
       <div className="space-y-10 pb-10">
         {/* Child Selector (Top Tabs) */}
-        <section className="flex items-center gap-4 p-2 bg-white/5 backdrop-blur-xl border border-white/5 rounded-[28px] overflow-x-auto no-scrollbar scroll-smooth shadow-inner">
+        <section className="flex items-center gap-4 p-3 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-x-auto no-scrollbar scroll-smooth shadow-2xl">
            {children.map((child) => (
               <button
                 key={child.id}
                 onClick={() => setSelectedChildId(child.id)}
-                className={`flex items-center gap-3 px-6 py-4 rounded-[22px] transition-all duration-500 whitespace-nowrap
+                className={`flex items-center gap-4 px-6 py-4 rounded-[24px] transition-all duration-500 whitespace-nowrap min-w-[200px] group
                   ${selectedChildId === child.id 
                     ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/30' 
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                    : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 hover:border-white/20'}`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black
-                    ${selectedChildId === child.id ? 'bg-white/20' : 'bg-slate-800'}`}>
-                   {child.name.charAt(0)}
+                <div className="relative">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black transition-transform duration-500 group-hover:scale-110
+                      ${selectedChildId === child.id ? 'bg-white/20' : 'bg-slate-800'}`}>
+                     {child.name.charAt(0)}
+                  </div>
+                  {child.streak > 0 && (
+                    <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-lg border border-white/20">
+                      <Star className="w-2.5 h-2.5 fill-white" />
+                      <span>{child.streak}</span>
+                    </div>
+                  )}
                 </div>
-                <span className="font-bold tracking-tight">{child.name}</span>
+                <div className="text-right flex-1">
+                  <p className="font-black text-sm tracking-tight leading-none mb-1">{child.name}</p>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${selectedChildId === child.id ? 'bg-white/20 text-white' : 'bg-blue-500/10 text-blue-400'}`}>
+                      المستوى {child.level}
+                    </span>
+                    <span className="text-[10px] font-bold opacity-60">
+                      XP {child.xp}
+                    </span>
+                  </div>
+                </div>
               </button>
            ))}
            <button 
              onClick={() => setIsAddChildOpen(true)}
-             className="px-6 py-4 rounded-[22px] border-2 border-dashed border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-all flex items-center gap-2"
+             className="px-8 py-4 rounded-[24px] border-2 border-dashed border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-all flex items-center gap-3 shrink-0 group"
            >
-              <Plus className="w-5 h-5" />
-              أضف طفلاً
+              <div className="w-10 h-10 rounded-xl border border-dashed border-white/20 flex items-center justify-center group-hover:border-white/40 transition-colors">
+                <Plus className="w-5 h-5" />
+              </div>
+              <span className="font-bold">أضف طفلاً</span>
            </button>
         </section>
 
@@ -167,6 +191,8 @@ export default function ParentDashboard() {
       );
       case 'schedule': return <SchedulingSystem />;
       case 'messages': return <MessagingSystem />;
+      case 'marketplace': return <Marketplace selectedChild={selectedChild} />;
+      case 'reports': return <PerformanceReports selectedChild={selectedChild} />;
       case 'chat': return (
         <div className="space-y-6" dir="rtl">
           <div className="flex items-center gap-3 mb-8 ltr:flex-row-reverse ltr:text-right">
