@@ -21,6 +21,8 @@ import { StudentReports }           from '@/components/student-dashboard/v2/Stud
 import { NutritionExercisePlans }   from '@/components/student-dashboard/v2/NutritionExercisePlans';
 import { youthDataService }         from '@/services/youthDataService';
 import { auditService }             from '@/services/auditService';
+import { DailyMissionPlayer }       from '@/components/student-dashboard/v2/DailyMissionPlayer';
+import { gamificationService }      from '@/services/gamificationService';
 
 // ─── Shared / Service Components ────────────────────────────────────
 import { SmartAccessModal }  from '@/components/access/SmartAccessModal';
@@ -482,153 +484,177 @@ function HomeTab({
   onRestartOnboarding?: () => void;
   onOpenGPS?: () => void;
 }) {
-  return (
-    <div className="space-y-4">
-      {/* First-Day Welcome Banner */}
-      {isFirstDay && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl overflow-hidden border border-blue-500/30"
-          style={{ background: 'linear-gradient(135deg, rgba(29,78,216,0.25) 0%, rgba(99,102,241,0.2) 100%)' }}
-        >
-          <div className="flex items-start gap-3 p-4">
-            <span className="text-3xl flex-shrink-0">🎉</span>
-            <div className="flex-1">
-              <p className="font-black text-white text-base">أهلاً بك في أول يوم لك مع حركة!</p>
-              <p className="text-blue-200/80 text-sm mt-0.5 leading-relaxed">
-                لقد أنشأنا بصمتك الحركية. ركّز اليوم على <span className="text-blue-300 font-bold">تمرين اليوم</span> و<span className="text-indigo-300 font-bold">توصيات Smart Training</span> المخصصة لك.
-              </p>
-            </div>
-            <button
-              onClick={onStartTraining}
-              className="flex-shrink-0 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black px-3 py-1.5 rounded-xl transition-colors"
-            >
-              ابدأ الآن
-            </button>
-          </div>
-        </motion.div>
-      )}
+  const [mood, setMood] = useState<string | null>(null);
+  const [showChallenges, setShowChallenges] = useState(false);
 
-      {/* Hero Welcome Banner with Cover Image */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 relative w-full h-48 md:h-56 rounded-[2rem] overflow-hidden shadow-lg flex items-end p-6 md:p-8">
+  // Live gamification data
+  const streak = gamificationService.getStreak();
+  const levelInfo = gamificationService.getLevelInfo();
+  const weekly = gamificationService.getWeeklyProgress();
+  const challenges = gamificationService.getChallengesWithProgress();
+
+  return (
+    <div className="space-y-6">
+      {/* Hero Welcome Banner */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative w-full h-48 md:h-56 rounded-[2rem] overflow-hidden shadow-lg flex items-end p-6 md:p-8">
         <div className="absolute inset-0">
-          {coverImage ? (
-            <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-blue-700 to-indigo-800" />
-          )}
+          {coverImage ? <img src={coverImage} alt="Cover" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-r from-blue-700 to-indigo-800" />}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
         </div>
         <div className="relative z-10 w-full flex justify-between items-end">
           <div>
-            <h2 className="text-3xl lg:text-4xl font-black text-white drop-shadow-md">
-              أهلاً، <span className="text-blue-400">{studentName.split(' ')[0]}</span> 👋
-            </h2>
-            <p className="text-slate-300 font-bold text-base mt-2 drop-shadow-sm flex items-center gap-2">
-              <span>{new Date().toLocaleDateString('ar-MA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-emerald-400">مستعد للتدريب</span>
-            </p>
+            <h2 className="text-3xl lg:text-4xl font-black text-white drop-shadow-md">أهلاً، <span className="text-blue-400">{studentName.split(' ')[0]}</span> 👋</h2>
+            <p className="text-slate-300 font-bold text-base mt-2 drop-shadow-sm flex items-center gap-2"><span>{new Date().toLocaleDateString('ar-MA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /><span className="text-emerald-400">مستعد للتدريب</span></p>
           </div>
         </div>
       </motion.div>
 
-      {/* ── TEACHER & COACH HUB (Full Row) ── */}
-      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.02 }} className="mb-6">
-        <AppErrorBoundary>
-          <TeacherCoachHubBento onSelectExercise={onStartTraining} />
-        </AppErrorBoundary>
+      {/* ── Stats Bar: Streak + Level + Weekly ── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-3 gap-3">
+        {/* Streak */}
+        <div className={cn("rounded-2xl p-4 flex flex-col items-center text-center border", streak >= 3 ? "bg-orange-500/10 border-orange-500/30" : "bg-white/5 border-white/5")}>
+          <span className="text-3xl mb-1">{streak >= 7 ? '🏆' : streak >= 3 ? '🔥' : '⚡'}</span>
+          <span className={cn("text-2xl font-black", streak >= 3 ? "text-orange-400" : "text-white")}>{streak}</span>
+          <span className="text-xs font-bold text-slate-400 mt-1">يوم متتالي</span>
+        </div>
+
+        {/* Level + XP Bar */}
+        <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col items-center text-center">
+          <span className="text-xs font-black text-indigo-400 uppercase tracking-wide mb-1">المستوى</span>
+          <span className="text-2xl font-black text-white">{levelInfo.level}</span>
+          <div className="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
+            <motion.div className="h-full bg-indigo-500 rounded-full" initial={{ width: 0 }} animate={{ width: `${levelInfo.progressPct}%` }} transition={{ duration: 0.8 }} />
+          </div>
+          <span className="text-[10px] text-slate-400 mt-1">{levelInfo.xpInLevel}/{levelInfo.xpNeeded} XP</span>
+        </div>
+
+        {/* Weekly Progress */}
+        <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col items-center text-center">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-wide mb-1">هذا الأسبوع</span>
+          <div className="flex gap-1 my-1.5">
+            {Array.from({ length: 7 }, (_, i) => (
+              <div key={i} className={cn("w-3 h-3 rounded-full", i < weekly.completed ? "bg-emerald-500" : "bg-white/10")} />
+            ))}
+          </div>
+          <span className="text-lg font-black text-white">{weekly.completed}<span className="text-slate-400 text-xs">/7</span></span>
+          <span className={cn("text-[10px] font-bold mt-0.5", weekly.trend === 'up' ? 'text-emerald-400' : weekly.trend === 'down' ? 'text-red-400' : 'text-slate-400')}>
+            {weekly.trend === 'up' ? '↑ تحسن' : weekly.trend === 'down' ? '↓ تراجع' : '─ مستقر'}
+          </span>
+        </div>
       </motion.div>
 
-      {/* ── BENTO GRID ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 xl:gap-8 auto-rows-[minmax(180px,auto)]">
+      {/* Daily State Check */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-white/5 rounded-[2rem] p-6 md:p-8 border border-white/5 shadow-sm text-center">
+        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">كيف تشعر اليوم؟</h3>
+        <div className="flex justify-center gap-4 md:gap-8">
+          {[ 
+            { m: '😊', label: 'متحمس', id: 'good' }, 
+            { m: '😐', label: 'عادي', id: 'ok' }, 
+            { m: '😞', label: 'متعب', id: 'bad' } 
+          ].map(item => (
+            <button 
+              key={item.id} onClick={() => setMood(item.id)}
+              className={cn("flex flex-col items-center gap-3 transition-all", mood === item.id ? "scale-110 opacity-100" : (mood ? "opacity-40 scale-95" : "hover:scale-105"))}>
+              <div className={cn("w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-4xl md:text-5xl rounded-full bg-slate-100 dark:bg-white/5 shadow-inner transition-colors", mood === item.id ? "bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)] border-2 border-indigo-500" : "")}>{item.m}</div>
+              <span className="font-bold text-slate-600 dark:text-slate-300">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </motion.div>
 
-        {/* 1. Daily Training — large card (2 cols × 2 rows) */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="md:col-span-2 xl:col-span-2 xl:row-span-2"
-        >
-          <DailyTrainingBento onStart={onStartTraining} />
-        </motion.div>
-
-        {/* 2. Smart Coach AI */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="md:col-span-2 xl:col-span-2"
-        >
-          <SmartCoachBento name={studentName} />
-        </motion.div>
-
-        {/* 3. Video Upload CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="xl:col-span-1"
-        >
-          <VideoUploadBento onClick={onGoVideos} onUploadClick={onUploadClick} />
-        </motion.div>
-
-        {/* 4. Talent Discovery */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="xl:col-span-1"
-        >
-          <TalentDiscoveryBento />
-        </motion.div>
-
-        {/* 5. Contextual Stats Insights */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="md:col-span-2 xl:col-span-2"
-        >
-          <ContextualStatsBento />
-        </motion.div>
-
-        {/* 6. Challenges & Leaderboard */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="md:col-span-2 xl:col-span-2"
-        >
-          <ChallengesBento />
-        </motion.div>
-
-        {/* 7. GPS Tracker CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="md:col-span-2 xl:col-span-4"
-        >
-          <GPSBentoCTA onOpen={onOpenGPS} />
-        </motion.div>
-
-        {/* Re-do Fingerprint Assessment */}
-        {onRestartOnboarding && (
-          <motion.div
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-            className="md:col-span-2 xl:col-span-4"
-          >
-            <div className="rounded-3xl border border-indigo-500/20 bg-gradient-to-l from-indigo-900/30 to-violet-900/30 backdrop-blur-md p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
-                  <Fingerprint className="w-6 h-6 text-indigo-400" />
-                </div>
-                <div>
-                  <p className="font-black text-white text-base">احتجت لتحديث بياناتك؟</p>
-                  <p className="text-slate-400 text-sm mt-0.5">أعد اختبار البصمة الحركية لتحديث خطط المدرب الذكي</p>
-                </div>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-                onClick={onRestartOnboarding}
-                className="flex-shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm px-5 py-2.5 rounded-2xl shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                تحديث البصمة
-              </motion.button>
+      {/* Daily Mission Card */}
+      {mood && (
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative rounded-[2.5rem] overflow-hidden shadow-2xl p-8 md:p-12 text-center" style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #312e81 100%)' }}>
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-[100px]" />
+          <div className="relative z-10 flex flex-col items-center">
+            <span className="bg-white/10 text-blue-200 px-4 py-1.5 rounded-full text-sm font-black tracking-widest mb-6">مهمة اليوم</span>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">تمارين السرعة والتركيز</h2>
+            <p className="text-xl font-bold text-blue-200/80 mb-10 max-w-lg">تم بناء هذه المهمة خصيصاً بناءً على مستوى طاقتك وحالتك اليوم ({mood === 'good' ? 'متحمس' : mood === 'bad' ? 'متعب' : 'عادي'}).</p>
+            
+            {/* Progress indicator setup */}
+            <div className="flex items-center gap-4 mb-10 text-emerald-400 font-black text-lg bg-black/20 px-6 py-3 rounded-full border border-white/5">
+              <Zap className="w-6 h-6" /> نسبة الجاهزية 100%
             </div>
-          </motion.div>
-        )}
 
-      </div>
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onStartTraining} className="bg-gradient-to-l from-orange-500 to-red-500 text-white font-black text-2xl py-6 px-16 rounded-[2rem] shadow-[0_0_50px_rgba(249,115,22,0.4)] flex items-center justify-center gap-4 w-full md:w-auto mt-4">
+              <Play className="w-8 h-8 fill-white" /> ابدأ الآن 🚀
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Challenges Section ── */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
+        className="bg-white dark:bg-white/5 rounded-3xl border border-white/5 overflow-hidden">
+        <button onClick={() => setShowChallenges(!showChallenges)}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 flex items-center justify-center">
+              <Trophy className="w-6 h-6 text-yellow-500" />
+            </div>
+            <div className="text-right">
+              <h3 className="font-black text-slate-800 dark:text-white text-lg">التحديات النشطة</h3>
+              <p className="text-slate-500 text-sm font-bold mt-0.5">{challenges.filter(c => !c.completed).length} تحدٍّ في انتظارك</p>
+            </div>
+          </div>
+          <ChevronRight className={cn("w-6 h-6 text-slate-400 transition-transform", showChallenges ? "rotate-90" : "")} />
+        </button>
+
+        <AnimatePresence>
+          {showChallenges && (
+            <motion.div key="challenges" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+              <div className="px-6 pb-6 space-y-3">
+                {challenges.map(ch => (
+                  <div key={ch.id} className={cn("rounded-2xl p-4 border", ch.completed ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/5")}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{ch.completed ? '✅' : ch.type === '3day' ? '🎯' : ch.type === '7day' ? '🔥' : '🏆'}</span>
+                        <div>
+                          <h4 className="font-black text-white text-base">{ch.title}</h4>
+                          <p className="text-xs text-slate-400 font-bold mt-0.5">{ch.description}</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className={cn("text-sm font-black", ch.completed ? "text-emerald-400" : "text-yellow-400")}>+{ch.rewardXP} XP</span>
+                        {!ch.completed && <p className="text-[10px] text-slate-400 mt-0.5">{ch.progress}/{ch.daysRequired} يوم</p>}
+                      </div>
+                    </div>
+                    {!ch.completed && (
+                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div
+                          className={cn("h-full rounded-full", ch.type === '3day' ? 'bg-blue-500' : ch.type === '7day' ? 'bg-orange-500' : 'bg-purple-500')}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(ch.progress / ch.daysRequired) * 100}%` }}
+                          transition={{ duration: 0.8, delay: 0.1 }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Progressive Disclosure (Coach Notes) */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-white/5 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/10 transition-colors">
+         <div className="flex items-center justify-between">
+           <div className="flex items-center gap-4">
+             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex flex-shrink-0 items-center justify-center text-indigo-500">
+               <MessageSquare className="w-6 h-6" />
+             </div>
+             <div>
+               <h3 className="font-black text-slate-800 dark:text-white text-lg">رسائل وتقييمات المدرب</h3>
+               <p className="text-slate-500 text-sm font-bold mt-1">اضغط لعرض التوجيهات الخاصة بك</p>
+             </div>
+           </div>
+           <ChevronRight className="w-6 h-6 text-slate-400" />
+         </div>
+      </motion.div>
+
     </div>
   );
 }
@@ -673,6 +699,7 @@ export default function StudentDashboard() {
   const [fullProfile, setFullProfile]         = useState<any>(null);
   const [loading, setLoading]                 = useState(true);
   const [activeTab, setActiveTab]             = useState<TabId | 'settings' | 'help'>('home');
+  const [dailyMissionOpen, setDailyMissionOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen]     = useState(true);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [showPostHealthModal, setShowPostHealthModal] = useState(false); 
@@ -1222,7 +1249,7 @@ export default function StudentDashboard() {
                     <HomeTab
                       studentName={studentName}
                       xp={xp} level={level} coverImage={coverImage}
-                      onStartTraining={() => setActiveTab('training')}
+                      onStartTraining={() => setDailyMissionOpen(true)}
                       onGoProgress={() => setActiveTab('progress')}
                       onGoVideos={() => setActiveTab('videos')}
                       onUploadClick={() => setIsVideoModalOpen(true)}
@@ -1376,6 +1403,17 @@ export default function StudentDashboard() {
       <VideoSubmissionModal 
         isOpen={isVideoModalOpen} 
         onClose={() => setIsVideoModalOpen(false)} 
+      />
+
+      <DailyMissionPlayer 
+        isOpen={dailyMissionOpen} 
+        onClose={() => setDailyMissionOpen(false)} 
+        mission={{ id: 'm1', title: 'تمارين السرعة والتركيز', type: 'fitness', durationSeconds: 60, description: 'استعد لتحريك مفاصلك وتنشيط دورتك الدموية في مهمة تفاعلية سريعة.' }}
+        onComplete={(score, xp) => {
+          setDailyMissionOpen(false);
+          toast({ title: 'أداء رائع!', description: `حصلت على ${xp} نقطة بكفاءة ${score}%`, variant: 'default' });
+          fetchDashboardData();
+        }}
       />
     </div>
   );
