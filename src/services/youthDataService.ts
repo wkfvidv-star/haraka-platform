@@ -54,6 +54,22 @@ export interface YouthTask {
   details: string;
 }
 
+export interface YouthMood {
+  id: string;
+  mood: 'good' | 'ok' | 'bad';
+  date: string;
+}
+
+export interface YouthMissionResult {
+  id: string;
+  missionId: string;
+  title: string;
+  type: 'physical' | 'cognitive' | 'psychological';
+  score: number;
+  xpEarned: number;
+  date: string;
+}
+
 class YouthDataService {
   private getUserId(): string {
     try {
@@ -284,6 +300,67 @@ class YouthDataService {
       }
     });
     if (updated) this.saveMessages(messages);
+  }
+
+  // --- Mood Tracking ---
+  public getMoods(): YouthMood[] {
+    const data = localStorage.getItem(this.storageKey('moods'));
+    if (!data) return [];
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      console.error("YouthDataService: Failed to parse moods", e);
+      return [];
+    }
+  }
+
+  public saveMood(mood: 'good' | 'ok' | 'bad') {
+    const moods = this.getMoods();
+    const today = new Date().toISOString().split('T')[0];
+    const existing = moods.findIndex(m => m.date === today);
+    
+    if (existing !== -1) {
+      moods[existing].mood = mood;
+    } else {
+      moods.push({
+        id: Math.random().toString(36).substr(2, 9),
+        mood,
+        date: today
+      });
+    }
+    localStorage.setItem(this.storageKey('moods'), JSON.stringify(moods));
+    auditService.log('تسجيل الحالة النفسية', `تم تسجيل الحالة: ${mood}`, 'youth');
+  }
+
+  public getTodayMood(): YouthMood | undefined {
+    const moods = this.getMoods();
+    const today = new Date().toISOString().split('T')[0];
+    return moods.find(m => m.date === today);
+  }
+
+  // --- Mission History ---
+  public getMissionHistory(): YouthMissionResult[] {
+    const data = localStorage.getItem(this.storageKey('mission_history'));
+    if (!data) return [];
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      console.error("YouthDataService: Failed to parse mission history", e);
+      return [];
+    }
+  }
+
+  public addMissionResult(result: Omit<YouthMissionResult, 'id' | 'date'>) {
+    const history = this.getMissionHistory();
+    const newResult: YouthMissionResult = {
+      ...result,
+      id: Math.random().toString(36).substr(2, 9),
+      date: new Date().toISOString()
+    };
+    history.unshift(newResult);
+    localStorage.setItem(this.storageKey('mission_history'), JSON.stringify(history));
+    auditService.log('إكمال مهمة يومية', `تم إكمال مهمة: ${result.title} بنتيجة ${result.score}%`, 'youth');
+    return newResult;
   }
 }
 

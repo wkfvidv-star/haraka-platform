@@ -14,7 +14,7 @@ export function StudentReports() {
   const { toast } = useToast();
   const [reports, setReports] = useState<YouthReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<YouthReport | null>(null);
-  const [filter, setFilter] = useState<YouthReport['type'] | 'all'>('all');
+  const [filter, setFilter] = useState<YouthReport['category'] | 'all'>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,14 +52,14 @@ export function StudentReports() {
 
   const filteredReports = filter === 'all' 
     ? reports 
-    : reports.filter(r => r.type === filter);
+    : reports.filter(r => r.category === filter);
 
-  const getIcon = (type: string) => {
-    switch(type) {
-      case 'training': return <Dumbbell className="w-5 h-5" />;
-      case 'diet': return <Heart className="w-5 h-5" />;
-      case 'video': return <Zap className="w-5 h-5" />;
-      default: return <FileText className="w-5 h-5" />;
+  const getCategoryTheme = (category: string) => {
+    switch(category) {
+      case 'physical': return { icon: <Dumbbell className="w-5 h-5" />, color: "bg-orange-500", text: "بدني", shadow: "shadow-orange-500/20" };
+      case 'cognitive': return { icon: <Brain className="w-5 h-5" />, color: "bg-blue-500", text: "معرفي", shadow: "shadow-blue-500/20" };
+      case 'psychological': return { icon: <Heart className="w-5 h-5" />, color: "bg-emerald-500", text: "نفسي", shadow: "shadow-emerald-500/20" };
+      default: return { icon: <FileText className="w-5 h-5" />, color: "bg-slate-500", text: "عام", shadow: "shadow-slate-500/20" };
     }
   };
 
@@ -77,7 +77,7 @@ export function StudentReports() {
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-white/5 p-4 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar w-full md:w-auto pb-2 md:pb-0">
-          {(['all', 'training', 'diet', 'video'] as const).map(f => (
+          {(['all', 'physical', 'cognitive', 'psychological'] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -88,7 +88,7 @@ export function StudentReports() {
                   : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"
               )}
             >
-              {f === 'all' ? 'الكل' : f === 'training' ? 'تدريب' : f === 'diet' ? 'تغذية' : 'تحليل فيديو'}
+              {f === 'all' ? 'الكل' : f === 'physical' ? 'بدني' : f === 'cognitive' ? 'معرفي' : 'نفسي'}
             </button>
           ))}
         </div>
@@ -113,11 +113,11 @@ export function StudentReports() {
               
               <div className="flex items-start justify-between mb-6 relative z-10">
                 <div className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg",
-                  report.type === 'training' ? "bg-indigo-500 text-white" :
-                  report.type === 'diet' ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
+                  "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg text-white",
+                  getCategoryTheme(report.category).color,
+                  getCategoryTheme(report.category).shadow
                 )}>
-                  {getIcon(report.type)}
+                  {getCategoryTheme(report.category).icon}
                 </div>
                 {report.status === 'new' && (
                   <span className="flex items-center gap-1.5 bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 text-[10px] font-black px-3 py-1 rounded-full animate-pulse">
@@ -159,11 +159,10 @@ export function StudentReports() {
               <div className="p-8 pb-4 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
                 <div className="flex items-center gap-4">
                   <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center",
-                    selectedReport.type === 'training' ? "bg-indigo-500/20 text-indigo-500" :
-                    selectedReport.type === 'diet' ? "bg-emerald-500/20 text-emerald-500" : "bg-rose-500/20 text-rose-500"
+                    "w-12 h-12 rounded-2xl flex items-center justify-center text-white",
+                    getCategoryTheme(selectedReport.category).color
                   )}>
-                    {getIcon(selectedReport.type)}
+                    {getCategoryTheme(selectedReport.category).icon}
                   </div>
                   <div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white">{selectedReport.title}</h2>

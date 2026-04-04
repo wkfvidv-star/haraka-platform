@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlayCircle, CheckCircle2, X, Target, Heart, Zap, Trophy, Flame } from 'lucide-react';
+import { PlayCircle, CheckCircle2, X, Target, Heart, Zap, Trophy, Flame, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { gamificationService } from '@/services/gamificationService';
 
@@ -31,7 +31,7 @@ function fireConfetti() {
 interface Mission {
   id: string;
   title: string;
-  type: 'fitness' | 'speed' | 'focus';
+  type: 'physical' | 'cognitive' | 'psychological';
   durationSeconds: number;
   description: string;
 }
@@ -78,12 +78,30 @@ export function DailyMissionPlayer({ mission, isOpen, onClose, onComplete }: Pro
   }, [phase, timeLeft, mission.durationSeconds]);
 
   const handleFinish = () => {
-    const score = 95;
-    const xpGain = 200;
+    // Determine score based on mission type (simulated logic for completion)
+    const score = 95 + Math.floor(Math.random() * 6); // 95-100%
+    const xpGain = mission.type === 'physical' ? 250 : mission.type === 'cognitive' ? 200 : 150;
+    
+    // Persist result
     const { unlockedChallenge } = gamificationService.addXP(xpGain, score);
+    
+    // Save to mission history
+    import('@/services/youthDataService').then(({ youthDataService }) => {
+      youthDataService.addMissionResult({
+        missionId: mission.id,
+        title: mission.title,
+        type: mission.type,
+        score,
+        xpEarned: xpGain
+      });
+    });
+
     setPhase('result');
     fireConfetti();
-    if (unlockedChallenge) fireConfetti(); // double burst for challenge unlock
+    if (unlockedChallenge) {
+      setTimeout(() => fireConfetti(), 1000);
+    }
+
     setTimeout(() => {
       onComplete(score, xpGain);
     }, 4000);
@@ -96,8 +114,9 @@ export function DailyMissionPlayer({ mission, isOpen, onClose, onComplete }: Pro
   };
 
   const getThemeColor = () => {
-    if (mission.type === 'fitness') return { text: 'text-emerald-400', border: 'border-emerald-500', bg: 'bg-emerald-500', glow: 'shadow-[0_0_40px_rgba(16,185,129,0.3)]' };
-    if (mission.type === 'speed') return { text: 'text-orange-400', border: 'border-orange-500', bg: 'bg-orange-500', glow: 'shadow-[0_0_40px_rgba(249,115,22,0.3)]' };
+    if (mission.type === 'physical') return { text: 'text-orange-400', border: 'border-orange-500', bg: 'bg-orange-500', glow: 'shadow-[0_0_40px_rgba(249,115,22,0.3)]' };
+    if (mission.type === 'cognitive') return { text: 'text-blue-400', border: 'border-blue-500', bg: 'bg-blue-500', glow: 'shadow-[0_0_40px_rgba(59,130,246,0.3)]' };
+    if (mission.type === 'psychological') return { text: 'text-emerald-400', border: 'border-emerald-500', bg: 'bg-emerald-500', glow: 'shadow-[0_0_40px_rgba(16,185,129,0.3)]' };
     return { text: 'text-indigo-400', border: 'border-indigo-500', bg: 'bg-indigo-500', glow: 'shadow-[0_0_40px_rgba(99,102,241,0.3)]' };
   };
 
@@ -126,7 +145,7 @@ export function DailyMissionPlayer({ mission, isOpen, onClose, onComplete }: Pro
             <motion.div key="intro" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -20 }} className="text-center w-full">
               <div className="flex justify-center mb-6">
                 <div className={`w-24 h-24 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center ${theme.glow}`}>
-                  {mission.type === 'fitness' ? <Heart className={`w-12 h-12 ${theme.text}`} /> : mission.type === 'speed' ? <Zap className={`w-12 h-12 ${theme.text}`} /> : <Target className={`w-12 h-12 ${theme.text}`} />}
+                  {mission.type === 'physical' ? <Flame className={`w-12 h-12 ${theme.text}`} /> : mission.type === 'cognitive' ? <Brain className={`w-12 h-12 ${theme.text}`} /> : <Heart className={`w-12 h-12 ${theme.text}`} />}
                 </div>
               </div>
               <h2 className="text-4xl font-black text-white mb-4">مهمة اليوم: {mission.title}</h2>

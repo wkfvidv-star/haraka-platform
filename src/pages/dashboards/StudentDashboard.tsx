@@ -23,6 +23,9 @@ import { youthDataService }         from '@/services/youthDataService';
 import { auditService }             from '@/services/auditService';
 import { DailyMissionPlayer }       from '@/components/student-dashboard/v2/DailyMissionPlayer';
 import { gamificationService }      from '@/services/gamificationService';
+import { marketplaceService, Coach } from '@/services/marketplaceService';
+import { CoachSearchModal }         from '@/components/student-dashboard/v2/CoachSearchModal';
+import { CoachProfileModal }        from '@/components/student-dashboard/v2/CoachProfileModal';
 
 // ─── Shared / Service Components ────────────────────────────────────
 import { SmartAccessModal }  from '@/components/access/SmartAccessModal';
@@ -36,6 +39,7 @@ import { cn } from '@/lib/utils';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 // ─── UI Primitives ───────────────────────────────────────────────────
+import { Button }    from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast }   from '@/hooks/use-toast';
@@ -479,19 +483,87 @@ function HomeTab({
   onStartTraining, onGoProgress, onGoVideos, onUploadClick, isFirstDay, onRestartOnboarding, onOpenGPS,
 }: {
   studentName: string; xp: number; level: number; coverImage?: string | null;
-  onStartTraining: () => void; onGoProgress: () => void; onGoVideos?: () => void; onUploadClick?: () => void;
+  onStartTraining: (type: 'physical' | 'cognitive' | 'psychological') => void; onGoProgress: () => void; onGoVideos?: () => void; onUploadClick?: () => void;
   isFirstDay?: boolean;
   onRestartOnboarding?: () => void;
   onOpenGPS?: () => void;
 }) {
   const [mood, setMood] = useState<string | null>(null);
+  const [loadingMood, setLoadingMood] = useState(true);
+  const [showFeedbackDetail, setShowFeedbackDetail] = useState(false);
+
+  useEffect(() => {
+    const todayMood = youthDataService.getTodayMood();
+    if (todayMood) {
+      setMood(todayMood.mood);
+    }
+    setLoadingMood(false);
+  }, []);
+
+  const handleMoodSelect = (m: 'good' | 'ok' | 'bad') => {
+    setMood(m);
+    youthDataService.saveMood(m);
+  };
+
+  const getRecommendedMission = () => {
+    if (mood === 'good') return {
+      title: 'تحدي القوة الأقصى',
+      description: 'بما أن طاقتك عالية اليوم، سنركز على تمارين بدنية مكثفة لرفع مستوى لياقتك!',
+      type: 'physical' as const,
+      icon: Flame,
+      color: 'from-orange-500 to-red-500'
+    };
+    if (mood === 'bad') return {
+      title: 'استرخاء وتركيز ذهني',
+      description: 'نقدر تعبك اليوم. سنقوم بجلسة يوغا خفيفة مع تمارين تنفس عميق لاستعادة توازنك.',
+      type: 'psychological' as const,
+      icon: Heart,
+      color: 'from-emerald-500 to-teal-500'
+    };
+    return {
+      title: 'تطوير المهارات المعرفية',
+      description: 'يوم مثالي للتركيز! سنقوم بتمارين رد فعل سريعة لتحسين التوافق العضلي العصبي.',
+      type: 'cognitive' as const,
+      icon: Brain,
+      color: 'from-blue-600 to-indigo-600'
+    };
+  };
+
+  const mission = getRecommendedMission();
+  const latestFeedback = youthDataService.getReports().find(r => r.category === 'physical' || r.category === 'cognitive' || r.category === 'psychological');
   const [showChallenges, setShowChallenges] = useState(false);
+  const [showCoaches, setShowCoaches] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
 
   // Live gamification data
   const streak = gamificationService.getStreak();
   const levelInfo = gamificationService.getLevelInfo();
   const weekly = gamificationService.getWeeklyProgress();
   const challenges = gamificationService.getChallengesWithProgress();
+
+  // Marketplace data
+  const [invitations, setInvitations] = useState(() => marketplaceService.getInvitations().filter(i => i.status === 'pending'));
+  const suggestedCoaches = marketplaceService.getSuggestedCoaches();
+  const [requestedCoaches, setRequestedCoaches] = useState<Set<string>>(
+    () => new Set(suggestedCoaches.filter(c => marketplaceService.hasRequestedCoach(c.id)).map(c => c.id))
+  );
+
+  const handleAccept = (id: string) => {
+    marketplaceService.acceptInvitation(id);
+    setInvitations(prev => prev.filter(i => i.id !== id));
+  };
+  const handleReject = (id: string) => {
+    marketplaceService.rejectInvitation(id);
+    setInvitations(prev => prev.filter(i => i.id !== id));
+  };
+  const handleRequestCoach = (coachId: string, coachName: string) => {
+    marketplaceService.requestCoach(coachId, coachName);
+    setRequestedCoaches(prev => new Set([...prev, coachId]));
+  };
+
+  const studentGoal  = localStorage.getItem(`haraka_student_goal_${studentName}`) || 'fitness';
+  const studentLevel = localStorage.getItem(`haraka_student_level_${studentName}`) || 'beginner';
 
   return (
     <div className="space-y-6">
@@ -508,6 +580,34 @@ function HomeTab({
           </div>
         </div>
       </motion.div>
+
+      {/* ── Invitations Banner ── */}
+      <AnimatePresence>
+        {invitations.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            {invitations.map(inv => (
+              <div key={inv.id} className="bg-gradient-to-r from-orange-500/20 to-rose-500/20 border border-orange-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-lg">
+                <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-inner text-white font-black text-xl", inv.coachAvatarColor)}>
+                  {inv.coachAvatarInitials}
+                </div>
+                <div className="flex-1 text-center md:text-right">
+                  <h4 className="font-black text-white text-lg">دعوة تدريب من {inv.coachName} 📩</h4>
+                  <p className="text-slate-300 text-sm mt-1 leading-relaxed">{inv.message}</p>
+                </div>
+                <div className="flex gap-3 shrink-0">
+                  <Button onClick={() => handleAccept(inv.id)} className="bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl px-6">قبول ✓</Button>
+                  <Button variant="ghost" onClick={() => handleReject(inv.id)} className="text-slate-400 hover:text-white hover:bg-white/5 font-bold rounded-xl">تجاهل</Button>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Stats Bar: Streak + Level + Weekly ── */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
@@ -545,40 +645,78 @@ function HomeTab({
       </motion.div>
 
       {/* Daily State Check */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-white/5 rounded-[2rem] p-6 md:p-8 border border-white/5 shadow-sm text-center">
-        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">كيف تشعر اليوم؟</h3>
-        <div className="flex justify-center gap-4 md:gap-8">
-          {[ 
-            { m: '😊', label: 'متحمس', id: 'good' }, 
-            { m: '😐', label: 'عادي', id: 'ok' }, 
-            { m: '😞', label: 'متعب', id: 'bad' } 
-          ].map(item => (
-            <button 
-              key={item.id} onClick={() => setMood(item.id)}
-              className={cn("flex flex-col items-center gap-3 transition-all", mood === item.id ? "scale-110 opacity-100" : (mood ? "opacity-40 scale-95" : "hover:scale-105"))}>
-              <div className={cn("w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-4xl md:text-5xl rounded-full bg-slate-100 dark:bg-white/5 shadow-inner transition-colors", mood === item.id ? "bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)] border-2 border-indigo-500" : "")}>{item.m}</div>
-              <span className="font-bold text-slate-600 dark:text-slate-300">{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </motion.div>
+      {!mood && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-white/5 rounded-[2rem] p-6 md:p-8 border border-white/5 shadow-sm text-center">
+          <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">كيف تشعر اليوم؟</h3>
+          <div className="flex justify-center gap-4 md:gap-8">
+            {[ 
+              { m: '😊', label: 'متحمس', id: 'good' }, 
+              { m: '😐', label: 'عادي', id: 'ok' }, 
+              { m: '😞', label: 'متعب', id: 'bad' } 
+            ].map(item => (
+              <button 
+                key={item.id} onClick={() => handleMoodSelect(item.id as any)}
+                className="flex flex-col items-center gap-3 transition-all hover:scale-105 active:scale-95"
+              >
+                <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-4xl md:text-5xl rounded-full bg-slate-100 dark:bg-white/5 shadow-inner transition-colors">
+                  {item.m}
+                </div>
+                <span className="font-bold text-slate-600 dark:text-slate-300">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Teacher Feedback Notification (Home) */}
+      {latestFeedback && (
+        <motion.div 
+          onClick={() => setShowFeedbackDetail(!showFeedbackDetail)}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} 
+          className="bg-indigo-500/10 border border-indigo-500/20 rounded-3xl p-5 cursor-pointer hover:bg-indigo-500/15 transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+                <Bell className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-black text-white text-sm">ملاحظة جديدة من {latestFeedback.coach}</h4>
+                <p className="text-indigo-300 text-xs font-bold mt-0.5">بخصوص {latestFeedback.title}</p>
+              </div>
+            </div>
+            <ChevronRight className={cn("w-5 h-5 text-indigo-400 transition-transform", showFeedbackDetail ? "rotate-90" : "")} />
+          </div>
+          <AnimatePresence>
+            {showFeedbackDetail && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="mt-4 pt-4 border-t border-indigo-500/10">
+                  <p className="text-slate-300 text-sm font-bold leading-relaxed">{latestFeedback.details}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* Daily Mission Card */}
-      {mood && (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative rounded-[2.5rem] overflow-hidden shadow-2xl p-8 md:p-12 text-center" style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #312e81 100%)' }}>
+      {mood && !loadingMood && (
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative rounded-[2.5rem] overflow-hidden shadow-2xl p-8 md:p-12 text-center" style={{ background: `linear-gradient(135deg, ${mood === 'good' ? '#1e3a8a' : mood === 'bad' ? '#064e3b' : '#312e81'} 0%, #0f172a 100%)` }}>
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-[100px]" />
           <div className="relative z-10 flex flex-col items-center">
-            <span className="bg-white/10 text-blue-200 px-4 py-1.5 rounded-full text-sm font-black tracking-widest mb-6">مهمة اليوم</span>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">تمارين السرعة والتركيز</h2>
-            <p className="text-xl font-bold text-blue-200/80 mb-10 max-w-lg">تم بناء هذه المهمة خصيصاً بناءً على مستوى طاقتك وحالتك اليوم ({mood === 'good' ? 'متحمس' : mood === 'bad' ? 'متعب' : 'عادي'}).</p>
-            
-            {/* Progress indicator setup */}
-            <div className="flex items-center gap-4 mb-10 text-emerald-400 font-black text-lg bg-black/20 px-6 py-3 rounded-full border border-white/5">
-              <Zap className="w-6 h-6" /> نسبة الجاهزية 100%
+            <span className="bg-white/10 text-blue-200 px-4 py-1.5 rounded-full text-sm font-black tracking-widest mb-6">مهمة اليوم المقترحة</span>
+            <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 shadow-xl">
+               <mission.icon className="w-10 h-10 text-white" />
             </div>
-
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onStartTraining} className="bg-gradient-to-l from-orange-500 to-red-500 text-white font-black text-2xl py-6 px-16 rounded-[2rem] shadow-[0_0_50px_rgba(249,115,22,0.4)] flex items-center justify-center gap-4 w-full md:w-auto mt-4">
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">{mission.title}</h2>
+            <p className="text-xl font-bold text-blue-200/80 mb-10 max-w-lg leading-relaxed">{mission.description}</p>
+            
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} 
+              onClick={() => onStartTraining(mission.type)} 
+              className={cn("bg-gradient-to-l text-white font-black text-2xl py-6 px-16 rounded-[2rem] shadow-2xl flex items-center justify-center gap-4 w-full md:w-auto mt-4", mission.color)}
+            >
               <Play className="w-8 h-8 fill-white" /> ابدأ الآن 🚀
             </motion.button>
           </div>
@@ -606,31 +744,116 @@ function HomeTab({
           {showChallenges && (
             <motion.div key="challenges" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
               <div className="px-6 pb-6 space-y-3">
-                {challenges.map(ch => (
-                  <div key={ch.id} className={cn("rounded-2xl p-4 border", ch.completed ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/5")}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{ch.completed ? '✅' : ch.type === '3day' ? '🎯' : ch.type === '7day' ? '🔥' : '🏆'}</span>
-                        <div>
-                          <h4 className="font-black text-white text-base">{ch.title}</h4>
-                          <p className="text-xs text-slate-400 font-bold mt-0.5">{ch.description}</p>
+                {challenges.map(ch => {
+                  const linkedCoach = suggestedCoaches.find(c => c.challengeId === ch.id);
+                  return (
+                    <div key={ch.id} className={cn("rounded-2xl p-4 border", ch.completed ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/5")}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{ch.completed ? '✅' : ch.type === '3day' ? '🎯' : ch.type === '7day' ? '🔥' : '🏆'}</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-black text-white text-base">{ch.title}</h4>
+                              {linkedCoach && (
+                                <span className="bg-indigo-500/20 text-indigo-400 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-indigo-500/20">
+                                  بإشراف: {linkedCoach.name.split(' ')[0]}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-400 font-bold mt-0.5">{ch.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <span className={cn("text-sm font-black", ch.completed ? "text-emerald-400" : "text-yellow-400")}>+{ch.rewardXP} XP</span>
+                          {!ch.completed && <p className="text-[10px] text-slate-400 mt-0.5">{ch.progress}/{ch.daysRequired} يوم</p>}
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <span className={cn("text-sm font-black", ch.completed ? "text-emerald-400" : "text-yellow-400")}>+{ch.rewardXP} XP</span>
-                        {!ch.completed && <p className="text-[10px] text-slate-400 mt-0.5">{ch.progress}/{ch.daysRequired} يوم</p>}
+                      {!ch.completed && (
+                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <motion.div
+                            className={cn("h-full rounded-full", ch.type === '3day' ? 'bg-blue-500' : ch.type === '7day' ? 'bg-orange-500' : 'bg-purple-500')}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(ch.progress / ch.daysRequired) * 100}%` }}
+                            transition={{ duration: 0.8, delay: 0.1 }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* ── Suggested Coaches Section ── */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
+        className="bg-white dark:bg-white/5 rounded-3xl border border-white/5 overflow-hidden">
+        <div className="w-full flex items-center justify-between p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
+              <Users className="w-6 h-6 text-indigo-500" />
+            </div>
+            <div className="text-right">
+              <h3 className="font-black text-slate-800 dark:text-white text-lg">مدربون مقترحون لك</h3>
+              <p className="text-slate-500 text-sm font-bold mt-0.5">اكتشف خبراء يتناسبون مع أهدافك</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              size="sm" variant="outline" 
+              onClick={() => setIsSearchOpen(true)}
+              className="rounded-xl border-white/10 bg-white/5 text-slate-400 hover:text-white font-black text-xs px-4"
+            >
+              ابحث عن مدرب 🔍
+            </Button>
+            <button onClick={() => setShowCoaches(!showCoaches)} className="p-2 hover:bg-white/5 rounded-full text-slate-400 transition-colors">
+              <ChevronRight className={cn("w-6 h-6 transition-transform", showCoaches ? "rotate-90" : "")} />
+            </button>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {showCoaches && (
+            <motion.div key="coaches" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+              <div className="px-6 pb-6 space-y-3">
+                {suggestedCoaches.map(coach => (
+                  <div key={coach.id} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={cn("w-12 h-12 rounded-[1rem] flex items-center justify-center text-white font-black text-lg shadow-sm shrink-0", coach.avatarColor)}>
+                        {coach.avatarInitials}
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-black text-white text-sm">{coach.name}</h4>
+                          <span className="bg-blue-500/20 text-blue-400 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-blue-500/20">
+                            {coach.matchPct}% تطابق
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-bold mt-0.5">{coach.specialtyLabel}</p>
                       </div>
                     </div>
-                    {!ch.completed && (
-                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <motion.div
-                          className={cn("h-full rounded-full", ch.type === '3day' ? 'bg-blue-500' : ch.type === '7day' ? 'bg-orange-500' : 'bg-purple-500')}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${(ch.progress / ch.daysRequired) * 100}%` }}
-                          transition={{ duration: 0.8, delay: 0.1 }}
-                        />
-                      </div>
-                    )}
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        size="sm" variant="ghost" 
+                        onClick={() => setSelectedCoach(coach)}
+                        className="text-[10px] h-8 font-black text-slate-300 hover:text-white"
+                      >
+                        عرض الملف
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        disabled={requestedCoaches.has(coach.id)}
+                        onClick={() => handleRequestCoach(coach.id, coach.name)}
+                        className={cn(
+                          "rounded-xl font-black text-[10px] h-8 px-4",
+                          requestedCoaches.has(coach.id) ? "bg-slate-700 text-slate-400" : "bg-white text-slate-900 hover:bg-blue-50"
+                        )}
+                      >
+                        {requestedCoaches.has(coach.id) ? 'تم الطلب ✓' : 'ابدأ تدريب'}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -654,6 +877,30 @@ function HomeTab({
            <ChevronRight className="w-6 h-6 text-slate-400" />
          </div>
       </motion.div>
+
+      {/* ── Marketplace Modals ── */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <CoachSearchModal 
+            isOpen={isSearchOpen}
+            onClose={() => setIsSearchOpen(false)}
+            requestedIds={requestedCoaches}
+            onSelectCoach={setSelectedCoach}
+            onStartTraining={handleRequestCoach}
+            initialGoal={studentGoal}
+            initialLevel={studentLevel}
+          />
+        )}
+        {selectedCoach && (
+          <CoachProfileModal 
+            isOpen={!!selectedCoach}
+            coach={selectedCoach}
+            onClose={() => setSelectedCoach(null)}
+            requestedIds={requestedCoaches}
+            onStartTraining={handleRequestCoach}
+          />
+        )}
+      </AnimatePresence>
 
     </div>
   );
@@ -700,6 +947,7 @@ export default function StudentDashboard() {
   const [loading, setLoading]                 = useState(true);
   const [activeTab, setActiveTab]             = useState<TabId | 'settings' | 'help'>('home');
   const [dailyMissionOpen, setDailyMissionOpen] = useState(false);
+  const [dailyMissionType, setDailyMissionType] = useState<'physical' | 'cognitive' | 'psychological'>('physical');
   const [isSidebarOpen, setIsSidebarOpen]     = useState(true);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [showPostHealthModal, setShowPostHealthModal] = useState(false); 
@@ -726,7 +974,11 @@ export default function StudentDashboard() {
         }))
       ];
       
-      setNotifications(newNotifs);
+      setNotifications(prev => {
+        // filter out mock notifications once real ones come in
+        const realNotifs = newNotifs;
+        return realNotifs;
+      });
       setUnreadCount(newNotifs.length);
     };
 
@@ -742,11 +994,11 @@ export default function StudentDashboard() {
   const [isSurveyModalOpen, setIsSurveyModalOpen] = useState(false); // Original, but moved under comment
   const [showHealthSurvey, setShowHealthSurvey] = useState(false); // Added
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: 'قام الأستاذ بتقييم الفيديو الأخير الخاص بك بنجاح. راجع التقييم والملاحظات!', time: 'منذ 10 دقائق', type: 'video' },
-    { id: 2, text: 'لقد ارتقيت للمستوى 2! أنت تبلي بلاءً حسناً.', time: 'قبل ساعتين', type: 'level' },
-    { id: 3, text: 'تمرين التوازن الديناميكي بانتظارك اليوم لتحقيق أهدافك.', time: 'أمس', type: 'system' }
-  ]); // Added
+  const [notifications, setNotifications] = useState<any[]>([
+    { id: '1', text: 'قام الأستاذ بتقييم الفيديو الأخير الخاص بك بنجاح. راجع التقييم والملاحظات!', time: 'منذ 10 دقائق', type: 'video' },
+    { id: '2', text: 'لقد ارتقيت للمستوى 2! أنت تبلي بلاءً حسناً.', time: 'قبل ساعتين', type: 'level' },
+    { id: '3', text: 'تمرين التوازن الديناميكي بانتظارك اليوم لتحقيق أهدافك.', time: 'أمس', type: 'system' }
+  ]);
   const [hasHealthProfile, setHasHealthProfile] = useState(false); // Added
   const [searchQuery, setSearchQuery]         = useState('');
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
@@ -1249,7 +1501,10 @@ export default function StudentDashboard() {
                     <HomeTab
                       studentName={studentName}
                       xp={xp} level={level} coverImage={coverImage}
-                      onStartTraining={() => setDailyMissionOpen(true)}
+                      onStartTraining={(type) => {
+                        setDailyMissionType(type);
+                        setDailyMissionOpen(true);
+                      }}
                       onGoProgress={() => setActiveTab('progress')}
                       onGoVideos={() => setActiveTab('videos')}
                       onUploadClick={() => setIsVideoModalOpen(true)}
@@ -1408,7 +1663,13 @@ export default function StudentDashboard() {
       <DailyMissionPlayer 
         isOpen={dailyMissionOpen} 
         onClose={() => setDailyMissionOpen(false)} 
-        mission={{ id: 'm1', title: 'تمارين السرعة والتركيز', type: 'fitness', durationSeconds: 60, description: 'استعد لتحريك مفاصلك وتنشيط دورتك الدموية في مهمة تفاعلية سريعة.' }}
+        mission={{ 
+          id: 'm1', 
+          title: dailyMissionType === 'physical' ? 'تحدي القوة الأقصى' : dailyMissionType === 'cognitive' ? 'تطوير المهارات المعرفية' : 'استرخاء وتركيز ذهني', 
+          type: dailyMissionType, 
+          durationSeconds: 60, 
+          description: dailyMissionType === 'physical' ? 'تمارين شدة لزيادة القدرة العضلية.' : dailyMissionType === 'cognitive' ? 'اختبارات سرعة استجابة وتركيز.' : 'جلسة هدوء وتنفس عميق.'
+        }}
         onComplete={(score, xp) => {
           setDailyMissionOpen(false);
           toast({ title: 'أداء رائع!', description: `حصلت على ${xp} نقطة بكفاءة ${score}%`, variant: 'default' });
