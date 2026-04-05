@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +12,63 @@ import {
     ArrowUpRight,
     Brain,
     HeartPulse,
-    BrainCircuit
+    BrainCircuit,
+    Play,
+    Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { InstitutionalKPIs } from '@/components/admin-dashboard/InstitutionalKPIs';
+import { unifiedDataService, SystemKPIs, Insight } from '@/services/unifiedDataService';
+import { simulationEngine } from '@/utils/simulationEngine';
+import { eventBus, EVENTS } from '@/services/eventBus';
+import { useToast } from '@/components/ui/use-toast';
 
 export const AdminHome: React.FC = () => {
+    const [kpis, setKpis] = useState<SystemKPIs>(unifiedDataService.getKPIs());
+    const [insights, setInsights] = useState<Insight[]>(unifiedDataService.getInsights('admin'));
+    const [isSimulating, setIsSimulating] = useState(false);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const refreshData = () => {
+            setKpis(unifiedDataService.getKPIs());
+            setInsights(unifiedDataService.getInsights('admin'));
+        };
+
+        const unsubscribe = eventBus.subscribe(EVENTS.KPI_UPDATED, refreshData);
+        const unsubscribeSim = eventBus.subscribe(EVENTS.SIMULATION_STEP, refreshData);
+
+        return () => {
+            unsubscribe();
+            unsubscribeSim();
+        };
+    }, []);
+
+    const handleRunSimulation = async () => {
+        setIsSimulating(true);
+        toast({
+            title: "بدء المحاكاة",
+            description: "جاري توليد بيانات مترابطة لجميع الحسابات...",
+        });
+
+        try {
+            await simulationEngine.executeFullDayScenario();
+            toast({
+                title: "اكتملت المحاكاة",
+                description: "تم تحديث النظام ببيانات يوماً كاملاً بنجاح.",
+                variant: "default",
+            });
+        } catch (error) {
+            toast({
+                title: "خطأ في المحاكاة",
+                description: "حدث خطأ غير متوقع أثناء توليد البيانات.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSimulating(false);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
 
@@ -29,9 +80,19 @@ export const AdminHome: React.FC = () => {
                         ملخص أداء المنصة والإحصائيات الرئيسية لليوم
                     </p>
                 </div>
-                <Button className="bg-[#3b82f6] hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20">
-                    تنزيل التقرير اليومي
-                </Button>
+                <div className="flex gap-3">
+                    <Button 
+                        onClick={handleRunSimulation}
+                        disabled={isSimulating}
+                        className="bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20 gap-2"
+                    >
+                        {isSimulating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+                        تشغيل محاكاة اليوم
+                    </Button>
+                    <Button className="bg-[#3b82f6] hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20">
+                        تنزيل التقرير اليومي
+                    </Button>
+                </div>
             </div>
 
             {/* Institutional KPIs (Thesis Table 3) */}
@@ -40,11 +101,11 @@ export const AdminHome: React.FC = () => {
             {/* 2. KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" data-tour="admin_home">
                 {[
-                    { title: 'إجمالي التلاميذ', value: '2,450', trend: '+12%', icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-                    { title: 'إجمالي المعلمين', value: '184', trend: '+3%', icon: GraduationCap, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-                    { title: 'نشاطات مكتملة (اليوم)', value: '8,234', trend: '+24%', icon: Activity, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                    { title: 'فيديوهات محللة', value: '456', trend: '+8%', icon: Video, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-                    { title: 'مستوى التقدم العام', value: '87%', trend: '+5%', icon: TrendingUp, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+                    { title: 'إجمالي التلاميذ', value: kpis.totalUsers.toLocaleString(), trend: '+12%', icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                    { title: 'تلاميذ نشطون', value: kpis.activeStudents.toLocaleString(), trend: '+3%', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                    { title: 'نشاطات مكتملة', value: kpis.completedTasks.toLocaleString(), trend: '+24%', icon: ArrowUpRight, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    { title: 'مشاركة المعلمين', value: `${kpis.teacherEngagement}%`, trend: '+8%', icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                    { title: 'التقدم العام', value: `${kpis.averagePerformance}%`, trend: `+${kpis.improvementRate}%`, icon: TrendingUp, color: 'text-rose-500', bg: 'bg-rose-500/10' },
                 ].map((kpi, index) => (
                     <motion.div
                         key={index}
@@ -80,32 +141,29 @@ export const AdminHome: React.FC = () => {
                     <CardHeader>
                         <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-amber-500" />
-                            تنبيهات وإشعارات هامة
+                            تنبيهات وإرشادات ذكية
                         </CardTitle>
                         <CardDescription className="text-slate-400">
-                            أحداث تتطلب انتباه الإدارة
+                            اقتراحات Decision Intelligence بناءً على البيانات
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {[
-                            { text: 'انخفاض في مؤشر النشاط لـ 12 تلميذ في الصف 5-ب', time: 'قبل 10 دقائق', urgency: 'high' },
-                            { text: 'المعلم "أحمد" تأخر في مراجعة التقييمات الأسبوعية', time: 'قبل ساعتين', urgency: 'medium' },
-                            { text: 'تم رصد تحسن ملحوظ في الأداء الحركي لفريق كرة السلة', time: 'قبل 4 ساعات', urgency: 'low' },
-                            { text: 'نظام التحليل واجه مشكلة في معالجة 3 فيديوهات', time: 'قبل 5 ساعات', urgency: 'high' },
-                        ].map((alert, i) => (
+                        {insights.length > 0 ? insights.map((insight, i) => (
                             <div key={i} className="flex gap-4 p-3 rounded-xl bg-slate-800/30 hover:bg-slate-800/80 transition-colors border border-slate-800/50">
-                                <div className={`w-2 h-10 rounded-full mt-1 shrink-0 ${alert.urgency === 'high' ? 'bg-rose-500' :
-                                    alert.urgency === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'
+                                <div className={`w-2 h-10 rounded-full mt-1 shrink-0 ${insight.type === 'alert' ? 'bg-rose-500' :
+                                    insight.type === 'recommendation' ? 'bg-amber-500' : 'bg-emerald-500'
                                     }`} />
                                 <div className="flex-1">
-                                    <p className="text-sm font-bold text-slate-200 leading-snug">{alert.text}</p>
-                                    <p className="text-xs text-slate-500 mt-1">{alert.time}</p>
+                                    <p className="text-sm font-bold text-slate-200 leading-snug">{insight.title}</p>
+                                    <p className="text-xs text-slate-400 mt-1">{insight.content}</p>
                                 </div>
                                 <Button variant="ghost" size="icon" className="shrink-0 text-slate-400 hover:text-white">
                                     <ArrowUpRight className="w-4 h-4" />
                                 </Button>
                             </div>
-                        ))}
+                        )) : (
+                           <div className="text-center py-8 text-slate-500 text-sm">لا توجد تنبيهات حالياً</div>
+                        )}
                     </CardContent>
                 </Card>
 

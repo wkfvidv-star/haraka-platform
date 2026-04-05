@@ -77,6 +77,20 @@ export default function ParentDashboard() {
 
   useEffect(() => {
     fetchFamily();
+
+    // INTEGRATION: Listen for real-time updates (Event-Driven)
+    const handleRemoteUpdate = () => {
+      console.log('[EventBus] تلقي تحديث عن بعد، جاري تحديث بيانات الأبناء...');
+      fetchFamily();
+    };
+
+    const unsubscribeEval = eventBus.subscribe(EVENTS.EVALUATION_CREATED, handleRemoteUpdate);
+    const unsubscribeSim = eventBus.subscribe(EVENTS.SIMULATION_STEP, handleRemoteUpdate);
+
+    return () => {
+      unsubscribeEval();
+      unsubscribeSim();
+    };
   }, [user]);
 
   const selectedChild = children.find(c => c.id === selectedChildId);

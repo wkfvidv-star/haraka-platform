@@ -57,6 +57,7 @@ import { CoachNutritionPlan } from '@/components/youth-dashboard/CoachNutritionP
 import { YouthAuditLogWidget } from '@/components/youth-dashboard/YouthAuditLogWidget';
 import { youthDataService } from '@/services/youthDataService';
 import { useToast } from '@/hooks/use-toast';
+import { eventBus, EVENTS } from '@/services/eventBus';
 
 
 
@@ -87,7 +88,28 @@ export default function YouthDashboard() {
     };
 
     window.addEventListener('haraka_new_coach_message', handleNewMessage);
-    return () => window.removeEventListener('haraka_new_coach_message', handleNewMessage);
+
+    // INTEGRATION: Listen for real-time updates (Event-Driven)
+    const handleRemoteUpdate = (payload?: any) => {
+      console.log('[EventBus] تحديث فوري لبيانات الشاب...', payload);
+      // Logic to refresh data if needed - for now just log and potentially toast
+      if (payload?.type === 'evaluation') {
+         toast({
+           title: "⭐ تقييم جديد",
+           description: `لقد حصلت على تقييم جديد من الأستاذ!`,
+           className: "bg-blue-600 text-white"
+         });
+      }
+    };
+
+    const unsubscribeEval = eventBus.subscribe(EVENTS.EVALUATION_CREATED, handleRemoteUpdate);
+    const unsubscribeSim = eventBus.subscribe(EVENTS.SIMULATION_STEP, handleRemoteUpdate);
+
+    return () => {
+      window.removeEventListener('haraka_new_coach_message', handleNewMessage);
+      unsubscribeEval();
+      unsubscribeSim();
+    };
   }, [toast]);
 
   const completeOnboarding = () => {

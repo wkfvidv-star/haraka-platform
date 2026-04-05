@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
 import { Star, ChevronDown, ChevronUp, Send, Award, TrendingUp } from 'lucide-react';
+import { unifiedDataService } from '@/services/unifiedDataService';
+import { auditService } from '@/services/auditService';
+import { TeacherEvaluation } from '@/services/teacherDataService';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface RatingEntry {
@@ -102,12 +104,35 @@ function RatingForm({ targets, raterName, raterRole }: {
       fromRole: raterRole,
       toId: selectedTarget.id,
       toName: selectedTarget.name,
-      stars,
+      stars: stars,
       comment,
       timestamp: new Date().toISOString(),
       category,
     };
     saveRating(entry);
+
+    // INTEGRATION: Sync with Unified System if it's a teacher rating a student
+    if (raterRole === 'أستاذ' || raterRole === 'teacher') {
+      const evaluation: TeacherEvaluation = {
+        id: entry.id,
+        taskId: 'manual_rating',
+        studentId: selectedTarget.id,
+        status: 'reviewed',
+        score: stars * 20, // Convert 5 stars to 100 scale
+        teacherNotes: comment,
+        submissionDate: entry.timestamp
+      };
+      
+      unifiedDataService.syncEvaluation(evaluation, selectedTarget.name);
+      
+      auditService.log(
+        'تقييم تلميذ', 
+        `قام ${raterName} بتقييم ${selectedTarget.name}: ${stars} نجوم`, 
+        'evaluation',
+        { postState: entry }
+      );
+    }
+
     setSent(true);
     setTimeout(() => { setSent(false); setStars(0); setComment(''); }, 2500);
   }

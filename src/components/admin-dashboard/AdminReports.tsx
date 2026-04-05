@@ -56,17 +56,81 @@ export const AdminReports: React.FC = () => {
                 ))}
             </div>
 
-            {/* Custom Report Builder Space */}
-            <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-800 mt-8 border-dashed">
-                <CardContent className="p-12 text-center flex flex-col items-center justify-center">
-                    <div className="w-20 h-20 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center mb-6">
-                        <FileText className="w-10 h-10 text-slate-600" />
+            {/* Professional Audit Ledger (Credibility & Transparency) */}
+            <Card className="bg-slate-900/50 backdrop-blur-sm border-slate-800 mt-8 overflow-hidden">
+                <CardHeader className="border-b border-slate-800 bg-slate-950/50">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                                <Shield className="w-5 h-5 text-teal-500" />
+                                سجل العمليات والتدقيق (Audit Ledger)
+                            </CardTitle>
+                            <CardDescription className="text-slate-400">
+                                تتبع كامل وشامل لكل العمليات في النظام لضمان المصداقية
+                            </CardDescription>
+                        </div>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => { (window as any).auditLedger?.(); }}
+                            className="bg-teal-500/10 text-teal-400 border-teal-500/20 hover:bg-teal-500/20"
+                        >
+                            تحديث السجل
+                        </Button>
                     </div>
-                    <h3 className="text-2xl font-black text-white mb-2">تخصيص تقرير جديد</h3>
-                    <p className="text-slate-500 max-w-md">يمكنك استخدام محرك الذكاء الاصطناعي لإنشاء تقرير مخصص يجمع بيانات من مصادر متعددة وتصديره إلى Excel أو PDF.</p>
-                    <Button className="mt-6 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl px-8">
-                        البدء في التخصيص
-                    </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-right border-collapse">
+                            <thead>
+                                <tr className="bg-slate-900 text-slate-400 text-xs uppercase font-black tracking-widest border-b border-slate-800">
+                                    <th className="px-6 py-4">الوقت</th>
+                                    <th className="px-6 py-4">المنفذ (الدور)</th>
+                                    <th className="px-6 py-4">العملية</th>
+                                    <th className="px-6 py-4">التفاصيل</th>
+                                    <th className="px-px"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800">
+                                {(auditService.getAllLogs().length > 0 ? auditService.getAllLogs().slice(0, 10) : [
+                                    { timestamp: new Date().toISOString(), actorRole: 'system', action: 'بدء التشغيل', details: 'تحميل سجلات النظام مؤقتاً...', category: 'system' }
+                                ]).map((log: any, i) => (
+                                    <tr key={i} className="hover:bg-white/5 transition-colors group">
+                                        <td className="px-6 py-4 text-xs font-bold text-slate-300">
+                                            {new Date(log.timestamp).toLocaleTimeString('ar-DZ')}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className={`
+                                                    font-black text-[10px] 
+                                                    ${log.actorRole === 'admin' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 
+                                                      log.actorRole === 'teacher' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                      log.actorRole === 'parent' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                      'bg-slate-500/10 text-slate-400 border-slate-500/20'}
+                                                `}>
+                                                    {log.actorRole === 'admin' ? 'إدارة' : 
+                                                     log.actorRole === 'teacher' ? 'أستاذ' :
+                                                     log.actorRole === 'parent' ? 'ولي أمر' :
+                                                     log.actorRole === 'system' ? 'النظام' : log.actorRole}
+                                                </Badge>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-black text-white">
+                                            {log.action}
+                                        </td>
+                                        <td className="px-6 py-4 text-xs font-bold text-slate-400 max-w-sm truncate">
+                                            {log.details}
+                                        </td>
+                                        <td className="px-6 py-4 text-left">
+                                            <Button variant="ghost" size="icon" className="text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <ArrowUpRight className="w-4 h-4" />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </CardContent>
             </Card>
 
