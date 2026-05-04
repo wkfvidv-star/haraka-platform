@@ -177,7 +177,7 @@ function ExerciseCard({ ex, zoneColor, onStart }: { ex: Exercise; zoneColor: str
         <motion.div
             whileHover={{ y: -4, scale: 1.01 }}
             transition={{ duration: 0.2 }}
-            className="bg-white/[0.04] border border-white/[0.07] rounded-[1.5rem] p-6 flex flex-col gap-5 hover:bg-white/[0.07] hover:border-white/[0.12] transition-all cursor-pointer group h-full"
+            className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-5 hover:bg-white/[0.07] hover:border-white/[0.12] transition-all cursor-pointer group h-full"
         >
             {/* Top row: icon + level badge */}
             <div className="flex items-start justify-between gap-4">
@@ -231,7 +231,7 @@ function ExerciseCard({ ex, zoneColor, onStart }: { ex: Exercise; zoneColor: str
                 onClick={onStart}
                 className={cn('w-full mt-2 py-3 md:py-3.5 rounded-xl text-white font-black text-sm md:text-base bg-gradient-to-l shadow-lg flex items-center justify-center gap-2', zoneColor)}
             >
-                <Play className="w-5 h-5 fill-white" />ابدأ التمرين
+                <Play className="w-5 h-5 fill-white" />ابدأ التدريب
             </motion.button>
         </motion.div>
     );
@@ -245,7 +245,7 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
 
     return (
         <section className={cn(
-            'rounded-[2rem] border-2 p-5 sm:p-8 relative overflow-hidden transition-all duration-500 my-6 sm:my-8 shadow-2xl',
+            'rounded-3xl border-2 p-4 sm:p-8 relative overflow-hidden transition-all duration-500 my-4 sm:my-8 shadow-2xl',
             'bg-black/40 hover:bg-black/50',
             zone.borderColor
         )}>
@@ -257,8 +257,8 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
                 <div className="flex items-center gap-6">
                     <div className={cn('w-3 h-20 rounded-full bg-gradient-to-b shadow-[0_0_30px_rgba(16,185,129,0.5)]', zone.gradient)} />
                     <div className="text-right">
-                        <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-2 sm:mb-3 drop-shadow-md">{zone.name}</h2>
-                        <p className={cn('text-base sm:text-xl md:text-2xl font-black drop-shadow-md', zone.textColor)}>{zone.subtitle}</p>
+                        <h2 className="text-xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1 sm:mb-3 drop-shadow-md">{zone.name}</h2>
+                        <p className={cn('text-sm sm:text-xl md:text-2xl font-black drop-shadow-md', zone.textColor)}>{zone.subtitle}</p>
                     </div>
                 </div>
                 <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
@@ -278,7 +278,7 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
                             whileHover={{ y: -6, scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => onStartExercise(ex, 'cognitive')}
-                            className="bg-white/[0.06] border border-white/[0.15] rounded-[2rem] p-6 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all cursor-pointer group text-right flex flex-col h-full shadow-lg"
+                            className="bg-white/[0.06] border border-white/[0.15] rounded-2xl p-4 sm:p-6 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all cursor-pointer group text-right flex flex-col h-full shadow-lg"
                         >
                             <div className="flex items-start justify-between gap-4 mb-4">
                                 <div className={cn('w-16 h-16 rounded-[1.25rem] flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-lg', zone.gradient)}>
@@ -289,8 +289,8 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
                                 </span>
                             </div>
                             
-                            <h3 className="text-2xl font-black text-white leading-snug mb-3 group-hover:text-emerald-300 transition-colors">{ex.name}</h3>
-                            <p className="text-white/60 text-lg font-medium leading-relaxed mb-6">{ex.description}</p>
+                            <h3 className="text-lg sm:text-2xl font-black text-white leading-snug mb-2 sm:mb-3 group-hover:text-emerald-300 transition-colors">{ex.name}</h3>
+                            <p className="text-white/60 text-sm sm:text-lg font-medium leading-relaxed mb-4 sm:mb-6">{ex.description}</p>
                             
                             {/* Meta */}
                             <div className="flex items-center gap-4 text-sm font-bold text-white/50 mt-auto pt-4 border-t border-white/5 w-full">
@@ -319,7 +319,7 @@ function TrainingZoneSection({ zone, onStartExercise }: { zone: TrainingZone; on
 
     return (
         <section className={cn(
-            'rounded-[2rem] border p-6 relative overflow-hidden transition-all duration-500',
+            'rounded-2xl border p-4 sm:p-6 relative overflow-hidden transition-all duration-500',
             'bg-white/[0.02] hover:bg-white/[0.04]',
             zone.borderColor
         )}>
@@ -394,7 +394,7 @@ function CompetitionCard({ comp }: { comp: Competition }) {
     return (
         <motion.div
             whileHover={{ y: -3 }}
-            className="bg-white/[0.04] border border-white/[0.08] rounded-[1.5rem] p-6 flex flex-col gap-5 hover:bg-white/[0.06] transition-all h-full"
+            className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-5 hover:bg-white/[0.06] transition-all h-full"
         >
             {/* Level Badge */}
             <div className="flex items-start justify-between mb-1">
@@ -558,17 +558,17 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
 
             {/* TAB NAVIGATION HEADER */}
             <div className="flex items-center gap-3 overflow-x-auto pb-4 hide-scrollbar">
-                <button onClick={() => setActiveCategory('daily')} className={cn("px-6 py-3.5 rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'daily' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
-                    <Flame className="w-5 h-5"/> تدريب ونصائح
+                <button onClick={() => setActiveCategory('daily')} className={cn("px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'daily' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
+                    <Flame className="w-4 h-4 sm:w-5 sm:h-5"/> تدريب ونصائح
                 </button>
-                <button onClick={() => setActiveCategory('motor')} className={cn("px-6 py-3.5 rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'motor' ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
-                    <Dumbbell className="w-5 h-5"/> الذكاء الحركي والتأهيل
+                <button onClick={() => setActiveCategory('motor')} className={cn("px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'motor' ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
+                    <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5"/> الذكاء الحركي
                 </button>
-                <button onClick={() => setActiveCategory('cognitive')} className={cn("px-6 py-3.5 rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'cognitive' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
-                    <Brain className="w-5 h-5"/> الأداء المعرفي والنفسي
+                <button onClick={() => setActiveCategory('cognitive')} className={cn("px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'cognitive' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
+                    <Brain className="w-4 h-4 sm:w-5 sm:h-5"/> الأداء المعرفي
                 </button>
-                <button onClick={() => setActiveCategory('competitions')} className={cn("px-6 py-3.5 rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'competitions' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
-                    <Trophy className="w-5 h-5"/> التحديات وسجل الأداء
+                <button onClick={() => setActiveCategory('competitions')} className={cn("px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-black whitespace-nowrap outline-none transition-all flex items-center gap-2", activeCategory === 'competitions' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10')}>
+                    <Trophy className="w-4 h-4 sm:w-5 sm:h-5"/> التحديات
                 </button>
             </div>
 
@@ -582,7 +582,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.0 }}
-                className="relative rounded-[2.5rem] overflow-hidden"
+                className="relative rounded-3xl overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, #0c1f4e 0%, #0f172a 45%, #1a0936 100%)' }}
             >
                 {/* Background texture & glows */}

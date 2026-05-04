@@ -1489,7 +1489,7 @@ export default function StudentDashboard() {
 
           {/* ── Scrollable Content ── */}
           <ScrollArea className="flex-1">
-            <div className="p-5 lg:p-7">
+            <div className="p-4 sm:p-5 lg:p-7 pb-24 lg:pb-7">
               <AnimatePresence mode="wait">
 
                 {activeTab === 'home' && (
