@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -23,6 +23,46 @@ import { ExerciseSessionPage } from '@/pages/student/ExerciseSessionPage';
 import DigitalIdentity from '@/pages/DigitalIdentity';
 import LandingPage from '@/pages/Index';
 import OnboardingPage from '@/pages/OnboardingPage';
+
+// ── Global Error Boundary ────────────────────────────────────────────────────
+class AppErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div dir="rtl" style={{ fontFamily: 'Arial, sans-serif', padding: '40px', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
+          <div style={{ maxWidth: 700, margin: '0 auto', background: '#1e293b', borderRadius: 24, padding: 32, border: '2px solid #ef4444' }}>
+            <h1 style={{ color: '#ef4444', fontSize: 28, fontWeight: 900, marginBottom: 12 }}>⚠️ خطأ في التحميل</h1>
+            <p style={{ color: '#94a3b8', marginBottom: 20 }}>حدث خطأ غير متوقع. يرجى مشاركة التفاصيل أدناه للدعم الفني.</p>
+            <div style={{ background: '#0f172a', borderRadius: 12, padding: 20, border: '1px solid #334155' }}>
+              <p style={{ color: '#f87171', fontWeight: 700, marginBottom: 8 }}>{this.state.error?.message}</p>
+              <pre style={{ color: '#64748b', fontSize: 12, overflowX: 'auto', whiteSpace: 'pre-wrap', direction: 'ltr', textAlign: 'left' }}>
+                {this.state.error?.stack}
+              </pre>
+            </div>
+            <button
+              onClick={() => window.location.href = '/auth'}
+              style={{ marginTop: 24, background: '#3b82f6', color: 'white', border: 'none', borderRadius: 12, padding: '12px 32px', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}
+            >
+              العودة لصفحة الدخول
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 
 function AppRoutes() {
   const { user, environment, selectedRole } = useAuth();
@@ -95,24 +135,28 @@ function AppRoutes() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <AIAnalyticsProvider>
-            <PredictiveIntelligenceProvider>
-              <AIControlCenterProvider>
-                <Router>
-                  <div className="min-h-screen bg-background">
-                    <AppRoutes />
-                    <Toaster />
-                  </div>
-                </Router>
-              </AIControlCenterProvider>
-            </PredictiveIntelligenceProvider>
-          </AIAnalyticsProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+    <AppErrorBoundary>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AIAnalyticsProvider>
+              <PredictiveIntelligenceProvider>
+                <AIControlCenterProvider>
+                  <Router>
+                    <div className="min-h-screen bg-background">
+                      <AppErrorBoundary>
+                        <AppRoutes />
+                      </AppErrorBoundary>
+                      <Toaster />
+                    </div>
+                  </Router>
+                </AIControlCenterProvider>
+              </PredictiveIntelligenceProvider>
+            </AIAnalyticsProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </AppErrorBoundary>
   );
 }
 
