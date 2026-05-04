@@ -31,6 +31,7 @@ import { SchedulingSystem } from '@/components/parent/SchedulingSystem';
 import { MessagingSystem } from '@/components/parent/MessagingSystem';
 import StudentAnalysisCard from '@/components/parent/StudentAnalysisCard'; // Keeping this for reports tab
 import { parentDataService, Child } from '@/services/parentDataService';
+import { eventBus, EVENTS } from '@/services/eventBus';
 
 export default function ParentDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');

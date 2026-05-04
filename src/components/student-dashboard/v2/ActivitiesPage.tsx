@@ -245,7 +245,7 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
 
     return (
         <section className={cn(
-            'rounded-[2.5rem] border-2 p-8 relative overflow-hidden transition-all duration-500 my-8 shadow-2xl',
+            'rounded-[2rem] border-2 p-5 sm:p-8 relative overflow-hidden transition-all duration-500 my-6 sm:my-8 shadow-2xl',
             'bg-black/40 hover:bg-black/50',
             zone.borderColor
         )}>
@@ -257,8 +257,8 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
                 <div className="flex items-center gap-6">
                     <div className={cn('w-3 h-20 rounded-full bg-gradient-to-b shadow-[0_0_30px_rgba(16,185,129,0.5)]', zone.gradient)} />
                     <div className="text-right">
-                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-3 drop-shadow-md">{zone.name}</h2>
-                        <p className={cn('text-xl md:text-2xl font-black drop-shadow-md', zone.textColor)}>{zone.subtitle}</p>
+                        <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-2 sm:mb-3 drop-shadow-md">{zone.name}</h2>
+                        <p className={cn('text-base sm:text-xl md:text-2xl font-black drop-shadow-md', zone.textColor)}>{zone.subtitle}</p>
                     </div>
                 </div>
                 <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
@@ -268,8 +268,8 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
                 </div>
             </div>
 
-            {/* Massive Exercises Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative z-10">
+            {/* Exercises Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 relative z-10">
                 {zone.exercises.map((ex, i) => {
                     const IconComp = ex.icon;
                     return (
@@ -356,7 +356,7 @@ function TrainingZoneSection({ zone, onStartExercise }: { zone: TrainingZone; on
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                     >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 relative z-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6 relative z-10">
                             {zone.exercises.map((ex, i) => (
                                 <motion.div
                                     key={ex.id}
@@ -590,7 +590,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                 <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
                 <div className="absolute bottom-0 right-0 w-56 h-56 bg-purple-500/15 rounded-full blur-[80px] pointer-events-none" />
 
-                <div className="relative z-10 p-7 sm:p-9">
+                <div className="relative z-10 p-5 sm:p-9">
                     {/* Top badge */}
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-400/30 flex items-center justify-center">
@@ -603,7 +603,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                     {/* Main content row */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
                         <div className="flex-1">
-                            <h2 className="text-4xl sm:text-5xl font-black text-white leading-tight mb-2">
+                            <h2 className="text-2xl sm:text-5xl font-black text-white leading-tight mb-2">
                                 {dailyTrainingTitle}
                             </h2>
                             <p className="text-blue-200/60 text-base md:text-lg mb-6">
@@ -633,7 +633,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                             whileHover={{ scale: 1.06 }}
                             whileTap={{ scale: 0.96 }}
                             onClick={() => startSession(dailyTrainingTitle, 'motor', dailyTrainingXP, dailyTrainingDurationSeconds)}
-                            className="flex-shrink-0 flex items-center gap-3 px-10 py-5 rounded-[1.25rem] bg-gradient-to-l from-orange-500 to-red-500 text-white font-black shadow-2xl shadow-orange-500/40 text-xl"
+                            className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-3 px-10 py-4 sm:py-5 rounded-[1.25rem] bg-gradient-to-l from-orange-500 to-red-500 text-white font-black shadow-2xl shadow-orange-500/40 text-lg sm:text-xl"
                         >
                             <Play className="w-6 h-6 fill-white" />ابدأ الآن
                         </motion.button>
@@ -671,7 +671,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
             {/* ══════════════════════════════════════════
                 1.5 SESSIONS & TASKS  ★ NEW
             ══════════════════════════════════════════ */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-6">
                 {/* UPCOMING SESSIONS */}
                 <motion.section
                     initial={{ opacity: 0, x: -16 }}

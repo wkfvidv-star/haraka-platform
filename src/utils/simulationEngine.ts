@@ -1,8 +1,8 @@
-import { teacherDataService } from './teacherDataService';
-import { parentDataService } from './parentDataService';
-import { youthDataService } from './youthDataService';
-import { auditService } from './auditService';
-import { eventBus, EVENTS } from './eventBus';
+import { teacherDataService } from '../services/teacherDataService';
+import { parentDataService } from '../services/parentDataService';
+import { youthDataService } from '../services/youthDataService';
+import { auditService } from '../services/auditService';
+import { eventBus, EVENTS } from '../services/eventBus';
 import { v4 as uuidv4 } from 'uuid';
 
 class SimulationEngine {
