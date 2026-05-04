@@ -40,7 +40,7 @@ export const ChildContextView: React.FC<ChildContextViewProps> = ({ child, paren
   const handleToggleTask = (taskId: string) => {
     parentDataService.toggleTask(currentChild.id, taskId);
     // Deep clone is needed for nested tasks
-    const updatedTasks = currentChild.dailyTasks.map(t => 
+    const updatedTasks = (currentChild.dailyTasks || []).map(t => 
       t.id === taskId ? { ...t, completed: !t.completed } : t
     );
     setCurrentChild({ ...currentChild, dailyTasks: updatedTasks });
@@ -126,12 +126,12 @@ export const ChildContextView: React.FC<ChildContextViewProps> = ({ child, paren
                            <h3 className="font-black text-xl text-white">مهام اليوم</h3>
                         </div>
                         <span className="text-xs font-bold text-slate-500">
-                           {currentChild.dailyTasks.filter(t => t.completed).length} / {currentChild.dailyTasks.length} مكتملة
+                           {(currentChild.dailyTasks || []).filter(t => t.completed).length} / {(currentChild.dailyTasks || []).length} مكتملة
                         </span>
                      </div>
                      <div className="p-6 space-y-4">
-                        {currentChild.dailyTasks.length > 0 ? (
-                           currentChild.dailyTasks.map((task) => (
+                        {(currentChild.dailyTasks || []).length > 0 ? (
+                           (currentChild.dailyTasks || []).map((task) => (
                               <button
                                  key={task.id}
                                  onClick={() => handleToggleTask(task.id)}
