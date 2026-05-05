@@ -291,30 +291,30 @@ function TrainingZoneSection({ zone, onStartExercise }: { zone: TrainingZone; on
 
     return (
         <section className={cn(
-            'rounded-2xl border p-4 sm:p-6 relative overflow-hidden transition-all duration-500',
-            'bg-white/[0.02] hover:bg-white/[0.04]',
+            'rounded-2xl border p-4 relative overflow-hidden transition-all duration-500',
+            'bg-white/[0.02]',
             zone.borderColor
         )}>
-            {/* glow */}
-            <div className={cn('absolute -top-20 -right-20 w-60 h-60 rounded-full blur-[90px] pointer-events-none opacity-60', zone.glow)} />
+            {/* glow - contained to not overflow */}
+            <div className={cn('absolute top-0 right-0 w-40 h-40 rounded-full blur-[70px] pointer-events-none opacity-50', zone.glow)} />
 
             {/* Header */}
             <button
                 onClick={() => setOpen(!open)}
-                className="w-full flex items-center justify-between gap-4 relative z-10 group"
+                className="w-full flex items-center justify-between gap-3 relative z-10 group min-w-0"
             >
-                <div className="flex items-center gap-4">
-                    <div className="w-2 h-12 rounded-full bg-gradient-to-b shadow-[0_0_20px_rgba(0,0,0,0.3)]" />
-                    <div className="text-right">
-                        <h3 className="text-xl font-black text-white tracking-tight">{zone.name}</h3>
-                        <p className={cn('text-sm font-bold', zone.textColor, 'opacity-70')}>{zone.subtitle}</p>
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={cn('w-1.5 h-10 flex-shrink-0 rounded-full bg-gradient-to-b', zone.gradient)} />
+                    <div className="text-right min-w-0 flex-1">
+                        <h3 className="text-base font-black text-white truncate">{zone.name}</h3>
+                        <p className={cn('text-xs font-bold truncate', zone.textColor, 'opacity-70')}>{zone.subtitle}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className={cn('hidden sm:flex text-[11px] font-black px-3 py-1.5 rounded-full border', zone.badgeBg)}>
-                        {zone.exercises.length} تمارين
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={cn('text-[10px] font-black px-2.5 py-1 rounded-full border', zone.badgeBg)}>
+                        {zone.exercises.length}
                     </span>
-                    <ChevronDown className={cn('w-5 h-5 text-white/40 transition-transform duration-300', open ? 'rotate-180' : '')} />
+                    <ChevronDown className={cn('w-4 h-4 text-white/40 transition-transform duration-300', open ? 'rotate-180' : '')} />
                 </div>
             </button>
 
@@ -328,7 +328,7 @@ function TrainingZoneSection({ zone, onStartExercise }: { zone: TrainingZone; on
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                     >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6 relative z-10">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-4 relative z-10">
                             {zone.exercises.map((ex, i) => (
                                 <motion.div
                                     key={ex.id}
