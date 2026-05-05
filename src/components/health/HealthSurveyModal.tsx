@@ -93,20 +93,20 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
 
                 <div className="relative z-10 flex flex-col h-full overflow-hidden">
                     {/* Header */}
-                    <div className="p-6 md:p-10 pb-4 border-b border-white/5 flex-shrink-0">
-                        <div className="flex items-center justify-between gap-6 mb-8">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.4)]">
-                                    <Heart className="w-8 h-8 text-white" />
+                    <div className="p-4 md:p-8 pb-3 border-b border-white/5 flex-shrink-0">
+                        <div className="flex items-center justify-between gap-4 mb-4 md:mb-6">
+                            <div className="flex items-center gap-3 md:gap-6">
+                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[1.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.4)] shrink-0">
+                                    <Heart className="w-6 h-6 md:w-8 md:h-8 text-white" />
                                 </div>
                                 <div>
-                                    <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-2">تأسيس الملف الصحي</h2>
-                                    <p className="text-indigo-200/70 text-lg md:text-xl font-bold">بناء قاعدة صلبة لخوارزميات التدريب الذكي</p>
+                                    <h2 className="text-xl md:text-4xl font-black tracking-tight text-white mb-1">تأسيس الملف الصحي</h2>
+                                    <p className="text-indigo-200/70 text-xs md:text-lg font-bold leading-tight">بناء قاعدة صلبة لخوارزميات التدريب الذكي</p>
                                 </div>
                             </div>
-                            <div className="hidden md:flex items-center gap-3">
-                                <span className="text-2xl font-black text-indigo-400">{Math.round(progress)}%</span>
-                                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">اكتمال</span>
+                            <div className="hidden md:flex flex-col items-center gap-1 shrink-0">
+                                <span className="text-2xl font-black text-indigo-400 leading-none">{Math.round(progress)}%</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">اكتمال</span>
                             </div>
                         </div>
 
@@ -122,41 +122,41 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
                     </div>
 
                     {/* Content Area - Scrollable */}
-                    <div className="flex-1 overflow-y-auto px-6 py-6 md:px-12 md:py-8 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto px-4 py-4 md:px-12 md:py-8 custom-scrollbar">
                         <div className="max-w-3xl mx-auto w-full flex flex-col justify-center min-h-full">
                             <AnimatePresence mode="wait">
                                 {/* STEP 1: Basic Bio */}
                                 {step === 1 && (
-                                    <motion.div key="step1" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.4 }}
-                                        className="space-y-8 md:space-y-12 py-4">
-                                        <div className="text-center mb-6 md:mb-10">
-                                            <h3 className="text-4xl font-black text-white mb-4 drop-shadow-md">من أنت؟</h3>
-                                            <p className="text-xl text-slate-400 font-bold">معلوماتك الأساسية تساعد النظام على مقارنة أدائك.</p>
+                                    <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                                        className="space-y-6 md:space-y-10 py-2">
+                                        <div className="text-center mb-4 md:mb-8">
+                                            <h3 className="text-2xl md:text-4xl font-black text-white mb-2 drop-shadow-md">من أنت؟</h3>
+                                            <p className="text-sm md:text-lg text-slate-400 font-bold">معلوماتك الأساسية تساعد النظام على مقارنة أدائك.</p>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                            <div className="space-y-6">
-                                                <label className="text-xl font-black text-indigo-300 flex items-center gap-3">
-                                                    <UserCircle className="w-7 h-7" /> الجنس
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                                            <div className="space-y-4 md:space-y-6">
+                                                <label className="text-base md:text-xl font-black text-indigo-300 flex items-center gap-2">
+                                                    <UserCircle className="w-5 h-5 md:w-7 md:h-7" /> الجنس
                                                 </label>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-2 gap-3 md:gap-4">
                                                     {['ذكر', 'أنثى'].map(g => (
                                                         <button key={g} onClick={() => handleInput('gender', g)}
-                                                            className={`h-24 rounded-3xl text-2xl font-black transition-all border-4 ${formData.gender === g ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.3)]' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10 hover:text-white'}`}>
+                                                            className={`h-14 md:h-20 rounded-2xl text-lg md:text-2xl font-black transition-all border-2 md:border-4 ${formData.gender === g ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10 hover:text-white'}`}>
                                                             {g}
                                                         </button>
                                                     ))}
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-6">
-                                                <label className="text-xl font-black text-indigo-300 flex items-center gap-3">
-                                                    <CalendarDays className="w-7 h-7" /> العمر (سنوات)
+                                            <div className="space-y-4 md:space-y-6">
+                                                <label className="text-base md:text-xl font-black text-indigo-300 flex items-center gap-2">
+                                                    <CalendarDays className="w-5 h-5 md:w-7 md:h-7" /> العمر (سنوات)
                                                 </label>
                                                 <Input
                                                     type="number" placeholder="مثال: 22"
                                                     value={formData.age} onChange={e => handleInput('age', e.target.value)}
-                                                    className="h-24 text-4xl font-black text-center bg-white/5 border-4 border-transparent focus:border-indigo-500 rounded-3xl"
+                                                    className="h-14 md:h-20 text-2xl md:text-4xl font-black text-center bg-white/5 border-2 md:border-4 border-transparent focus:border-indigo-500 rounded-2xl"
                                                 />
                                             </div>
                                         </div>
@@ -165,39 +165,39 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
 
                                 {/* STEP 2: Body Metrics */}
                                 {step === 2 && (
-                                    <motion.div key="step2" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.4 }}
-                                        className="space-y-12">
-                                        <div className="text-center mb-10">
-                                            <h3 className="text-4xl font-black text-white mb-4 drop-shadow-md">القياسات البدنية</h3>
-                                            <p className="text-xl text-slate-400 font-bold">تحديد كتلة الجسم ضروري لحساب حرق السعرات.</p>
+                                    <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                                        className="space-y-6 md:space-y-10">
+                                        <div className="text-center mb-4 md:mb-8">
+                                            <h3 className="text-2xl md:text-4xl font-black text-white mb-2 drop-shadow-md">القياسات البدنية</h3>
+                                            <p className="text-sm md:text-lg text-slate-400 font-bold">تحديد كتلة الجسم ضروري لحساب حرق السعرات.</p>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                            <div className="space-y-6">
-                                                <label className="text-2xl font-black text-blue-400 flex justify-center items-center gap-3 text-center">
-                                                    <Ruler className="w-8 h-8" /> الطول (سم)
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                                            <div className="space-y-4 md:space-y-6">
+                                                <label className="text-lg md:text-2xl font-black text-blue-400 flex justify-center items-center gap-2 text-center">
+                                                    <Ruler className="w-6 h-6 md:w-8 md:h-8" /> الطول (سم)
                                                 </label>
                                                 <div className="relative">
                                                     <Input
                                                         type="number" placeholder="175"
                                                         value={formData.height} onChange={e => handleInput('height', e.target.value)}
-                                                        className="h-32 text-6xl font-black text-center bg-blue-500/10 border-4 border-blue-500/30 focus:border-blue-500 rounded-[2rem] text-blue-100"
+                                                        className="h-16 md:h-24 text-3xl md:text-5xl font-black text-center bg-blue-500/10 border-2 md:border-4 border-blue-500/30 focus:border-blue-500 rounded-2xl text-blue-100"
                                                     />
-                                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-bold text-blue-400/50 uppercase tracking-widest hidden md:block">CM</span>
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm md:text-xl font-bold text-blue-400/50 uppercase tracking-widest hidden md:block">CM</span>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-6">
-                                                <label className="text-2xl font-black text-teal-400 flex justify-center items-center gap-3 text-center">
-                                                    <Scale className="w-8 h-8" /> الوزن (كجم)
+                                            <div className="space-y-4 md:space-y-6">
+                                                <label className="text-lg md:text-2xl font-black text-teal-400 flex justify-center items-center gap-2 text-center">
+                                                    <Scale className="w-6 h-6 md:w-8 md:h-8" /> الوزن (كجم)
                                                 </label>
                                                 <div className="relative">
                                                     <Input
                                                         type="number" placeholder="70"
                                                         value={formData.weight} onChange={e => handleInput('weight', e.target.value)}
-                                                        className="h-32 text-6xl font-black text-center bg-teal-500/10 border-4 border-teal-500/30 focus:border-teal-500 rounded-[2rem] text-teal-100"
+                                                        className="h-16 md:h-24 text-3xl md:text-5xl font-black text-center bg-teal-500/10 border-2 md:border-4 border-teal-500/30 focus:border-teal-500 rounded-2xl text-teal-100"
                                                     />
-                                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-bold text-teal-400/50 uppercase tracking-widest hidden md:block">KG</span>
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm md:text-xl font-bold text-teal-400/50 uppercase tracking-widest hidden md:block">KG</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -206,43 +206,43 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
 
                                 {/* STEP 3: Lifestyle */}
                                 {step === 3 && (
-                                    <motion.div key="step3" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.4 }}
-                                        className="space-y-12">
-                                        <div className="text-center mb-10">
-                                            <h3 className="text-4xl font-black text-white mb-4 drop-shadow-md">نمط حياتك</h3>
-                                            <p className="text-xl text-slate-400 font-bold">لضبط كثافة التمارين وقوة الريكفري (الاستشفاء).</p>
+                                    <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                                        className="space-y-6 md:space-y-10">
+                                        <div className="text-center mb-4 md:mb-8">
+                                            <h3 className="text-2xl md:text-4xl font-black text-white mb-2 drop-shadow-md">نمط حياتك</h3>
+                                            <p className="text-sm md:text-lg text-slate-400 font-bold">لضبط كثافة التمارين وقوة الاستشفاء.</p>
                                         </div>
 
-                                        <div className="space-y-10">
+                                        <div className="space-y-6 md:space-y-8">
                                             {/* Activity */}
-                                            <div className="space-y-6">
-                                                <label className="text-xl font-black text-emerald-400 flex items-center gap-3">
-                                                    <Activity className="w-7 h-7" /> مستوى النشاط اليومي العام
+                                            <div className="space-y-4">
+                                                <label className="text-base md:text-xl font-black text-emerald-400 flex items-center gap-2">
+                                                    <Activity className="w-5 h-5 md:w-7 md:h-7" /> مستوى النشاط اليومي العام
                                                 </label>
-                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                     {[
                                                         { id: 'low', label: 'خفيف', desc: 'مكتبي، قليل الحركة' },
                                                         { id: 'mid', label: 'متوسط', desc: 'أتحرك باستمرار' },
                                                         { id: 'high', label: 'عالي', desc: 'نشط جداً، رياضي' }
                                                     ].map(lvl => (
                                                         <div key={lvl.id} onClick={() => handleInput('activityLevel', lvl.id)}
-                                                            className={`p-6 rounded-[2rem] border-4 cursor-pointer transition-all ${formData.activityLevel === lvl.id ? 'bg-emerald-600/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02]' : 'bg-white/5 border-transparent hover:bg-white/10'}`}>
-                                                            <p className={`text-2xl font-black mb-2 ${formData.activityLevel === lvl.id ? 'text-white' : 'text-slate-300'}`}>{lvl.label}</p>
-                                                            <p className="text-slate-400 text-sm font-bold leading-relaxed">{lvl.desc}</p>
+                                                            className={`p-4 md:p-5 rounded-2xl border-2 cursor-pointer transition-all ${formData.activityLevel === lvl.id ? 'bg-emerald-600/20 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 border-transparent hover:bg-white/10'}`}>
+                                                            <p className={`text-lg md:text-xl font-black mb-1 ${formData.activityLevel === lvl.id ? 'text-white' : 'text-slate-300'}`}>{lvl.label}</p>
+                                                            <p className="text-slate-400 text-xs md:text-sm font-bold leading-snug">{lvl.desc}</p>
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
 
                                             {/* Sleep */}
-                                            <div className="space-y-6">
-                                                <label className="text-xl font-black text-indigo-300 flex items-center gap-3">
-                                                    <Moon className="w-7 h-7" /> متوسط ساعات النوم
+                                            <div className="space-y-4">
+                                                <label className="text-base md:text-xl font-black text-indigo-300 flex items-center gap-2">
+                                                    <Moon className="w-5 h-5 md:w-7 md:h-7" /> متوسط ساعات النوم
                                                 </label>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                     {['أقل من 5', '5 - 7', '7 - 9', 'أكثر من 9'].map(hrs => (
                                                         <button key={hrs} onClick={() => handleInput('sleepHours', hrs)}
-                                                            className={`h-20 rounded-2xl text-xl font-black transition-all border-2 ${formData.sleepHours === hrs ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}>
+                                                            className={`h-12 md:h-16 rounded-xl text-sm md:text-lg font-black transition-all border-2 ${formData.sleepHours === hrs ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}>
                                                             {hrs}
                                                         </button>
                                                     ))}
@@ -254,23 +254,23 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
 
                                 {/* STEP 4: Advanced & Goal */}
                                 {step === 4 && (
-                                    <motion.div key="step4" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.4 }}
-                                        className="space-y-12">
-                                        <div className="text-center mb-10">
-                                            <h3 className="text-4xl font-black text-white mb-4 drop-shadow-md">اللمسات الأخيرة!</h3>
-                                            <p className="text-xl text-slate-400 font-bold">لماذا أنت هنا؟ وما هو طموحك الرياضي؟</p>
+                                    <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                                        className="space-y-6 md:space-y-10">
+                                        <div className="text-center mb-4 md:mb-8">
+                                            <h3 className="text-2xl md:text-4xl font-black text-white mb-2 drop-shadow-md">اللمسات الأخيرة!</h3>
+                                            <p className="text-sm md:text-lg text-slate-400 font-bold">لماذا أنت هنا؟ وما هو طموحك الرياضي؟</p>
                                         </div>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                                             {/* Blood Type */}
-                                            <div className="space-y-6 lg:col-span-1">
-                                                <label className="text-xl font-black text-rose-400 flex items-center gap-3">
-                                                    <Heart className="w-7 h-7" /> فصيلة الدم (إن عرفت)
+                                            <div className="space-y-4 lg:col-span-1">
+                                                <label className="text-base md:text-xl font-black text-rose-400 flex items-center gap-2">
+                                                    <Heart className="w-5 h-5 md:w-7 md:h-7" /> فصيلة الدم (إن عرفت)
                                                 </label>
-                                                <div className="grid grid-cols-2 gap-3">
+                                                <div className="grid grid-cols-4 md:grid-cols-2 gap-2 md:gap-3">
                                                     {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(b => (
                                                         <button key={b} onClick={() => handleInput('bloodType', b)}
-                                                            className={`h-16 rounded-2xl text-xl font-black transition-all border-2 ${formData.bloodType === b ? 'bg-rose-500/20 border-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)]' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}>
+                                                            className={`h-10 md:h-14 rounded-xl text-sm md:text-lg font-black transition-all border-2 ${formData.bloodType === b ? 'bg-rose-500/20 border-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.3)]' : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10'}`}>
                                                             {b}
                                                         </button>
                                                     ))}
@@ -278,11 +278,11 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
                                             </div>
 
                                             {/* Goal */}
-                                            <div className="space-y-6 lg:col-span-2">
-                                                <label className="text-xl font-black text-orange-400 flex items-center gap-3">
-                                                    <Target className="w-7 h-7" /> الهدف الأساسي
+                                            <div className="space-y-4 lg:col-span-2">
+                                                <label className="text-base md:text-xl font-black text-orange-400 flex items-center gap-2">
+                                                    <Target className="w-5 h-5 md:w-7 md:h-7" /> الهدف الأساسي
                                                 </label>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     {[
                                                         { id: 'fitness', title: 'لياقة عامة', icon: Heart, color: 'text-rose-400' },
                                                         { id: 'muscle', title: 'بناء عضلات', icon: Move, color: 'text-indigo-400' },
@@ -293,11 +293,11 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
                                                         const Icon = goal.icon;
                                                         return (
                                                             <div key={goal.id} onClick={() => handleInput('athleticGoal', goal.id)}
-                                                                className={`p-6 rounded-[2rem] border-4 cursor-pointer flex items-center gap-5 transition-all ${formData.athleticGoal === goal.id ? 'bg-orange-500/10 border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.2)] scale-[1.02]' : 'bg-white/5 border-transparent hover:bg-white/10'}`}>
-                                                                <div className={`w-14 h-14 rounded-2xl bg-black/30 flex items-center justify-center flex-shrink-0 border border-white/5`}>
-                                                                    <Icon className={`w-7 h-7 ${formData.athleticGoal === goal.id ? goal.color : 'text-slate-400'}`} />
+                                                                className={`p-3 md:p-4 rounded-2xl border-2 cursor-pointer flex items-center gap-3 transition-all ${formData.athleticGoal === goal.id ? 'bg-orange-500/10 border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.2)]' : 'bg-white/5 border-transparent hover:bg-white/10'}`}>
+                                                                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-black/30 flex items-center justify-center flex-shrink-0 border border-white/5`}>
+                                                                    <Icon className={`w-5 h-5 md:w-6 md:h-6 ${formData.athleticGoal === goal.id ? goal.color : 'text-slate-400'}`} />
                                                                 </div>
-                                                                <span className={`text-2xl font-black ${formData.athleticGoal === goal.id ? 'text-white' : 'text-slate-300'}`}>{goal.title}</span>
+                                                                <span className={`text-base md:text-lg font-black ${formData.athleticGoal === goal.id ? 'text-white' : 'text-slate-300'}`}>{goal.title}</span>
                                                             </div>
                                                         );
                                                     })}
@@ -311,26 +311,26 @@ export const HealthSurveyModal: React.FC<HealthSurveyModalProps> = ({ isOpen, on
                     </div>
 
                     {/* Footer / Controls */}
-                    <div className="p-6 md:p-10 pt-4 border-t border-white/5 flex gap-4 mt-auto sm:flex-row flex-col-reverse shrink-0 bg-[#0a0f1d]/80 backdrop-blur-md relative z-20">
+                    <div className="p-4 md:p-6 pt-3 border-t border-white/5 flex gap-3 mt-auto sm:flex-row flex-col-reverse shrink-0 bg-[#0a0f1d]/80 backdrop-blur-md relative z-20">
                         <Button
                             variant="outline"
                             onClick={step > 1 ? prevStep : onClose}
-                            className="bg-transparent border-2 border-white/10 text-white hover:bg-white/5 text-xl md:text-2xl font-black h-16 md:h-20 rounded-[1.5rem] md:rounded-[2rem] flex-1 transition-all"
+                            className="bg-transparent border-2 border-white/10 text-white hover:bg-white/5 text-base md:text-xl font-black h-12 md:h-16 rounded-xl md:rounded-2xl flex-1 transition-all"
                         >
-                            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 ml-2 md:ml-3" />
+                            <ChevronLeft className="w-4 h-4 md:w-6 md:h-6 ml-1 md:ml-2" />
                             {step === 1 ? 'تخطي الآن' : 'السابق'}
                         </Button>
                         <Button
                             onClick={step === totalSteps ? handleSubmit : nextStep}
                             disabled={isLoading}
-                            className="bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xl md:text-2xl font-black h-16 md:h-20 rounded-[1.5rem] md:rounded-[2rem] flex-[2] shadow-[0_10px_40px_rgba(99,102,241,0.4)] transition-all hover:scale-[1.02]"
+                            className="bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-base md:text-xl font-black h-12 md:h-16 rounded-xl md:rounded-2xl flex-[2] shadow-[0_10px_30px_rgba(99,102,241,0.3)] transition-all"
                         >
                             {isLoading ? (
-                                "جاري تحليل الملف..."
+                                "جاري التحليل..."
                             ) : step === totalSteps ? (
-                                <>إنشاء الملف الصحي <Check className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3" /></>
+                                <>إنشاء الملف <Check className="w-4 h-4 md:w-6 md:h-6 mr-1 md:mr-2" /></>
                             ) : (
-                                <>التالي <ChevronRight className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3" /></>
+                                <>التالي <ChevronRight className="w-4 h-4 md:w-6 md:h-6 mr-1 md:mr-2" /></>
                             )}
                         </Button>
                     </div>

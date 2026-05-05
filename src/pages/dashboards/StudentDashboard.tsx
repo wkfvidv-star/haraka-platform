@@ -1130,7 +1130,7 @@ export default function StudentDashboard() {
   const handleCompleteOnboarding = () => {
     setShowOnboarding(false);
     // Sequence the flow: after Onboarding, ALWAYS prompt for Health Profile for the MVP
-    setTimeout(() => setShowHealthSurvey(true), 1500); // 1.5s delay for a smoother transition
+    setShowHealthSurvey(true);
   };
 
   // Derived
