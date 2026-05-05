@@ -1647,12 +1647,14 @@ export default function StudentDashboard() {
       />
 
       {/* Mobile Navigation */}
-      <MobileBottomNav
-        items={TABS.map(t => ({ id: t.id, label: t.labelAr, icon: t.icon }))}
-        activeTab={activeTab as string}
-        onTabChange={(id) => setActiveTab(id as TabId)}
-        accentColor="blue"
-      />
+      {!showOnboarding && (
+        <MobileBottomNav
+          items={TABS.map(t => ({ id: t.id, label: t.labelAr, icon: t.icon }))}
+          activeTab={activeTab as string}
+          onTabChange={(id) => setActiveTab(id as TabId)}
+          accentColor="blue"
+        />
+      )}
 
       {/* Standalone Video Upload Modal */}
       <VideoSubmissionModal 
