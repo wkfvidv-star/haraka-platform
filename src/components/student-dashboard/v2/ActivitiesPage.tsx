@@ -253,12 +253,12 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
             <div className={cn('absolute -top-32 -right-32 w-96 h-96 rounded-full blur-[120px] pointer-events-none opacity-40', zone.glow)} />
             
             {/* Header */}
-            <div className="w-full flex items-center justify-between gap-6 relative z-10 mb-8">
-                <div className="flex items-center gap-6">
-                    <div className={cn('w-3 h-20 rounded-full bg-gradient-to-b shadow-[0_0_30px_rgba(16,185,129,0.5)]', zone.gradient)} />
+            <div className="w-full flex items-center justify-between gap-4 relative z-10 mb-6 md:mb-8">
+                <div className="flex items-center gap-3 md:gap-6">
+                    <div className={cn('w-2 h-16 md:w-3 md:h-20 rounded-full bg-gradient-to-b shadow-[0_0_30px_rgba(16,185,129,0.5)]', zone.gradient)} />
                     <div className="text-right">
-                        <h2 className="text-xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1 sm:mb-3 drop-shadow-md">{zone.name}</h2>
-                        <p className={cn('text-sm sm:text-xl md:text-2xl font-black drop-shadow-md', zone.textColor)}>{zone.subtitle}</p>
+                        <h2 className="text-xl md:text-4xl lg:text-5xl font-black text-white tracking-tight mb-1 md:mb-3 drop-shadow-md">{zone.name}</h2>
+                        <p className={cn('text-xs md:text-xl lg:text-2xl font-black drop-shadow-md', zone.textColor)}>{zone.subtitle}</p>
                     </div>
                 </div>
                 <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
@@ -590,52 +590,49 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                 <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
                 <div className="absolute bottom-0 right-0 w-56 h-56 bg-purple-500/15 rounded-full blur-[80px] pointer-events-none" />
 
-                <div className="relative z-10 p-5 sm:p-9">
+                <div className="relative z-10 p-4 sm:p-9">
                     {/* Top badge */}
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-400/30 flex items-center justify-center">
-                            <Flame className="w-5 h-5 text-orange-400" />
+                    <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-orange-500/20 border border-orange-400/30 flex items-center justify-center">
+                            <Flame className="w-4 h-4 md:w-5 md:h-5 text-orange-400" />
                         </div>
-                        <span className="text-sm md:text-base font-black text-orange-400 uppercase tracking-[0.2em]">تمرين اليوم</span>
-                        <span className="mr-auto text-sm md:text-base bg-white/10 text-white/60 font-bold px-4 py-1.5 rounded-full">الثلاثاء 17 مارس</span>
+                        <span className="text-xs md:text-base font-black text-orange-400 uppercase tracking-widest md:tracking-[0.2em]">تمرين اليوم</span>
+                        <span className="mr-auto text-[10px] md:text-base bg-white/10 text-white/60 font-bold px-3 py-1 md:px-4 md:py-1.5 rounded-full">الثلاثاء 17 مارس</span>
                     </div>
 
                     {/* Main content row */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 md:gap-8">
                         <div className="flex-1">
-                            <h2 className="text-2xl sm:text-5xl font-black text-white leading-tight mb-2">
+                            <h2 className="text-xl md:text-5xl font-black text-white leading-tight mb-1 md:mb-2">
                                 {dailyTrainingTitle}
                             </h2>
-                            <p className="text-blue-200/60 text-base md:text-lg mb-6">
+                            <p className="text-blue-200/60 text-xs md:text-lg mb-4 md:mb-6 leading-relaxed">
                                 تمرين T-Test · تغيير الاتجاه · الانطلاق السريع
                             </p>
 
                             {/* Stats row */}
-                            <div className="flex flex-wrap items-center gap-6">
-                                <span className="flex items-center gap-2 text-blue-200/80 text-base md:text-lg">
-                                    <Clock className="w-5 h-5" />
+                            <div className="flex flex-wrap items-center gap-3 md:gap-6">
+                                <span className="flex items-center gap-1.5 text-blue-200/80 text-xs md:text-lg">
+                                    <Clock className="w-4 h-4 md:w-5 md:h-5" />
                                     <strong className="text-white">{dailyTrainingDuration}</strong>
                                 </span>
-                                <span className="flex items-center gap-2 text-yellow-300 text-base md:text-lg font-bold">
-                                    <Star className="w-5 h-5 fill-yellow-300" />+{dailyTrainingXP} XP
+                                <span className="flex items-center gap-1.5 text-yellow-300 text-xs md:text-lg font-bold">
+                                    <Star className="w-4 h-4 md:w-5 md:h-5 fill-yellow-300" />+{dailyTrainingXP} XP
                                 </span>
-                                <span className="flex items-center gap-2 text-blue-300/60 text-base md:text-lg">
-                                    <Trophy className="w-5 h-5" />يوم 3 / 6
-                                </span>
-                                <span className="text-sm md:text-base bg-blue-500/20 text-blue-300 border border-blue-500/25 font-black px-4 py-1.5 rounded-full">
-                                    {level === 'primary' ? 'مبتدئ' : level === 'middle' ? 'متوسط' : 'متقدم'}
+                                <span className="flex items-center gap-1.5 text-blue-300/60 text-[10px] md:text-base bg-blue-500/10 px-3 py-1 rounded-full">
+                                    <Trophy className="w-3.5 h-3.5 md:w-5 md:h-5" />يوم 3 / 6
                                 </span>
                             </div>
                         </div>
 
                         {/* CTA Button */}
                         <motion.button
-                            whileHover={{ scale: 1.06 }}
+                            whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.96 }}
                             onClick={() => startSession(dailyTrainingTitle, 'motor', dailyTrainingXP, dailyTrainingDurationSeconds)}
-                            className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-3 px-10 py-4 sm:py-5 rounded-[1.25rem] bg-gradient-to-l from-orange-500 to-red-500 text-white font-black shadow-2xl shadow-orange-500/40 text-lg sm:text-xl"
+                            className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-2 px-8 py-3.5 md:py-5 rounded-xl md:rounded-[1.25rem] bg-gradient-to-l from-orange-500 to-red-500 text-white font-black shadow-xl md:shadow-2xl shadow-orange-500/30 text-base md:text-xl"
                         >
-                            <Play className="w-6 h-6 fill-white" />ابدأ الآن
+                            <Play className="w-5 h-5 fill-white" />ابدأ الآن
                         </motion.button>
                     </div>
 
@@ -677,13 +674,13 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 shadow-sm"
+                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 shadow-sm"
                 >
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                            <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <Calendar className="w-5 h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">جدول الحصص القادمة</h3>
+                        <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">جدول الحصص القادمة</h3>
                     </div>
                     <div className="space-y-4">
                         {youthDataService.getSessions().length === 0 ? (
@@ -723,13 +720,13 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                     initial={{ opacity: 0, x: 16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 shadow-sm"
+                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 shadow-sm"
                 >
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                            <Target className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+                    <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                            <Target className="w-5 h-5 md:w-6 md:h-6 text-rose-600 dark:text-rose-400" />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">المهام والواجبات</h3>
+                        <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">المهام والواجبات</h3>
                     </div>
                     <div className="space-y-4">
                         {youthDataService.getTasks().filter(t => t.status !== 'completed').length === 0 ? (
