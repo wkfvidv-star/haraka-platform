@@ -948,7 +948,7 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab]             = useState<TabId | 'settings' | 'help'>('home');
   const [dailyMissionOpen, setDailyMissionOpen] = useState(false);
   const [dailyMissionType, setDailyMissionType] = useState<'physical' | 'cognitive' | 'psychological'>('physical');
-  const [isSidebarOpen, setIsSidebarOpen]     = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen]     = useState(false); // Default to closed for better mobile/desktop UX
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [showPostHealthModal, setShowPostHealthModal] = useState(false); 
   const [unreadCount, setUnreadCount] = useState(0);
@@ -1210,7 +1210,7 @@ export default function StudentDashboard() {
             >
               {/* Overlay for mobile when sidebar is open */}
               <div 
-                className="fixed inset-0 bg-black/50 z-[-1] lg:hidden"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[-1] lg:hidden"
                 onClick={() => setIsSidebarOpen(false)}
               />
               {/* Logo */}
@@ -1242,7 +1242,10 @@ export default function StudentDashboard() {
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                        }}
                         className={`w-full flex items-center gap-4 px-5 py-4 rounded-[1.25rem] transition-all duration-200 group ${
                           active
                             ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 font-black'
@@ -1251,7 +1254,7 @@ export default function StudentDashboard() {
                       >
                         <Icon className={`w-6 h-6 flex-shrink-0 transition-transform group-hover:scale-110 ${active ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`} />
                         <span className="text-base">{t('tab_' + tab.id)}</span>
-                        {active && <div className="mr-auto w-2 h-2 rounded-full bg-white/60" />}
+                        {active && <div className={cn("w-2 h-2 rounded-full bg-white/60", isRTL ? "mr-auto" : "ml-auto")} />}
                       </button>
                     );
                   })}

@@ -20,11 +20,15 @@ const translations: Translations = {
   // Tabs
   'tab_home': { ar: 'الرئيسية', en: 'Home', fr: 'Accueil' },
   'tab_training': { ar: 'الأنشطة والتدريب', en: 'Training & Activities', fr: 'Entraînement et Activités' },
+  'tab_reports': { ar: 'التقارير والتقييم', en: 'Reports & Evaluation', fr: 'Rapports et Évaluation' },
+  'tab_nutrition': { ar: 'التغذية والخطط', en: 'Nutrition & Plans', fr: 'Nutrition et Plans' },
+  'tab_messaging': { ar: 'تواصل مع أستاذك', en: 'Message Teacher', fr: 'Contacter Professeur' },
   'tab_fingerprint': { ar: 'البصمة الحركية', en: 'Motion Fingerprint', fr: 'Empreinte Motrice' },
-  'tab_progress': { ar: 'الإنجازات والمستوى', en: 'Progress & Achievements', fr: 'Progrès et Réalisations' },
-  'tab_videos': { ar: 'الرصد والتقييم', en: 'Video Evaluation', fr: 'Évaluation Vidéo' },
-  'tab_health': { ar: 'الرفاه والملف الصحي', en: 'Health Profile', fr: 'Profil de Santé' },
-  'tab_help': { ar: 'عن النظام والمساعدة', en: 'Help & Support', fr: 'Aide et Support' },
+  'tab_videos': { ar: 'سجل الفيديو', en: 'Video Records', fr: 'Enregistrements Vidéo' },
+  'tab_progress': { ar: 'التحديات والمنافسات', en: 'Challenges', fr: 'Défis' },
+  'tab_health': { ar: 'المدرب الذكي (AI)', en: 'AI Smart Coach', fr: 'Coach Intelligent IA' },
+  'tab_gps': { ar: 'التتبع الميداني 🛰️', en: 'Field Tracking', fr: 'Suivi de Terrain' },
+  'tab_help': { ar: 'المساعدة والدعم', en: 'Help & Support', fr: 'Aide et Support' },
   'tab_settings': { ar: 'الإعدادات', en: 'Settings', fr: 'Paramètres' },
 
   // Buttons
