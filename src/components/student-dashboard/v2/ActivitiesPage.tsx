@@ -175,63 +175,46 @@ function ExerciseCard({ ex, zoneColor, onStart }: { ex: Exercise; zoneColor: str
 
     return (
         <motion.div
-            whileHover={{ y: -4, scale: 1.01 }}
+            whileHover={{ y: -2 }}
             transition={{ duration: 0.2 }}
-            className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-5 hover:bg-white/[0.07] hover:border-white/[0.12] transition-all cursor-pointer group h-full"
+            className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 flex flex-col gap-3 hover:bg-white/[0.07] transition-all cursor-pointer group h-full min-w-0 overflow-hidden"
         >
             {/* Top row: icon + level badge */}
-            <div className="flex items-start justify-between gap-4">
-                <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-lg opacity-90 group-hover:opacity-100 transition-opacity', zoneColor)}>
-                    <IconComp className="w-6 h-6 text-white" />
+            <div className="flex items-start justify-between gap-2">
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-lg', zoneColor)}>
+                    <IconComp className="w-5 h-5 text-white" />
                 </div>
-                <span className={cn('text-xs md:text-sm font-black px-4 py-1.5 rounded-full border', lvl.bg)}>
+                <span className={cn('text-[10px] font-black px-2.5 py-1 rounded-full border flex-shrink-0', lvl.bg)}>
                     {lvl.label}
                 </span>
             </div>
 
             {/* Title & description */}
-            <div className="flex-1 space-y-2">
-                <h4 className="font-black text-white text-base md:text-lg leading-snug">{ex.name}</h4>
-                <p className="text-white/45 text-sm md:text-base leading-relaxed line-clamp-2">{ex.description}</p>
+            <div className="flex-1 space-y-1 min-w-0">
+                <h4 className="font-black text-white text-sm leading-snug line-clamp-2">{ex.name}</h4>
+                <p className="text-white/45 text-xs leading-relaxed line-clamp-2">{ex.description}</p>
             </div>
 
             {/* Meta */}
-            <div className="flex items-center gap-4 text-sm text-white/50 pt-2 border-t border-white/5">
-                <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />{ex.duration}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50 pt-2 border-t border-white/5">
+                <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />{ex.duration}
                 </span>
-                <span className="flex items-center gap-1.5">
-                    <Target className="w-4 h-4" />{ex.skill}
+                <span className="flex items-center gap-1">
+                    <Target className="w-3 h-3" />{ex.skill}
                 </span>
-                <span className="flex items-center gap-1.5 text-yellow-400/80 font-bold mr-auto">
-                    <Zap className="w-4 h-4 fill-yellow-400" />+{ex.xp} XP
+                <span className="flex items-center gap-1 text-yellow-400/80 font-bold">
+                    <Zap className="w-3 h-3 fill-yellow-400" />+{ex.xp} XP
                 </span>
-            </div>
-
-            {/* Progress */}
-            <div>
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs text-white/40 font-bold">التقدم</span>
-                    <span className="text-xs font-black text-white/60">{ex.progress}%</span>
-                </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div
-                        className={cn('h-full rounded-full bg-gradient-to-l', zoneColor)}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${ex.progress}%` }}
-                        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
-                    />
-                </div>
             </div>
 
             {/* Start Button */}
             <motion.button
-                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={onStart}
-                className={cn('w-full mt-2 py-3 md:py-3.5 rounded-xl text-white font-black text-sm md:text-base bg-gradient-to-l shadow-lg flex items-center justify-center gap-2', zoneColor)}
+                className={cn('w-full py-2.5 rounded-xl text-white font-black text-xs bg-gradient-to-l shadow-lg flex items-center justify-center gap-1.5', zoneColor)}
             >
-                <Play className="w-5 h-5 fill-white" />ابدأ التدريب
+                <Play className="w-4 h-4 fill-white" />ابدأ التدريب
             </motion.button>
         </motion.div>
     );
@@ -245,62 +228,51 @@ function CognitiveZoneSection({ zone, onStartExercise }: { zone: TrainingZone; o
 
     return (
         <section className={cn(
-            'rounded-3xl border-2 p-4 sm:p-8 relative overflow-hidden transition-all duration-500 my-4 sm:my-8 shadow-2xl',
-            'bg-black/40 hover:bg-black/50',
+            'rounded-2xl border-2 p-4 relative overflow-hidden transition-all duration-500 shadow-xl',
+            'bg-black/40',
             zone.borderColor
         )}>
-            {/* Glow */}
-            <div className={cn('absolute -top-32 -right-32 w-96 h-96 rounded-full blur-[120px] pointer-events-none opacity-40', zone.glow)} />
+            {/* Glow - contained */}
+            <div className={cn('absolute top-0 right-0 w-48 h-48 rounded-full blur-[80px] pointer-events-none opacity-30', zone.glow)} />
             
             {/* Header */}
-            <div className="w-full flex items-center justify-between gap-4 relative z-10 mb-6 md:mb-8">
-                <div className="flex items-center gap-3 md:gap-6">
-                    <div className={cn('w-2 h-16 md:w-3 md:h-20 rounded-full bg-gradient-to-b shadow-[0_0_30px_rgba(16,185,129,0.5)]', zone.gradient)} />
-                    <div className="text-right">
-                        <h2 className="text-xl md:text-4xl lg:text-5xl font-black text-white tracking-tight mb-1 md:mb-3 drop-shadow-md">{zone.name}</h2>
-                        <p className={cn('text-xs md:text-xl lg:text-2xl font-black drop-shadow-md', zone.textColor)}>{zone.subtitle}</p>
-                    </div>
-                </div>
-                <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
-                    <div className={cn('w-16 h-16 rounded-3xl flex items-center justify-center bg-gradient-to-br shadow-[0_0_40px_rgba(16,185,129,0.4)]', zone.gradient)}>
-                        <Icon className="w-8 h-8 text-white" />
-                    </div>
+            <div className="w-full flex items-center gap-3 relative z-10 mb-5 min-w-0">
+                <div className={cn('w-1.5 h-12 flex-shrink-0 rounded-full bg-gradient-to-b', zone.gradient)} />
+                <div className="min-w-0 flex-1">
+                    <h2 className="text-base font-black text-white leading-snug line-clamp-2">{zone.name}</h2>
+                    <p className={cn('text-xs font-bold mt-0.5', zone.textColor)}>{zone.subtitle}</p>
                 </div>
             </div>
 
             {/* Exercises Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 relative z-10">
+            <div className="grid grid-cols-2 gap-3 relative z-10">
                 {zone.exercises.map((ex, i) => {
                     const IconComp = ex.icon;
                     return (
                         <motion.button
                             key={ex.id}
-                            whileHover={{ y: -6, scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.97 }}
                             onClick={() => onStartExercise(ex, 'cognitive')}
-                            className="bg-white/[0.06] border border-white/[0.15] rounded-2xl p-4 sm:p-6 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all cursor-pointer group text-right flex flex-col h-full shadow-lg"
+                            className="bg-white/[0.06] border border-white/[0.12] rounded-xl p-3 hover:bg-emerald-500/10 transition-all text-right flex flex-col gap-2 min-w-0 overflow-hidden"
                         >
-                            <div className="flex items-start justify-between gap-4 mb-4">
-                                <div className={cn('w-16 h-16 rounded-[1.25rem] flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-lg', zone.gradient)}>
-                                    <IconComp className="w-8 h-8 text-white" />
+                            <div className="flex items-center justify-between gap-2">
+                                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br', zone.gradient)}>
+                                    <IconComp className="w-4 h-4 text-white" />
                                 </div>
-                                <span className={cn('text-sm font-black px-4 py-1.5 rounded-full border', LEVEL_CONFIG[ex.level].bg)}>
+                                <span className={cn('text-[9px] font-black px-1.5 py-0.5 rounded-full border', LEVEL_CONFIG[ex.level].bg)}>
                                     {LEVEL_CONFIG[ex.level].label}
                                 </span>
                             </div>
                             
-                            <h3 className="text-lg sm:text-2xl font-black text-white leading-snug mb-2 sm:mb-3 group-hover:text-emerald-300 transition-colors">{ex.name}</h3>
-                            <p className="text-white/60 text-sm sm:text-lg font-medium leading-relaxed mb-4 sm:mb-6">{ex.description}</p>
+                            <h3 className="text-xs font-black text-white leading-snug line-clamp-2">{ex.name}</h3>
                             
-                            {/* Meta */}
-                            <div className="flex items-center gap-4 text-sm font-bold text-white/50 mt-auto pt-4 border-t border-white/5 w-full">
-                                <span className="flex items-center gap-2"><Clock className="w-4 h-4" />{ex.duration}</span>
-                                <span className="flex items-center gap-2"><Target className="w-4 h-4" />{ex.skill}</span>
-                                <span className="flex items-center gap-2 text-yellow-400 mr-auto"><Zap className="w-4 h-4 fill-yellow-400" />+{ex.xp} XP</span>
+                            <div className="flex items-center justify-between gap-1 text-[10px] text-white/40 mt-auto">
+                                <span className="flex items-center gap-1"><Clock className="w-2.5 h-2.5" />{ex.duration}</span>
+                                <span className="text-yellow-400 font-bold">+{ex.xp}XP</span>
                             </div>
                             
-                            <div className="w-full mt-5 py-3 rounded-xl bg-white/5 hover:bg-emerald-500/20 text-emerald-300 font-black text-lg text-center transition-colors">
-                                الدخول للتمرين
+                            <div className="w-full py-1.5 rounded-lg bg-white/5 text-emerald-300 font-black text-[10px] text-center">
+                                ابدأ
                             </div>
                         </motion.button>
                     )
@@ -393,55 +365,52 @@ function CompetitionCard({ comp }: { comp: Competition }) {
 
     return (
         <motion.div
-            whileHover={{ y: -3 }}
-            className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-5 hover:bg-white/[0.06] transition-all h-full"
+            whileHover={{ y: -2 }}
+            className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 flex flex-col gap-3 hover:bg-white/[0.06] transition-all h-full min-w-0 overflow-hidden"
         >
             {/* Level Badge */}
-            <div className="flex items-start justify-between mb-1">
-                <span className={cn('flex items-center gap-2 text-xs md:text-sm font-black px-4 py-1.5 rounded-full text-white bg-gradient-to-l shadow-lg', comp.levelColor)}>
-                    <LevelIcon className="w-4 h-4" />
+            <div className="flex items-center justify-between gap-2 min-w-0">
+                <span className={cn('flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full text-white bg-gradient-to-l shadow-sm flex-shrink-0', comp.levelColor)}>
+                    <LevelIcon className="w-3.5 h-3.5" />
                     {comp.level}
                 </span>
                 {comp.prize && (
-                    <div className="flex items-center gap-1.5 text-yellow-400/90 bg-yellow-400/10 px-3 py-1.5 rounded-full border border-yellow-400/20">
-                        <Trophy className="w-4 h-4" />
-                        <span className="text-xs md:text-sm font-bold">{comp.prize}</span>
+                    <div className="flex items-center gap-1 text-yellow-400/90 bg-yellow-400/10 px-2 py-1 rounded-full border border-yellow-400/20 min-w-0">
+                        <Trophy className="w-3 h-3 flex-shrink-0" />
+                        <span className="text-[10px] font-bold truncate">{comp.prize}</span>
                     </div>
                 )}
             </div>
 
-            <div>
-                <h4 className="font-black text-white text-lg md:text-xl leading-snug">{comp.name}</h4>
-            </div>
+            <h4 className="font-black text-white text-base leading-snug">{comp.name}</h4>
 
-            <div className="space-y-3 text-sm md:text-base text-white/50 mt-auto">
-                <div className="flex items-center gap-3">
-                    <Calendar className="w-4 h-4 text-white/40" />
+            <div className="space-y-2 text-xs text-white/50">
+                <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
                     <span>{comp.date}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                    <MapPin className="w-4 h-4 text-white/40" />
+                <div className="flex items-center gap-2 min-w-0">
+                    <MapPin className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
                     <span className="truncate">{comp.location}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Users className="w-4 h-4 text-white/40" />
+                <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
                     <span>{comp.participants} مشارك</span>
                 </div>
             </div>
 
             {joined ? (
-                <div className="flex items-center justify-center gap-2 mt-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    <span className="text-emerald-300 font-black text-sm md:text-base">مسجّل ✓</span>
+                <div className="flex items-center justify-center gap-2 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span className="text-emerald-300 font-black text-xs">مسجّل ✓</span>
                 </div>
             ) : (
                 <motion.button
-                    whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => setJoined(true)}
-                    className={cn('w-full mt-4 py-3 rounded-xl text-white font-black text-sm md:text-base bg-gradient-to-l shadow-lg flex items-center justify-center gap-2', comp.levelColor)}
+                    className={cn('w-full py-2.5 rounded-xl text-white font-black text-xs bg-gradient-to-l shadow-lg flex items-center justify-center gap-1.5', comp.levelColor)}
                 >
-                    <ArrowRight className="w-5 h-5" />شارك الآن
+                    <ArrowRight className="w-4 h-4" />شارك الآن
                 </motion.button>
             )}
         </motion.div>
@@ -525,7 +494,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
     };
 
     return (
-        <div className="space-y-6 overflow-x-hidden w-full">
+        <div className="space-y-6 w-full" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
             
             {activeMotorGameId ? (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full">
