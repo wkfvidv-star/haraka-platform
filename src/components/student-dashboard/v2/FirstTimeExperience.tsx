@@ -59,16 +59,16 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-start md:justify-center p-6 overflow-y-auto custom-scrollbar rtl" style={{ fontFamily: "'Almarai','Tajawal',sans-serif" }}>
+    <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center h-[100dvh] overflow-hidden rtl" style={{ fontFamily: "'Almarai','Tajawal',sans-serif" }}>
       {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-2xl px-4 flex flex-col pb-24 md:pb-8 min-h-[500px]">
+      <div className="relative z-10 w-full max-w-2xl px-4 md:px-6 flex flex-col h-full">
         {step < 3 && (
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center shrink-0 pt-6 md:pt-10 mb-6">
             <h1 className="text-3xl md:text-4xl font-black text-white">
               أهلاً بك <span className="text-blue-400">{studentName?.split(' ')[0]}</span> 👋
             </h1>
@@ -78,7 +78,7 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
           </div>
         )}
 
-        <div className="flex-1">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pb-6 hide-scrollbar">
           <AnimatePresence mode="wait">
             
             {/* Step 1: Goal */}
@@ -154,19 +154,19 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
           </AnimatePresence>
         </div>
 
-        {/* Footer Navigation — sticky bottom so always visible on mobile */}
+        {/* Footer Navigation — Flex child at bottom */}
         {step < 3 && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-6 pt-4 bg-slate-950/95 backdrop-blur-xl border-t border-white/5 flex justify-between items-center md:static md:bg-transparent md:border-none md:backdrop-blur-none md:mt-8 md:pb-0 md:pt-0">
+          <div className="shrink-0 pb-6 pt-4 bg-slate-950 flex justify-between items-center border-t border-white/5" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
             <button 
               onClick={() => step > 1 && setStep(step - 1)}
-              className={cn("px-6 py-3 font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-2 rounded-2xl", step === 1 && "opacity-0 pointer-events-none")}
+              className={cn("px-4 md:px-6 py-3 font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-2 rounded-2xl", step === 1 && "opacity-0 pointer-events-none")}
             >
               <ArrowRight className="w-5 h-5" /> رجوع
             </button>
             <button 
               onClick={handleNext}
               disabled={(step === 1 && !goal) || (step === 2 && !level)}
-              className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-lg flex items-center gap-2 hover:bg-blue-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-xl"
+              className="bg-white text-slate-900 px-6 md:px-8 py-3 md:py-4 rounded-2xl font-black text-base md:text-lg flex items-center gap-2 hover:bg-blue-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-xl"
             >
               التالي <ChevronLeft className="w-5 h-5" />
             </button>
