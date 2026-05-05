@@ -640,10 +640,10 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
             <div className="grid grid-cols-1 gap-6">
                 {/* UPCOMING SESSIONS */}
                 <motion.section
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 shadow-sm"
+                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm overflow-hidden"
                 >
                     <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -686,10 +686,10 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
 
                 {/* PENDING TASKS */}
                 <motion.section
-                    initial={{ opacity: 0, x: 16 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 shadow-sm"
+                    className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm overflow-hidden"
                 >
                     <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
@@ -742,9 +742,9 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08 }}
-                className="bg-white/[0.03] border border-white/[0.07] rounded-[2rem] p-6 relative overflow-hidden"
+                className="bg-white/[0.03] border border-white/[0.07] rounded-[2rem] p-5 relative overflow-hidden"
             >
-                <div className="absolute -top-16 -right-16 w-48 h-48 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none" />
                 <div className="relative z-10">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
