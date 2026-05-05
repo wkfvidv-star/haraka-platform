@@ -68,11 +68,11 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
 
       <div className="relative z-10 w-full max-w-2xl px-4 md:px-6 flex flex-col h-full">
         {step < 3 && (
-          <div className="flex justify-between items-center shrink-0 pt-6 md:pt-10 mb-6">
-            <h1 className="text-3xl md:text-4xl font-black text-white">
+          <div className="flex justify-between items-center shrink-0 pt-4 md:pt-8 mb-4 md:mb-6">
+            <h1 className="text-2xl md:text-3xl font-black text-white">
               أهلاً بك <span className="text-blue-400">{studentName?.split(' ')[0]}</span> 👋
             </h1>
-            <div className="bg-white/10 px-4 py-1.5 rounded-full text-indigo-300 font-black tracking-wide text-sm border border-white/5 shadow-inner">
+            <div className="bg-white/10 px-3 py-1 rounded-full text-indigo-300 font-black tracking-wide text-xs border border-white/5 shadow-inner">
               الخطوة {step} من 2
             </div>
           </div>
@@ -83,9 +83,9 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
             
             {/* Step 1: Goal */}
             {step === 1 && (
-              <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full flex flex-col justify-center">
-                <h2 className="text-2xl font-black text-slate-200 mb-6 text-center">ما هو هدفك الأساسي؟</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <motion.div key="s1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -10 }} className="h-full flex flex-col justify-center">
+                <h2 className="text-xl md:text-2xl font-black text-slate-200 mb-4 md:mb-6 text-center">ما هو هدفك الأساسي؟</h2>
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                   {GOALS.map(g => {
                     const isSelected = goal === g.id;
                     const Icon = g.icon;
@@ -94,16 +94,16 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
                         key={g.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                         onClick={() => setGoal(g.id)}
                         className={cn(
-                          "cursor-pointer rounded-[1.5rem] p-5 flex items-center gap-4 transition-all duration-300 border-2",
-                          isSelected ? `bg-white/10 border-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.2)]` : `bg-white/5 border-transparent hover:bg-white/10`
+                          "cursor-pointer rounded-[1.25rem] p-3 md:p-4 flex flex-col items-center text-center gap-2 md:gap-3 transition-all duration-300 border-2",
+                          isSelected ? `bg-white/10 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.15)]` : `bg-white/5 border-transparent hover:bg-white/10`
                         )}
                       >
-                        <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mx-auto", isSelected ? 'bg-blue-500' : g.bg)}>
-                          <Icon className={cn("w-7 h-7", isSelected ? 'text-white' : g.color)} />
+                        <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-[0.8rem] flex items-center justify-center", isSelected ? 'bg-blue-500' : g.bg)}>
+                          <Icon className={cn("w-5 h-5 md:w-6 md:h-6", isSelected ? 'text-white' : g.color)} />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-xl font-black text-white">{g.title}</h3>
-                          <p className="text-slate-400 text-sm font-bold mt-1">{g.desc}</p>
+                        <div>
+                          <h3 className="text-sm md:text-lg font-black text-white leading-tight">{g.title}</h3>
+                          <p className="text-slate-400 text-[10px] md:text-xs font-bold mt-1 leading-snug">{g.desc}</p>
                         </div>
                       </motion.div>
                     )
@@ -114,9 +114,9 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
 
             {/* Step 2: Level */}
             {step === 2 && (
-              <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full flex flex-col justify-center">
-                <h2 className="text-2xl font-black text-slate-200 mb-6 text-center">ما هو مستواك الحالي؟</h2>
-                <div className="flex flex-col gap-4 max-w-md mx-auto w-full">
+              <motion.div key="s2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="h-full flex flex-col justify-center">
+                <h2 className="text-xl md:text-2xl font-black text-slate-200 mb-4 md:mb-6 text-center">ما هو مستواك الحالي؟</h2>
+                <div className="flex flex-col gap-3 max-w-md mx-auto w-full">
                   {LEVELS.map(l => {
                     const isSelected = level === l.id;
                     return (
@@ -124,15 +124,15 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
                         key={l.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                         onClick={() => setLevel(l.id)}
                         className={cn(
-                          "cursor-pointer rounded-2xl p-5 flex items-center justify-between transition-all duration-300 border-2",
+                          "cursor-pointer rounded-2xl p-4 flex items-center justify-between transition-all duration-300 border-2",
                           isSelected ? `bg-blue-600/20 border-blue-500 shadow-lg` : `bg-white/5 border-white/5 hover:bg-white/10`
                         )}
                       >
                         <div>
-                          <h3 className="text-xl font-black text-white">{l.title}</h3>
-                          <p className="text-slate-400 text-sm font-bold mt-1">{l.desc}</p>
+                          <h3 className="text-base md:text-xl font-black text-white">{l.title}</h3>
+                          <p className="text-slate-400 text-xs md:text-sm font-bold mt-1">{l.desc}</p>
                         </div>
-                        {isSelected && <CheckCircle2 className="w-6 h-6 text-blue-400" />}
+                        {isSelected && <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />}
                       </motion.div>
                     )
                   })}
@@ -156,19 +156,19 @@ export function FirstTimeExperience({ onComplete, studentName }: Props) {
 
         {/* Footer Navigation — Flex child at bottom */}
         {step < 3 && (
-          <div className="shrink-0 pb-6 pt-4 bg-slate-950 flex justify-between items-center border-t border-white/5" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
+          <div className="shrink-0 pb-4 pt-3 bg-slate-950 flex justify-between items-center border-t border-white/5" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
             <button 
               onClick={() => step > 1 && setStep(step - 1)}
-              className={cn("px-4 md:px-6 py-3 font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-2 rounded-2xl", step === 1 && "opacity-0 pointer-events-none")}
+              className={cn("px-3 md:px-6 py-2 md:py-3 font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 md:gap-2 rounded-xl text-sm md:text-base", step === 1 && "opacity-0 pointer-events-none")}
             >
-              <ArrowRight className="w-5 h-5" /> رجوع
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" /> رجوع
             </button>
             <button 
               onClick={handleNext}
               disabled={(step === 1 && !goal) || (step === 2 && !level)}
-              className="bg-white text-slate-900 px-6 md:px-8 py-3 md:py-4 rounded-2xl font-black text-base md:text-lg flex items-center gap-2 hover:bg-blue-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-xl"
+              className="bg-white text-slate-900 px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-black text-sm md:text-base flex items-center gap-1.5 md:gap-2 hover:bg-blue-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
             >
-              التالي <ChevronLeft className="w-5 h-5" />
+              التالي <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
         )}
