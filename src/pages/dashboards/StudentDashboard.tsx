@@ -1491,8 +1491,8 @@ export default function StudentDashboard() {
           </AnimatePresence>
 
           {/* ── Scrollable Content ── */}
-          <ScrollArea className="flex-1">
-            <div className="p-4 sm:p-5 lg:p-7 pb-24 lg:pb-7">
+          <ScrollArea className="flex-1 overflow-x-hidden">
+            <div className="p-4 sm:p-5 lg:p-7 pb-24 lg:pb-7 overflow-x-hidden">
               <AnimatePresence mode="wait">
 
                 {activeTab === 'home' && (

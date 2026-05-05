@@ -525,7 +525,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-x-hidden w-full">
             
             {activeMotorGameId ? (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full">
@@ -573,7 +573,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
             </div>
 
             {activeCategory === 'daily' && (
-                <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="space-y-8">
+                <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="space-y-8 overflow-x-hidden w-full">
 
             {/* ══════════════════════════════════════════
                 1. DAILY TRAINING CARD  ★ MOST PROMINENT
@@ -687,25 +687,25 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                             <p className="text-center py-8 text-slate-400 font-bold">لا توجد حصص قادمة حالياً.</p>
                         ) : (
                             youthDataService.getSessions().map(session => (
-                                <div key={session.id} className="group bg-slate-50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-blue-500/30 p-5 rounded-2xl transition-all flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
+                                <div key={session.id} className="group bg-slate-50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-blue-500/30 p-4 rounded-2xl transition-all flex items-center justify-between gap-3 min-w-0 overflow-hidden">
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
                                         <div className={cn(
-                                            "w-3 h-12 rounded-full",
+                                            "w-2.5 h-10 rounded-full flex-shrink-0",
                                             session.category === 'physical' ? 'bg-orange-500' : session.category === 'cognitive' ? 'bg-emerald-500' : 'bg-purple-500'
                                         )} />
-                                        <div>
-                                            <h4 className="font-black text-slate-900 dark:text-white text-lg">{session.title}</h4>
-                                            <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                                                <Clock className="w-4 h-4" /> {session.time} · {session.date} · {session.coach}
+                                        <div className="min-w-0 flex-1">
+                                            <h4 className="font-black text-slate-900 dark:text-white text-base truncate">{session.title}</h4>
+                                            <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 truncate">
+                                                <Clock className="w-3.5 h-3.5 flex-shrink-0" /> {session.time} · {session.date} · {session.coach}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-2">
+                                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                                         <span className={cn(
-                                            "text-[10px] font-black px-3 py-1 rounded-full",
+                                            "text-[10px] font-black px-2.5 py-1 rounded-full whitespace-nowrap",
                                             session.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
                                         )}>
-                                            {session.status === 'confirmed' ? 'مؤكد' : 'قيد الانتظار'}
+                                            {session.status === 'confirmed' ? 'مؤكد' : 'انتظار'}
                                         </span>
                                         <p className="text-[10px] text-slate-400 font-bold">{session.location || 'أونلاين'}</p>
                                     </div>
@@ -733,30 +733,30 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                             <p className="text-center py-8 text-slate-400 font-bold">لا توجد مهام معلقة. أحسنت!</p>
                         ) : (
                             youthDataService.getTasks().filter(t => t.status !== 'completed').map(task => (
-                                <div key={task.id} className="group bg-slate-50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-rose-500/30 p-5 rounded-2xl transition-all flex flex-col gap-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h4 className="font-black text-slate-900 dark:text-white text-lg">{task.title}</h4>
-                                            <p className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                                                <User className="w-3.5 h-3.5" /> {task.coach}
+                                <div key={task.id} className="group bg-slate-50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-rose-500/30 p-4 rounded-2xl transition-all flex flex-col gap-3 overflow-hidden">
+                                    <div className="flex items-start justify-between gap-3 min-w-0">
+                                        <div className="min-w-0 flex-1">
+                                            <h4 className="font-black text-slate-900 dark:text-white text-sm md:text-base truncate">{task.title}</h4>
+                                            <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                                <User className="w-3.5 h-3.5 flex-shrink-0" /> {task.coach}
                                             </p>
                                         </div>
-                                        <div className="text-right">
-                                            <p className={cn("text-xs font-black", task.status === 'late' ? 'text-rose-500' : 'text-slate-400')}>
-                                                موعد التسليم: {task.dueDate}
+                                        <div className="text-right flex-shrink-0">
+                                            <p className={cn("text-[10px] font-black whitespace-nowrap", task.status === 'late' ? 'text-rose-500' : 'text-slate-400')}>
+                                                {task.dueDate}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <p className="text-xs text-slate-400 font-bold flex-1 pr-4">{task.details}</p>
+                                    <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-white/5">
+                                        <p className="text-xs text-slate-400 font-bold flex-1 min-w-0 line-clamp-2">{task.details}</p>
                                         <button 
                                             onClick={() => {
                                                 auditService.log('بدء مهمة', `بدأ التلميذ العمل على مهمة: ${task.title}`, 'youth');
                                                 handleRequestVideoSubmission(task.title);
                                             }}
-                                            className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-black px-4 py-2 rounded-xl shadow-lg shadow-rose-500/20 transition-all flex items-center gap-2"
+                                            className="flex-shrink-0 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black px-3 py-2 rounded-xl shadow-lg shadow-rose-500/20 transition-all flex items-center gap-1.5 whitespace-nowrap"
                                         >
-                                            إرسال الواجب <ArrowRight className="w-3 h-3 mirror-rtl" />
+                                            إرسال <ArrowRight className="w-3 h-3" />
                                         </button>
                                     </div>
                                 </div>
@@ -864,15 +864,15 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                                     transition={{ delay: 0.14 + i * 0.07 }}
                                     className="text-right bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] rounded-[1.25rem] p-5 flex flex-col gap-3 transition-all group"
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
                                         <div className={cn('w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0', s.color)}>
                                             <Icon className="w-5 h-5 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-black text-white text-sm md:text-base truncate">{s.name}</p>
-                                            <p className="text-white/40 text-xs md:text-sm">{s.zone}</p>
+                                            <p className="font-black text-white text-sm truncate">{s.name}</p>
+                                            <p className="text-white/40 text-xs truncate">{s.zone}</p>
                                         </div>
-                                        <span className="text-yellow-400/70 text-xs md:text-sm font-bold flex-shrink-0">+{s.xp} XP</span>
+                                        <span className="text-yellow-400/70 text-xs font-bold flex-shrink-0">+{s.xp} XP</span>
                                     </div>
                                     <p className="text-white/40 text-xs md:text-sm flex items-center gap-1.5 pt-1">
                                         <TrendingUp className="w-4 h-4 text-blue-400 flex-shrink-0" />{s.reason}
@@ -926,7 +926,7 @@ export function ActivitiesPage({ onComplete }: { onComplete?: () => void }) {
                 </div>
 
                 {/* Category tabs */}
-                <div className="flex items-center gap-3 relative z-10">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar relative z-10 flex-wrap">
                     {[
                         { label: 'مدرسية', icon: School, color: 'bg-blue-500/15 text-blue-300 border-blue-500/25' },
                         { label: 'ولائية', icon: Building2, color: 'bg-purple-500/15 text-purple-300 border-purple-500/25' },
