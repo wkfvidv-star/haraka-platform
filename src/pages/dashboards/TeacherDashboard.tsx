@@ -34,9 +34,11 @@ import { TeacherOnboarding } from '@/components/teacher/v2/TeacherOnboarding';
 import { TeacherSetupModal } from '@/components/teacher/v2/TeacherSetupModal';
 import { TeacherStudentRequests } from '@/components/teacher/v2/TeacherStudentRequests';
 import { TeacherGPSDashboard } from '@/components/teacher/gps/TeacherGPSDashboard';
+import TeacherMarketplace from '@/components/teacher/v2/TeacherMarketplace';
 
 const navigationTabs = [
   { id: 'overview', label: 'اللوحة الرئيسية', icon: LayoutDashboard },
+  { id: 'marketplace', label: 'سوق الموارد 📚', icon: GraduationCap },
   { id: 'video-review', label: 'مراجعة الفيديوهات', icon: Video },
   { id: 'exercises', label: 'التمارين والمناهج', icon: ClipboardList },
   { id: 'class', label: 'إدارة القسم', icon: Users },
@@ -70,6 +72,7 @@ export default function TeacherDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview': return <TeacherOverviewPanel onNavigate={setActiveTab} />;
+      case 'marketplace': return <TeacherMarketplace />;
       case 'video-review': return <TeacherVideoReview />;
       case 'exercises': return <TeacherExerciseManager />;
       case 'class': return <TeacherClassManager />;

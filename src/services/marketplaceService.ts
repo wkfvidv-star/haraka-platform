@@ -1,14 +1,11 @@
 // ══════════════════════════════════════════════════════════════════
 // marketplaceService.ts
-// Lightweight Marketplace layer for Youth Dashboard
-//
-// Data Structure is production-ready: swap MOCK_* arrays with real
-// API calls later without changing any consumer component.
+// Lightweight Marketplace layer for Haraka Platform
 // ══════════════════════════════════════════════════════════════════
 
 import { toast } from "sonner";
 
-// ─── Types (matches future real API shape) ────────────────────────
+// ─── Types ────────────────────────────────────────────────────────
 
 export type CoachSpecialty = 'fitness' | 'speed' | 'focus' | 'rehab' | 'nutrition';
 
@@ -18,13 +15,13 @@ export interface Coach {
   specialty: CoachSpecialty;
   specialtyLabel: string;
   bio: string;
-  rating: number;       // 0-5
+  rating: number;
   reviewCount: number;
-  sessionPrice: number; // SAR
+  sessionPrice: number;
   avatarInitials: string;
-  avatarColor: string;  // tailwind bg class
-  challengeId?: string; // linked challenge from gamificationService
-  matchPct?: number;    // computed per-user, not stored
+  avatarColor: string;
+  challengeId?: string;
+  matchPct?: number;
 }
 
 export interface Invitation {
@@ -35,7 +32,7 @@ export interface Invitation {
   coachAvatarInitials: string;
   coachAvatarColor: string;
   message: string;
-  date: string;         // ISO string
+  date: string;
   status: 'pending' | 'accepted' | 'rejected';
 }
 
@@ -45,7 +42,7 @@ export interface TrainingRequest {
   coachName: string;
   studentId: string;
   status: 'pending' | 'accepted' | 'rejected';
-  sentAt: string;       // ISO string
+  sentAt: string;
 }
 
 export interface Lead {
@@ -69,73 +66,28 @@ export interface MarketStats {
   earningsThisMonth: number;
 }
 
+export interface Resource {
+  id: string;
+  title: string;
+  type: 'lesson' | 'exercise' | 'curriculum';
+  author: string;
+  downloads: number;
+  rating: number;
+  tags: string[];
+  thumbnail: string;
+}
+
 // ─── Mock Seed Data ───────────────────────────────────────────────
 
 const MOCK_COACHES: Coach[] = [
-  {
-    id: 'coach-1',
-    name: 'الكابتن أحمد المنصوري',
-    specialty: 'speed',
-    specialtyLabel: 'السرعة والرشاقة',
-    bio: 'متخصص في تطوير السرعة الانفجارية لدى الشباب. 8 سنوات خبرة.',
-    rating: 4.9,
-    reviewCount: 124,
-    sessionPrice: 120,
-    avatarInitials: 'أم',
-    avatarColor: 'bg-orange-500',
-    challengeId: 'c7',
-  },
-  {
-    id: 'coach-2',
-    name: 'م. ليلى الأحمدي',
-    specialty: 'focus',
-    specialtyLabel: 'التركيز الذهني',
-    bio: 'مدربة معتمدة في علم النفس الرياضي والأداء العقلي.',
-    rating: 4.8,
-    reviewCount: 89,
-    sessionPrice: 100,
-    avatarInitials: 'لأ',
-    avatarColor: 'bg-indigo-500',
-    challengeId: 'c3',
-  },
-  {
-    id: 'coach-3',
-    name: 'م. كريم الزهراني',
-    specialty: 'fitness',
-    specialtyLabel: 'اللياقة العامة',
-    bio: 'خبير في بناء اللياقة الشاملة للمراحل العمرية من 15-25.',
-    rating: 4.7,
-    reviewCount: 61,
-    sessionPrice: 90,
-    avatarInitials: 'كز',
-    avatarColor: 'bg-emerald-500',
-  },
-  {
-    id: 'coach-4',
-    name: 'م. سارة العتيبي',
-    specialty: 'rehab',
-    specialtyLabel: 'إعادة التأهيل',
-    bio: 'فيزيائية رياضية متخصصة في الوقاية من الإصابات.',
-    rating: 4.9,
-    reviewCount: 44,
-    sessionPrice: 150,
-    avatarInitials: 'سع',
-    avatarColor: 'bg-rose-500',
-  },
+  { id: 'coach-1', name: 'الكابتن أحمد المنصوري', specialty: 'speed', specialtyLabel: 'السرعة والرشاقة', bio: 'متخصص في تطوير السرعة الانفجارية لدى الشباب. 8 سنوات خبرة.', rating: 4.9, reviewCount: 124, sessionPrice: 120, avatarInitials: 'أم', avatarColor: 'bg-orange-500', challengeId: 'c7' },
+  { id: 'coach-2', name: 'م. ليلى الأحمدي', specialty: 'focus', specialtyLabel: 'التركيز الذهني', bio: 'مدربة معتمدة في علم النفس الرياضي والأداء العقلي.', rating: 4.8, reviewCount: 89, sessionPrice: 100, avatarInitials: 'لأ', avatarColor: 'bg-indigo-500', challengeId: 'c3' },
+  { id: 'coach-3', name: 'م. كريم الزهراني', specialty: 'fitness', specialtyLabel: 'اللياقة العامة', bio: 'خبير في بناء اللياقة الشاملة للمراحل العمرية من 15-25.', rating: 4.7, reviewCount: 61, sessionPrice: 90, avatarInitials: 'كز', avatarColor: 'bg-emerald-500' },
+  { id: 'coach-4', name: 'م. سارة العتيبي', specialty: 'rehab', specialtyLabel: 'إعادة التأهيل', bio: 'فيزيائية رياضية متخصصة في الوقاية من الإصابات.', rating: 4.9, reviewCount: 44, sessionPrice: 150, avatarInitials: 'سع', avatarColor: 'bg-rose-500' },
 ];
 
 const MOCK_INVITATIONS: Invitation[] = [
-  {
-    id: 'inv-1',
-    coachId: 'coach-1',
-    coachName: 'الكابتن أحمد',
-    coachSpecialty: 'speed',
-    coachAvatarInitials: 'أم',
-    coachAvatarColor: 'bg-orange-500',
-    message: 'مرحباً! رأيت مؤشرات أدائك وأعتقد أن لديك إمكانات كبيرة في السرعة. أدعوك للانضمام لبرنامجي المكثف لمدة 30 يوماً.',
-    date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    status: 'pending',
-  },
+  { id: 'inv-1', coachId: 'coach-1', coachName: 'الكابتن أحمد', coachSpecialty: 'speed', coachAvatarInitials: 'أم', coachAvatarColor: 'bg-orange-500', message: 'مرحباً! رأيت مؤشرات أدائك وأعتقد أن لديك إمكانات كبيرة في السرعة.', date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), status: 'pending' },
 ];
 
 const MOCK_LEADS: Lead[] = [
@@ -145,7 +97,13 @@ const MOCK_LEADS: Lead[] = [
   { id: 'lead-4', name: 'أمين ت.', avatarInitials: 'أت', avatarColor: 'bg-indigo-500', goal: 'focus', level: 'advanced', matchScore: 85, isNew: false, location: 'سطيف' },
 ];
 
-// ─── Storage Keys ─────────────────────────────────────────────────
+const MOCK_RESOURCES: Resource[] = [
+  { id: 'res-1', title: 'دليل الحركات الأساسية للمرحلة الابتدائية', type: 'lesson', author: 'وزارة التربية', downloads: 1250, rating: 4.9, tags: ['توازن', 'تنسيق'], thumbnail: '📚' },
+  { id: 'res-2', title: 'تحدي الـ 30 يوماً للياقة الصف الرابع', type: 'curriculum', author: 'أ. أحمد علي', downloads: 850, rating: 4.7, tags: ['لياقة', 'تحدي'], thumbnail: '🏆' },
+  { id: 'res-3', title: 'مجموعة تمارين المرونة الصباحية', type: 'exercise', author: 'أ. ليلى حسن', downloads: 2100, rating: 4.8, tags: ['مرونة', 'صباحي'], thumbnail: '🧘' },
+];
+
+// ─── Utilities ────────────────────────────────────────────────────
 
 function storageKey(uid: string, suffix: string) {
   return `haraka_marketplace_${suffix}_${uid}`;
@@ -157,8 +115,6 @@ function getUID(): string {
     return user?.id || 'default';
   } catch { return 'default'; }
 }
-
-// ─── Match Algorithm ──────────────────────────────────────────────
 
 function computeMatch(coach: Coach, goal: string, level: string): number {
   const specialtyGoalMap: Record<string, CoachSpecialty[]> = {
@@ -180,11 +136,11 @@ function computeMatch(coach: Coach, goal: string, level: string): number {
 
 export const marketplaceService = {
 
+  // Student Methods
   getSuggestedCoaches(): (Coach & { matchPct: number })[] {
     const uid = getUID();
     const goal  = localStorage.getItem(`haraka_student_goal_${uid}`)  || 'fitness';
     const level = localStorage.getItem(`haraka_student_level_${uid}`) || 'beginner';
-
     return [...MOCK_COACHES]
       .map(c => ({ ...c, matchPct: computeMatch(c, goal, level) }))
       .sort((a, b) => b.matchPct - a.matchPct)
@@ -227,14 +183,7 @@ export const marketplaceService = {
     if (existing.find(r => r.coachId === coachId && r.status === 'pending')) {
       return existing.find(r => r.coachId === coachId)!;
     }
-    const newRequest: TrainingRequest = {
-      id: `req-${Date.now()}`,
-      coachId,
-      coachName,
-      studentId: uid,
-      status: 'pending',
-      sentAt: new Date().toISOString(),
-    };
+    const newRequest: TrainingRequest = { id: `req-${Date.now()}`, coachId, coachName, studentId: uid, status: 'pending', sentAt: new Date().toISOString() };
     localStorage.setItem(key, JSON.stringify([...existing, newRequest]));
     return newRequest;
   },
@@ -256,15 +205,9 @@ export const marketplaceService = {
       .sort((a, b) => b.matchPct - a.matchPct);
   },
 
+  // Coach Methods
   getMarketStats(): MarketStats {
-    return {
-      profileViews: 452,
-      searchAppearances: 1240,
-      avgMatchScore: 88,
-      conversionRate: 12.5,
-      rankInSpecialty: 3,
-      earningsThisMonth: 45000,
-    };
+    return { profileViews: 452, searchAppearances: 1240, avgMatchScore: 88, conversionRate: 12.5, rankInSpecialty: 3, earningsThisMonth: 45000 };
   },
 
   getPotentialLeads(specialty: CoachSpecialty): Lead[] {
@@ -277,6 +220,11 @@ export const marketplaceService = {
     }).sort((a,b) => b.matchScore - a.matchScore);
   },
 
+  searchLeads(query: string): Lead[] {
+    const q = query.toLowerCase().trim();
+    return MOCK_LEADS.filter(l => !q || l.name.toLowerCase().includes(q) || l.location.toLowerCase().includes(q) || l.goal.toLowerCase().includes(q));
+  },
+
   updateCoachProfile(coachId: string, updates: Partial<Coach>): void {
     console.log(`[Marketplace] Updating coach ${coachId}`, updates);
   },
@@ -286,14 +234,15 @@ export const marketplaceService = {
     toast.success('تم إرسال الدعوة بنجاح!');
   },
 
-  /** Search for potential students/youth to train */
-  searchLeads(query: string): Lead[] {
+  // Teacher Methods
+  getResources(): Resource[] {
+    return MOCK_RESOURCES;
+  },
+
+  searchResources(query: string): Resource[] {
     const q = query.toLowerCase().trim();
-    return MOCK_LEADS.filter(l => 
-      !q || 
-      l.name.toLowerCase().includes(q) || 
-      l.location.toLowerCase().includes(q) ||
-      l.goal.toLowerCase().includes(q)
+    return MOCK_RESOURCES.filter(r => 
+      !q || r.title.toLowerCase().includes(q) || r.author.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q))
     );
   }
 };
