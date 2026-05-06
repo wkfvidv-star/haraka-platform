@@ -156,47 +156,89 @@ export function StudentReports() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedReport(null)} />
             <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className="relative z-10 w-full max-w-2xl bg-white dark:bg-[#0f172a] rounded-[2.5rem] shadow-2xl overflow-hidden">
-              <div className="p-8 pb-4 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center text-white",
-                    getCategoryTheme(selectedReport.category).color
-                  )}>
-                    {getCategoryTheme(selectedReport.category).icon}
+              <div className="p-0 max-h-[70vh] overflow-y-auto bg-slate-50 dark:bg-slate-900/50">
+                {/* PDF-Style Document Container */}
+                <div className="m-6 md:m-10 bg-white dark:bg-[#0B0E14] shadow-2xl rounded-sm border border-slate-200 dark:border-white/5 p-8 md:p-12 min-h-[600px] relative">
+                  {/* Watermark */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none overflow-hidden">
+                    <FileText className="w-[400px] h-[400px] -rotate-12" />
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-slate-800 dark:text-white">{selectedReport.title}</h2>
-                    <p className="text-sm font-bold text-slate-400">{selectedReport.coach} · {selectedReport.date}</p>
+                  
+                  {/* Header */}
+                  <div className="flex justify-between items-start border-b-2 border-slate-900 dark:border-white pb-8 mb-8 relative z-10">
+                    <div>
+                      <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">HARAKA REPORT</h1>
+                      <p className="text-sm font-bold text-slate-500 mt-1">منصة حركة للتميز الرياضي</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-slate-400">ID: {selectedReport.id.toUpperCase()}</p>
+                      <p className="text-xs font-black text-slate-400">DATE: {selectedReport.date}</p>
+                    </div>
                   </div>
-                </div>
-                <button onClick={() => setSelectedReport(null)} className="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 flex items-center justify-center">
-                  <ArrowRight className="w-6 h-6 text-slate-400 rotate-180" />
-                </button>
-              </div>
-              <div className="p-8 space-y-6">
-                <div className="bg-slate-50 dark:bg-white/[0.02] rounded-2xl p-6 border border-slate-100 dark:border-white/5">
-                  <p className="text-lg font-bold text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                    {selectedReport.details}
-                  </p>
-                </div>
-                
-                {/* Mock Chart/Visual for report */}
-                <div className="bg-gradient-to-br from-indigo-500/5 to-transparent rounded-2xl p-6 border border-indigo-500/10 flex items-center justify-between">
-                  <div>
-                    <h5 className="font-black text-indigo-600 dark:text-indigo-400 text-lg">تحليل الأداء</h5>
-                    <p className="text-sm text-slate-400 font-bold">بناءً على المعايير المطلوبة</p>
-                  </div>
-                  <BarChart2 className="w-12 h-12 text-indigo-500/40" />
-                </div>
 
-                <div className="flex gap-4 pt-4">
-                  <button 
-                    onClick={() => handleDownload(selectedReport)}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
-                  >
-                    <CloudDownload className="w-5 h-5" /> تحميل التقرير (PDF)
-                  </button>
+                  {/* Body */}
+                  <div className="space-y-8 relative z-10">
+                    <div className="flex items-center gap-4 bg-slate-100 dark:bg-white/5 p-4 rounded-xl">
+                      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center text-white", getCategoryTheme(selectedReport.category).color)}>
+                        {getCategoryTheme(selectedReport.category).icon}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase">تصنيف التقرير</p>
+                        <p className="font-bold text-slate-900 dark:text-white">{getCategoryTheme(selectedReport.category).text}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4 border-r-4 border-indigo-500 pr-3">الملاحظات التقنية</h3>
+                      <div className="bg-slate-50 dark:bg-white/[0.01] p-6 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+                        <p className="text-base font-medium text-slate-700 dark:text-slate-300 leading-relaxed text-justify">
+                          {selectedReport.details}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="p-6 bg-slate-50 dark:bg-white/[0.01] rounded-2xl border border-slate-100 dark:border-white/5">
+                        <h4 className="text-xs font-black text-slate-400 uppercase mb-3">التقييم العام</h4>
+                        <div className="flex items-center gap-2">
+                           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                           <span className="text-xl font-black text-slate-900 dark:text-white">ممتاز</span>
+                        </div>
+                      </div>
+                      <div className="p-6 bg-slate-50 dark:bg-white/[0.01] rounded-2xl border border-slate-100 dark:border-white/5">
+                        <h4 className="text-xs font-black text-slate-400 uppercase mb-3">توصية الخبير</h4>
+                        <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">الاستمرار في التدريب المكثف</p>
+                      </div>
+                    </div>
+
+                    {/* Signature */}
+                    <div className="pt-12 flex justify-between items-end">
+                      <div className="text-center">
+                        <div className="w-32 h-px bg-slate-300 dark:bg-white/20 mb-2" />
+                        <p className="text-[10px] font-black text-slate-400 uppercase">توقيع الإدارة</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-slate-900 dark:text-white">{selectedReport.coach}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase">المدرب المسؤول</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <div className="p-6 bg-white dark:bg-[#0f172a] border-t border-slate-100 dark:border-white/5 flex gap-4">
+                <button 
+                  onClick={() => handleDownload(selectedReport)}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <CloudDownload className="w-5 h-5" /> تحميل التقرير (PDF)
+                </button>
+                <button 
+                  onClick={() => setSelectedReport(null)}
+                  className="px-8 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-black py-4 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+                >
+                  إغلاق
+                </button>
               </div>
             </motion.div>
           </div>

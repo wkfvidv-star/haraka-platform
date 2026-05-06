@@ -624,12 +624,14 @@ function GPSBentoCTA({ onOpen }: { onOpen: () => void }) {
 function HomeTab({
   studentName, xp, level, coverImage,
   onStartTraining, onGoProgress, onGoVideos, onUploadClick, isFirstDay, onRestartOnboarding, onOpenGPS,
+  setActiveTab,
 }: {
   studentName: string; xp: number; level: number; coverImage?: string | null;
   onStartTraining: (type: 'physical' | 'cognitive' | 'psychological') => void; onGoProgress: () => void; onGoVideos?: () => void; onUploadClick?: () => void;
   isFirstDay?: boolean;
   onRestartOnboarding?: () => void;
   onOpenGPS?: () => void;
+  setActiveTab: (tab: any) => void;
 }) {
   const [mood, setMood] = useState<string | null>(null);
   const [loadingMood, setLoadingMood] = useState(true);
@@ -1690,6 +1692,7 @@ export default function StudentDashboard() {
                     <HomeTab
                       studentName={studentName}
                       xp={xp} level={level} coverImage={coverImage}
+                      setActiveTab={setActiveTab}
                       onStartTraining={(type) => {
                         setDailyMissionType(type);
                         setDailyMissionOpen(true);
