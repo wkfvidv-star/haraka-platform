@@ -4,7 +4,8 @@ import {
   Trophy, Medal, Star, Target, Users, 
   MapPin, Flag, ChevronRight, Award, 
   Search, Filter, Globe, School,
-  Activity, Video, ClipboardList, Send
+  Activity, Video, ClipboardList, Send,
+  Zap, Calendar
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,46 +42,107 @@ const SCHOOL_RANKINGS = [
 
 // ── Questionnaire Sub-component ────────────────────────────────────
 function QuestionnairesSection() {
-  const [sent, setSent] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [completed, setCompleted] = useState(false);
   
-  const handleSend = () => {
-    toast.success('تم إرسال استبيان الحالة البدنية للأستاذ بنجاح!');
-    setSent(true);
+  const questions = [
+    { 
+      title: 'الأداء الحركي (Motor)', 
+      desc: 'كيف تقيم توازنك وقدرتك على تغيير الاتجاه هذا الأسبوع؟',
+      options: ['ممتاز - أشعر بخفة كبيرة', 'جيد - توازن مستقر', 'متوسط - أحتاج لمزيد من التركيز', 'ضعيف - أشعر ببعض الثقل'],
+      icon: Activity,
+      color: 'text-blue-400'
+    },
+    { 
+      title: 'الأداء المعرفي (Cognitive)', 
+      desc: 'كيف كان مستوى تركيزك وسرعة اتخاذ القرار خلال التدريبات؟',
+      options: ['تركيز عالي جداً', 'تركيز جيد', 'تشتت بسيط', 'صعوبة في التركيز'],
+      icon: Brain,
+      color: 'text-indigo-400'
+    },
+    { 
+      title: 'الأداء النفسي (Psychological)', 
+      desc: 'ما هو مستوى حماسك ورغبتك في المنافسة اليوم؟',
+      options: ['متحمس جداً للتحدي', 'جاهز نفسياً', 'هادئ', 'أشعر ببعض الضغط'],
+      icon: Heart,
+      color: 'text-rose-400'
+    }
+  ];
+
+  const handleNext = () => {
+    if (activeStep < questions.length - 1) {
+      setActiveStep(prev => prev + 1);
+    } else {
+      setCompleted(true);
+      toast.success('تم إرسال استبيان الأداء الشامل بنجاح!');
+    }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="bg-slate-900/50 rounded-2xl p-6 border border-white/5">
-        <div className="flex items-center justify-between mb-4">
-           <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center">
-                 <ClipboardList className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                 <h4 className="font-black text-white text-sm">استبيان الحالة البدنية الأسبوعي</h4>
-                 <p className="text-[10px] text-slate-500 font-bold">بواسطة: أستاذ التربية البدنية</p>
-              </div>
-           </div>
-           <Badge className="bg-amber-500/10 text-amber-500 border-none">مطلوب ⏳</Badge>
+  if (completed) {
+    return (
+      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-3xl p-8 text-center animate-in fade-in zoom-in duration-500">
+        <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <Send className="w-8 h-8 text-white" />
         </div>
-        <p className="text-slate-400 text-xs font-medium leading-relaxed mb-6">
-           يرجى ملء الاستبيان الخاص بحالتك البدنية ومدى جاهزيتك للمسابقات المدرسية القادمة.
+        <h4 className="text-xl font-black text-white mb-2">شكراً لك!</h4>
+        <p className="text-emerald-400 text-sm font-bold">لقد تم إرسال تقييمك الذاتي للأستاذ بنجاح. سيقوم بمراجعته في أقرب وقت.</p>
+      </div>
+    );
+  }
+
+  const current = questions[activeStep];
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-slate-900/40 rounded-[2rem] p-8 border border-white/5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none" />
+        
+        {/* Progress Dots */}
+        <div className="flex gap-2 mb-8 justify-center">
+          {questions.map((_, i) => (
+            <div key={i} className={cn("h-1.5 rounded-full transition-all duration-500", i === activeStep ? "w-8 bg-blue-500" : "w-2 bg-white/10")} />
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4 mb-6">
+           <div className={cn("w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 shadow-inner", current.color)}>
+              <current.icon className="w-7 h-7" />
+           </div>
+           <div>
+              <h4 className="font-black text-white text-xl">{current.title}</h4>
+              <p className="text-xs text-slate-500 font-bold">الخطوة {activeStep + 1} من 3</p>
+           </div>
+        </div>
+
+        <p className="text-slate-300 font-bold mb-8 leading-relaxed">
+           {current.desc}
         </p>
-        <Button 
-          onClick={handleSend}
-          disabled={sent}
-          className={cn("w-full h-12 rounded-xl font-black text-xs transition-all", sent ? "bg-emerald-600" : "bg-blue-600 hover:bg-blue-700")}
-        >
-          {sent ? 'تم الإرسال ✓' : 'بدء الاستبيان وإرساله'}
-        </Button>
+
+        <div className="grid grid-cols-1 gap-3 mb-8">
+           {current.options.map((opt, i) => (
+             <button 
+               key={i}
+               onClick={handleNext}
+               className="w-full text-right p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all text-slate-300 font-bold text-sm flex items-center justify-between group"
+             >
+                {opt}
+                <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity -rotate-180" />
+             </button>
+           ))}
+        </div>
+
+        <div className="flex items-center justify-between pt-6 border-t border-white/5">
+           <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">تحليل النخبة الرياضية</span>
+           <Badge className="bg-indigo-500 text-white border-none text-[10px] px-3">استبيان ذكي</Badge>
+        </div>
       </div>
     </div>
   );
 }
 
 // ── Main Hub Component ────────────────────────────────────────────
-export function SchoolSportsHub() {
-  const [activeTab, setActiveTab] = useState<'competitions' | 'rankings' | 'profile'>('competitions');
+export function SchoolSportsHub({ defaultTab = 'competitions' }: { defaultTab?: 'competitions' | 'rankings' | 'profile' }) {
+  const [activeTab, setActiveTab] = useState<'competitions' | 'rankings' | 'profile'>(defaultTab);
 
   return (
     <div className="space-y-8 pb-10" dir="rtl">

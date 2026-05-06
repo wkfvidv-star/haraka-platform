@@ -748,8 +748,14 @@ function HomeTab({
         </div>
         <QuickActionsGrid onAction={(id) => {
           if (id === 'video_upload') onUploadClick?.();
-          else if (id === 'portfolio') setActiveTab('reports'); // Map to reports/portfolio
-          else if (id === 'competitions' || id === 'school_sports') setActiveTab('progress'); // Map to competitions hub
+          else if (id === 'portfolio') {
+            setSchoolSportsDefaultTab('profile');
+            setActiveTab('progress');
+          }
+          else if (id === 'competitions' || id === 'school_sports') {
+            setSchoolSportsDefaultTab('competitions');
+            setActiveTab('progress');
+          }
           else setActiveTab(id as any);
         }} />
       </motion.div>
@@ -1136,6 +1142,7 @@ export default function StudentDashboard() {
   const [fullProfile, setFullProfile]         = useState<any>(null);
   const [loading, setLoading]                 = useState(true);
   const [activeTab, setActiveTab]             = useState<TabId | 'settings' | 'help'>('home');
+  const [schoolSportsDefaultTab, setSchoolSportsDefaultTab] = useState<'competitions' | 'rankings' | 'profile'>('competitions');
   const [dailyMissionOpen, setDailyMissionOpen] = useState(false);
   const [dailyMissionType, setDailyMissionType] = useState<'physical' | 'cognitive' | 'psychological'>('physical');
   const [isSidebarOpen, setIsSidebarOpen]     = useState(false); // Default to closed for better mobile/desktop UX
@@ -1758,7 +1765,7 @@ export default function StudentDashboard() {
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
                   >
-                    <SchoolSportsHub />
+                    <SchoolSportsHub defaultTab={schoolSportsDefaultTab} />
                   </motion.div>
                 )}
 
