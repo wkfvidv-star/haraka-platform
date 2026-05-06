@@ -199,7 +199,10 @@ export default function TeacherDashboard() {
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                      }}
                       className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-base font-bold ${
                         active
                           ? 'bg-blue-600 text-white shadow-md'

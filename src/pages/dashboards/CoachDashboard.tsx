@@ -166,7 +166,10 @@ const CoachDashboardContent = () => {
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                        }}
                         className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all text-base font-bold ${
                           activeTab === tab.id
                             ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20'
@@ -189,7 +192,10 @@ const CoachDashboardContent = () => {
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                        }}
                         className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all text-sm font-semibold ${
                           activeTab === tab.id
                             ? 'bg-slate-800 text-white shadow-sm'

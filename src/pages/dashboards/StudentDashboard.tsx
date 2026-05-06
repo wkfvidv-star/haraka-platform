@@ -55,11 +55,11 @@ import {
 const TABS = [
   { id: 'home',        labelAr: 'الرئيسية',             icon: LayoutDashboard },
   { id: 'training',    labelAr: 'المختبر الحركي',       icon: Target },
-  { id: 'reports',     labelAr: 'التقارير والتقييم',      icon: FileText },
+  { id: 'reports',     labelAr: 'ملف التلميذ والتقارير',      icon: FileText },
   { id: 'nutrition',   labelAr: 'التغذية والخطط',       icon: Utensils },
   { id: 'messaging',   labelAr: 'تواصل مع أستاذك',      icon: MessageSquare },
   { id: 'fingerprint', labelAr: 'تحليلي ومواهبي',        icon: Fingerprint },
-  { id: 'videos',      labelAr: 'سجل أدائك (فيديو)',   icon: Camera },
+  { id: 'videos',      labelAr: 'رفع فيديو للأستاذ',   icon: Camera },
   { id: 'progress',    labelAr: 'التحديات والمنافسات',  icon: Trophy },
   { id: 'health',      labelAr: 'المدرب الذكي (AI)',    icon: Brain },
   { id: 'gps',         labelAr: 'التتبع الميداني 🛰️',  icon: Navigation },
@@ -74,6 +74,106 @@ type TabId = (typeof TABS)[number]['id'];
 // ═════════════════════════════════════════════════════════════════
 // HOME — BENTO GRID COMPONENTS
 // ═════════════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════════════
+// HOME — QUICK ACTIONS (EXPERT UI)
+// ═════════════════════════════════════════════════════════════════
+
+function QuickActionCard({ icon: Icon, label, sublabel, color, onClick, badge }: { icon: any, label: string, sublabel: string, color: string, onClick?: () => void, badge?: string }) {
+  return (
+    <motion.button
+      whileHover={{ y: -5, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="relative group flex flex-col items-center justify-center p-6 rounded-[2.5rem] bg-white/5 dark:bg-white/[0.03] backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all shadow-2xl shadow-black/20"
+    >
+      {badge && (
+        <span className="absolute top-4 right-4 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-rose-500/30 animate-pulse">
+          {badge}
+        </span>
+      )}
+      <div className={cn(
+        "w-16 h-16 rounded-3xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-500 shadow-xl",
+        color
+      )}>
+        <Icon className="w-8 h-8 text-white drop-shadow-md" />
+      </div>
+      <h4 className="text-white font-black text-sm md:text-base mb-1">{label}</h4>
+      <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">{sublabel}</p>
+    </motion.button>
+  );
+}
+
+function QuickActionsGrid({ onAction }: { onAction: (id: string) => void }) {
+  const actions = [
+    { id: 'portfolio', label: 'ملف التلميذ', sublabel: 'استبياناتي وملفي', icon: ClipboardList, color: 'bg-gradient-to-br from-blue-500 to-indigo-600', badge: 'جديد' },
+    { id: 'video_upload', label: 'رفع فيديو', sublabel: 'تقييم الأستاذ', icon: Video, color: 'bg-gradient-to-br from-rose-500 to-orange-500' },
+    { id: 'competitions', label: 'المسابقات', sublabel: 'البطولات المدرسية', icon: Trophy, color: 'bg-gradient-to-br from-amber-400 to-orange-600' },
+    { id: 'school_sports', label: 'الرياضة المدرسية', sublabel: 'الأندية والنخبة', icon: School, color: 'bg-gradient-to-br from-emerald-400 to-teal-600' },
+    { id: 'fingerprint', label: 'بصمتي الحركية', sublabel: 'تحليل المواهب', icon: Fingerprint, color: 'bg-gradient-to-br from-purple-500 to-pink-600' },
+    { id: 'reports', label: 'التقارير', sublabel: 'الأداء والتقدم', icon: FileText, color: 'bg-gradient-to-br from-cyan-500 to-blue-600' },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {actions.map(action => (
+        <QuickActionCard key={action.id} {...action} onClick={() => onAction(action.id)} />
+      ))}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════
+// HOME — STUDENT PORTFOLIO SECTION
+// ═════════════════════════════════════════════════════════════════
+
+function StudentPortfolioSection({ onUploadVideo }: { onUploadVideo: () => void }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Questionnaires Card */}
+      <Card className="rounded-[2.5rem] bg-white/5 border-white/10 p-8 overflow-hidden relative group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+                <ClipboardList className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-2xl font-black text-white">استبياناتي</h3>
+            </div>
+            <Badge className="bg-amber-500/20 text-amber-500 border-none">1 مطلوب</Badge>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <h4 className="font-black text-white text-sm">الحالة البدنية الأسبوعية</h4>
+                <p className="text-[10px] text-slate-500 font-bold">بواسطة الأستاذ محمد</p>
+              </div>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] rounded-lg">بدء الآن</Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Video Submission Card */}
+      <Card className="rounded-[2.5rem] bg-gradient-to-br from-indigo-900 to-slate-900 border-white/10 p-8 overflow-hidden relative group cursor-pointer" onClick={onUploadVideo}>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-rose-500 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-rose-500/20 group-hover:scale-110 transition-transform duration-500">
+            <Video className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-2xl font-black text-white mb-2">رفع فيديو للأستاذ</h3>
+          <p className="text-slate-400 font-bold text-sm mb-6">سجل حركتك ودع الذكاء الاصطناعي والأستاذ يقيمونك</p>
+          <div className="flex gap-3 w-full">
+            <div className="flex-1 bg-white/5 border border-white/10 rounded-xl py-3 font-black text-white text-xs">اختر من المعرض 📁</div>
+            <div className="flex-1 bg-rose-600 text-white rounded-xl py-3 font-black text-xs">تصوير مباشر 🎥</div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
 
 // ── Daily Training Card ─────────────────────────────────────────
 function DailyTrainingBento({ onStart }: { onStart: () => void }) {
@@ -568,17 +668,45 @@ function HomeTab({
   return (
     <div className="space-y-6">
       {/* Hero Welcome Banner */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative w-full h-48 md:h-56 rounded-[2rem] overflow-hidden shadow-lg flex items-end p-6 md:p-8">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative w-full h-48 md:h-56 rounded-[2.5rem] overflow-hidden shadow-2xl flex items-end p-6 md:p-8 border border-white/10">
         <div className="absolute inset-0">
-          {coverImage ? <img src={coverImage} alt="Cover" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-r from-blue-700 to-indigo-800" />}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
+          {coverImage ? <img src={coverImage} alt="Cover" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-900" />}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
+          {/* Decorative shapes */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
         </div>
         <div className="relative z-10 w-full flex justify-between items-end">
           <div>
-            <h2 className="text-3xl lg:text-4xl font-black text-white drop-shadow-md">أهلاً، <span className="text-blue-400">{studentName.split(' ')[0]}</span> 👋</h2>
-            <p className="text-slate-300 font-bold text-base mt-2 drop-shadow-sm flex items-center gap-2"><span>{new Date().toLocaleDateString('ar-MA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /><span className="text-emerald-400">مستعد للتدريب</span></p>
+            <div className="flex items-center gap-3 mb-2">
+               <Badge className="bg-blue-500/20 text-blue-300 border-none font-black text-[10px] tracking-widest uppercase">النخبة الرياضية</Badge>
+               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
+            <h2 className="text-3xl lg:text-5xl font-black text-white drop-shadow-2xl">أهلاً، <span className="bg-clip-text text-transparent bg-gradient-to-l from-blue-400 to-indigo-300">{studentName.split(' ')[0]}</span> 👋</h2>
+            <p className="text-slate-300 font-bold text-sm md:text-base mt-2 drop-shadow-sm">{new Date().toLocaleDateString('ar-MA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+          <div className="hidden md:flex flex-col items-end">
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-xl">
+               <p className="text-[10px] text-slate-400 font-black uppercase mb-1">المركز الوطني</p>
+               <p className="text-xl font-black text-white">#12 <span className="text-xs text-blue-400">على الولاية</span></p>
+            </div>
           </div>
         </div>
+      </motion.div>
+
+      {/* ── Quick Actions Grid (Expert UI) ── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <div className="flex items-center justify-between mb-4 px-2">
+           <h3 className="text-white font-black text-lg flex items-center gap-2">
+              <Zap className="w-5 h-5 text-yellow-500" /> اختصارات ذكية
+           </h3>
+           <span className="text-slate-500 text-xs font-bold">كل ما تحتاجه في متناول يدك</span>
+        </div>
+        <QuickActionsGrid onAction={(id) => {
+          if (id === 'video_upload') onUploadClick?.();
+          else if (id === 'portfolio') setActiveTab('reports'); // Map to reports/portfolio
+          else if (id === 'competitions' || id === 'school_sports') setActiveTab('progress'); // Map to competitions hub
+          else setActiveTab(id as any);
+        }} />
       </motion.div>
 
       {/* ── Invitations Banner ── */}
@@ -610,38 +738,55 @@ function HomeTab({
       </AnimatePresence>
 
       {/* ── Stats Bar: Streak + Level + Weekly ── */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-        className="grid grid-cols-3 gap-3">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Streak */}
-        <div className={cn("rounded-2xl p-4 flex flex-col items-center text-center border", streak >= 3 ? "bg-orange-500/10 border-orange-500/30" : "bg-white/5 border-white/5")}>
-          <span className="text-3xl mb-1">{streak >= 7 ? '🏆' : streak >= 3 ? '🔥' : '⚡'}</span>
-          <span className={cn("text-2xl font-black", streak >= 3 ? "text-orange-400" : "text-white")}>{streak}</span>
-          <span className="text-xs font-bold text-slate-400 mt-1">يوم متتالي</span>
+        <div className={cn("rounded-[2rem] p-6 flex items-center gap-4 border transition-all hover:bg-white/[0.02]", streak >= 3 ? "bg-orange-500/10 border-orange-500/30 shadow-lg shadow-orange-500/5" : "bg-white/5 border-white/5")}>
+          <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner", streak >= 3 ? "bg-orange-500/20" : "bg-white/5")}>
+            {streak >= 7 ? '🏆' : streak >= 3 ? '🔥' : '⚡'}
+          </div>
+          <div className="text-right">
+            <span className={cn("text-3xl font-black block", streak >= 3 ? "text-orange-400" : "text-white")}>{streak}</span>
+            <span className="text-xs font-bold text-slate-400">يوم متتالي من النشاط</span>
+          </div>
         </div>
 
         {/* Level + XP Bar */}
-        <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col items-center text-center">
-          <span className="text-xs font-black text-indigo-400 uppercase tracking-wide mb-1">المستوى</span>
-          <span className="text-2xl font-black text-white">{levelInfo.level}</span>
-          <div className="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
-            <motion.div className="h-full bg-indigo-500 rounded-full" initial={{ width: 0 }} animate={{ width: `${levelInfo.progressPct}%` }} transition={{ duration: 0.8 }} />
+        <div className="rounded-[2rem] p-6 bg-white/5 border border-white/5 flex flex-col justify-center transition-all hover:bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-3">
+             <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                   <Star className="w-4 h-4 text-indigo-400" />
+                </div>
+                <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">المستوى {levelInfo.level}</span>
+             </div>
+             <span className="text-[10px] text-slate-500 font-bold">{levelInfo.xpInLevel}/{levelInfo.xpNeeded} XP</span>
           </div>
-          <span className="text-[10px] text-slate-400 mt-1">{levelInfo.xpInLevel}/{levelInfo.xpNeeded} XP</span>
+          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden shadow-inner">
+            <motion.div className="h-full bg-gradient-to-r from-indigo-600 to-purple-500 rounded-full" initial={{ width: 0 }} animate={{ width: `${levelInfo.progressPct}%` }} transition={{ duration: 0.8 }} />
+          </div>
         </div>
 
         {/* Weekly Progress */}
-        <div className="rounded-2xl p-4 bg-white/5 border border-white/5 flex flex-col items-center text-center">
-          <span className="text-xs font-black text-slate-400 uppercase tracking-wide mb-1">هذا الأسبوع</span>
-          <div className="flex gap-1 my-1.5">
+        <div className="rounded-[2rem] p-6 bg-white/5 border border-white/5 flex flex-col justify-center transition-all hover:bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-3">
+             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">تقدمك الأسبوعي</span>
+             <span className="text-lg font-black text-white">{weekly.completed}<span className="text-slate-400 text-xs">/7</span></span>
+          </div>
+          <div className="flex gap-2">
             {Array.from({ length: 7 }, (_, i) => (
-              <div key={i} className={cn("w-3 h-3 rounded-full", i < weekly.completed ? "bg-emerald-500" : "bg-white/10")} />
+              <div key={i} className={cn("flex-1 h-1.5 rounded-full", i < weekly.completed ? "bg-emerald-500 shadow-lg shadow-emerald-500/20" : "bg-white/10")} />
             ))}
           </div>
-          <span className="text-lg font-black text-white">{weekly.completed}<span className="text-slate-400 text-xs">/7</span></span>
-          <span className={cn("text-[10px] font-bold mt-0.5", weekly.trend === 'up' ? 'text-emerald-400' : weekly.trend === 'down' ? 'text-red-400' : 'text-slate-400')}>
-            {weekly.trend === 'up' ? '↑ تحسن' : weekly.trend === 'down' ? '↓ تراجع' : '─ مستقر'}
-          </span>
+          <p className={cn("text-[10px] font-bold mt-3 text-left", weekly.trend === 'up' ? 'text-emerald-400' : 'text-slate-400')}>
+            {weekly.trend === 'up' ? '↑ أداء تصاعدي رائع' : '─ حافظ على استمرارك'}
+          </p>
         </div>
+      </motion.div>
+
+      {/* ── Student Portfolio & Video Upload Section ── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <StudentPortfolioSection onUploadVideo={() => onUploadClick?.()} />
       </motion.div>
 
       {/* Daily State Check */}
