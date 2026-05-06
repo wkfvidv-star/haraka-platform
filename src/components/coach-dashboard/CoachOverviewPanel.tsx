@@ -78,7 +78,7 @@ export default function CoachOverviewPanel() {
   };
 
   return (
-    <div className="space-y-8 relative">
+    <div className="space-y-6 md:space-y-8 relative">
       
       {/* HEADER & QUICK ACTIONS */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">

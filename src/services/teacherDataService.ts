@@ -127,8 +127,8 @@ class TeacherDataService {
     this.data.hasSetup = true;
 
     // Seed Students
-    const firstNames = ['أحمد', 'ياسين', 'فاطمة', 'عمر', 'سارة', 'مريم', 'يوسف', 'علي', 'خالد', 'أمير'];
-    const lastNames = ['محمود', 'علي', 'المختار', 'خالد', 'وليد'];
+    const firstNames = ['محمد', 'مراد', 'رفيق', 'حميد', 'رياض', 'منذر', 'ياسين', 'أمين', 'كريم', 'هشام'];
+    const lastNames = ['بن علي', 'منصوري', 'بوزيد', 'قاسم', 'زواوي'];
     
     this.data.students = [];
     

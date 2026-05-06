@@ -16,6 +16,7 @@ import { VideoRecordingPage }       from '@/components/student-dashboard/v2/Vide
 import { StudentProfileSettingsPage } from '@/components/student-dashboard/v2/StudentProfileSettingsPage';
 import { SupportHelpPage }            from '@/components/student-dashboard/v2/SupportHelpPage';
 import { GPSActivityHub }           from '@/components/youth-dashboard/gps/GPSActivityHub';
+import { SchoolSportsHub }           from '@/components/youth-dashboard/SchoolSportsHub';
 import { StudentMessaging }         from '@/components/student-dashboard/v2/StudentMessaging';
 import { StudentReports }           from '@/components/student-dashboard/v2/StudentReports';
 import { NutritionExercisePlans }   from '@/components/student-dashboard/v2/NutritionExercisePlans';
@@ -500,6 +501,46 @@ function TeacherCoachHubBento({ onSelectExercise }: { onSelectExercise: () => vo
                   <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"><Play className="w-5 h-5 fill-white translate-x-0.5" /></div>
                </motion.div>
             ))}
+          </div>
+        </div>
+
+        {/* MIDDLE COLUMN: Questionnaires & Profile */}
+        <div className="flex-1 space-y-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex flex-shrink-0 items-center justify-center border border-blue-500/30">
+              <ClipboardList className="w-6 h-6 text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-xl md:text-2xl font-black text-white">ملفي التربوي والاستبيانات</h3>
+              <p className="text-blue-200/60 font-bold text-sm">شارك حالتك البدنية مع طاقمك</p>
+            </div>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => onSelectExercise?.()}>
+             <div className="flex items-center justify-between mb-4">
+                <Badge className="bg-amber-500/20 text-amber-400 border-none">مطلوب الآن ⏳</Badge>
+                <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                   <Send className="w-5 h-5 text-blue-400 group-hover:text-white" />
+                </div>
+             </div>
+             <h4 className="text-lg font-black text-white mb-2">استبيان الحالة البدنية الأسبوعي</h4>
+             <p className="text-xs text-slate-400 font-bold leading-relaxed mb-6">
+                يرجى ملء الاستبيان الخاص بجاهزيتك للمسابقات المدرسية القادمة لتمكين الأستاذ من تقييمك.
+             </p>
+             <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl h-11">ابدأ الاستبيان الآن</Button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                <span className="text-2xl mb-1">📋</span>
+                <span className="text-xs font-black text-white">4 استبيانات</span>
+                <span className="text-[10px] text-slate-500 font-bold">تم إكمالها</span>
+             </div>
+             <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                <span className="text-2xl mb-1">📹</span>
+                <span className="text-xs font-black text-white">12 فيديو</span>
+                <span className="text-[10px] text-slate-500 font-bold">موثق في ملفك</span>
+             </div>
           </div>
         </div>
 
@@ -1161,9 +1202,7 @@ export default function StudentDashboard() {
     { title: 'رمي واستقبال الكرات (التوافق اليدوي-العيني)', category: 'التوافق الحركي' }
   ];
 
-  const [showOnboarding, setShowOnboarding] = useState<boolean>(() =>
-    !localStorage.getItem(`haraka_ftue_complete_${uid}`)
-  );
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(true);
 
   const handleRestartOnboarding = useCallback(() => {
     const activeUid = getUserId();
@@ -1716,7 +1755,7 @@ export default function StudentDashboard() {
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
                   >
-                    <AchievementsPage />
+                    <SchoolSportsHub />
                   </motion.div>
                 )}
 

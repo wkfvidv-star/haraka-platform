@@ -181,10 +181,10 @@ const INITIAL_MESSAGES: Message[] = [
 ];
 
 const INITIAL_COACHES: Coach[] = [
-  { id: 'c1', name: 'المدرب كريم بوعلام', specialty: 'كرة قدم ⚽', rating: 4.8, sessions: 120, available: ['السبت 10:00', 'الأحد 14:00', 'الثلاثاء 16:00'], location: 'ملعب الشهيد — الشلف', phone: '0555 123 456', price: 1500, aiMatchScore: 95 },
-  { id: 'c2', name: 'المدربة آمال سعيد', specialty: 'جمباز 🤸', rating: 4.9, sessions: 85, available: ['الجمعة 09:00', 'السبت 11:00'], location: 'قاعة الشهداء — قسنطينة', phone: '0661 789 012', price: 1800, aiMatchScore: 88 },
-  { id: 'c3', name: 'المدرب وليد جاسم', specialty: 'تنس طاولة 🏓', rating: 4.5, sessions: 210, available: ['الإثنين 17:00'], location: 'نادي النصر — الجزائر', phone: '0770 112 233', price: 1200, aiMatchScore: 92 },
-  { id: 'c4', name: 'المدربة مريم بن يحيى', specialty: 'يوغا وسكينة 🧘', rating: 4.7, sessions: 150, available: ['الثلاثاء 10:00'], location: 'مركز الراحة — تيبازة', phone: '0552 445 566', price: 2000, aiMatchScore: 85 }
+  { id: 'c1', name: 'المدرب رفيق بن عيسى', specialty: 'كرة قدم ⚽', rating: 4.8, sessions: 120, available: ['السبت 10:00', 'الأحد 14:00', 'الثلاثاء 16:00'], location: 'ملعب الشهيد — الشلف', phone: '0555 123 456', price: 1500, aiMatchScore: 95 },
+  { id: 'c2', name: 'المدربة لمياء منصوري', specialty: 'جمباز 🤸', rating: 4.9, sessions: 85, available: ['الجمعة 09:00', 'السبت 11:00'], location: 'قاعة الشهداء — قسنطينة', phone: '0661 789 012', price: 1800, aiMatchScore: 88 },
+  { id: 'c3', name: 'المدرب رياض بوزيد', specialty: 'تنس طاولة 🏓', rating: 4.5, sessions: 210, available: ['الإثنين 17:00'], location: 'نادي النصر — الجزائر', phone: '0770 112 233', price: 1200, aiMatchScore: 92 },
+  { id: 'c4', name: 'المدربة فريال بن يحيى', specialty: 'يوغا وسكينة 🧘', rating: 4.7, sessions: 150, available: ['الثلاثاء 10:00'], location: 'مركز الراحة — تيبازة', phone: '0552 445 566', price: 2000, aiMatchScore: 85 }
 ];
 
 const INITIAL_REPORTS: Report[] = [

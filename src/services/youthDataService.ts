@@ -92,9 +92,9 @@ class YouthDataService {
     const data = localStorage.getItem(this.storageKey('tasks'));
     if (!data) {
       const mocks: YouthTask[] = [
-        { id: 't1', title: 'تسجيل فيديو لتقييم الـ Squat', coach: 'الكابتن أحمد', dueDate: '2024-03-30', status: 'pending', details: 'يرجى تصوير تمرين السكوات من زاوية جانبية وإرفاقه هنا للتقييم.' },
-        { id: 't2', title: 'قراءة مقال القوة الذهنية', coach: 'د. ليلى', dueDate: '2024-03-25', status: 'late', details: 'مقال القوة الذهنية المرفق الأسبوع الماضي، برجاء قراءته.' },
-        { id: 't3', title: 'اختبار المرونة القياسي', coach: 'الكابتن محمود', dueDate: '2024-03-20', status: 'completed', details: 'تم تنفيذ الاختبار بنجاح.' }
+        { id: 't1', title: 'تسجيل فيديو لتقييم الـ Squat', coach: 'الكابتن منذر', dueDate: '2024-03-30', status: 'pending', details: 'يرجى تصوير تمرين السكوات من زاوية جانبية وإرفاقه هنا للتقييم.' },
+        { id: 't2', title: 'قراءة مقال القوة الذهنية', coach: 'د. مريم', dueDate: '2024-03-25', status: 'late', details: 'مقال القوة الذهنية المرفق الأسبوع الماضي، برجاء قراءته.' },
+        { id: 't3', title: 'اختبار المرونة القياسي', coach: 'الكابتن رياض', dueDate: '2024-03-20', status: 'completed', details: 'تم تنفيذ الاختبار بنجاح.' }
       ];
       this.saveTasks(mocks);
       return mocks;
@@ -127,12 +127,12 @@ class YouthDataService {
     if (!data) {
       const mocks: YouthSession[] = [
         {
-          id: 's1', title: 'حصة القوة والتحمل (بدني)', coach: 'الكابتن أحمد',
+          id: 's1', title: 'حصة القوة والتحمل (بدني)', coach: 'الكابتن منذر',
           time: '10:00 ص', date: '2024-03-26', type: 'in-person', category: 'physical',
           location: 'القاعة A', status: 'confirmed', duration: '60 دقيقة'
         },
         {
-          id: 's2', title: 'تدريب الإدراك الحركي (معرفي)', coach: 'د. ليلى',
+          id: 's2', title: 'تدريب الإدراك الحركي (معرفي)', coach: 'د. مريم',
           time: '06:00 م', date: '2024-03-27', type: 'online', category: 'cognitive',
           status: 'upcoming', duration: '45 دقيقة'
         }
@@ -176,9 +176,9 @@ class YouthDataService {
     const data = localStorage.getItem(this.storageKey('reports'));
     if (!data) {
       const mocks: YouthReport[] = [
-        { id: 'r1', title: 'تقرير الأداء البدني الأسبوعي', coach: 'الكابتن أحمد', date: 'أمس', type: 'training', category: 'physical', status: 'new', details: 'تحسن ملحوظ في قوة التحمل...' },
-        { id: 'd1', title: 'خطة التغذية للرياضيين', coach: 'أخصائية التغذية', date: 'اليوم', type: 'diet', category: 'physical', status: 'new', details: 'نظام عجز السعرات المخصص...' },
-        { id: 'v1', title: 'تحليل تكنيك السكوات', coach: 'الكابتن أحمد', date: 'منذ ساعتين', type: 'video', category: 'physical', status: 'read', details: 'ملاحظات على زاوية الركبة...' }
+        { id: 'r1', title: 'تقرير الأداء البدني الأسبوعي', coach: 'الكابتن منذر', date: 'أمس', type: 'training', category: 'physical', status: 'new', details: 'تحسن ملحوظ في قوة التحمل...' },
+        { id: 'd1', title: 'خطة التغذية للرياضيين', coach: 'أخصائية التغذية سمية', date: 'اليوم', type: 'diet', category: 'physical', status: 'new', details: 'نظام عجز السعرات المخصص...' },
+        { id: 'v1', title: 'تحليل تكنيك السكوات', coach: 'الكابتن رياض', date: 'منذ ساعتين', type: 'video', category: 'physical', status: 'read', details: 'ملاحظات على زاوية الركبة...' }
       ];
       this.saveReports(mocks);
       return mocks;

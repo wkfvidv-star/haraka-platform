@@ -83,7 +83,7 @@ const MOCK_COACHES: Coach[] = [
   { id: 'coach-1', name: 'الكابتن محمد رفيق', specialty: 'speed', specialtyLabel: 'السرعة والرشاقة', bio: 'متخصص في تطوير السرعة الانفجارية لدى الشباب الجزائري. 8 سنوات خبرة.', rating: 4.9, reviewCount: 124, sessionPrice: 120, avatarInitials: 'مر', avatarColor: 'bg-orange-500', challengeId: 'c7' },
   { id: 'coach-2', name: 'أ. رياض منذر', specialty: 'focus', specialtyLabel: 'التركيز الذهني', bio: 'مدرب معتمد في علم النفس الرياضي والأداء العقلي المتوازن.', rating: 4.8, reviewCount: 89, sessionPrice: 100, avatarInitials: 'رم', avatarColor: 'bg-indigo-500', challengeId: 'c3' },
   { id: 'coach-3', name: 'الكابتن حميد مراد', specialty: 'fitness', specialtyLabel: 'اللياقة العامة', bio: 'خبير في بناء اللياقة الشاملة للشباب والمراهقين.', rating: 4.7, reviewCount: 61, sessionPrice: 90, avatarInitials: 'حم', avatarColor: 'bg-emerald-500' },
-  { id: 'coach-4', name: 'أ. منيرة بن سالم', specialty: 'rehab', specialtyLabel: 'إعادة التأهيل', bio: 'فيزيائية رياضية متخصصة في الوقاية من الإصابات الميدانية.', rating: 4.9, reviewCount: 44, sessionPrice: 150, avatarInitials: 'مب', avatarColor: 'bg-rose-500' },
+  { id: 'coach-4', name: 'أ. سمية رفيق', specialty: 'rehab', specialtyLabel: 'إعادة التأهيل', bio: 'فيزيائية رياضية متخصصة في الوقاية من الإصابات الميدانية.', rating: 4.9, reviewCount: 44, sessionPrice: 150, avatarInitials: 'سر', avatarColor: 'bg-rose-500' },
 ];
 
 const MOCK_INVITATIONS: Invitation[] = [
@@ -93,7 +93,7 @@ const MOCK_INVITATIONS: Invitation[] = [
 const MOCK_LEADS: Lead[] = [
   { id: 'lead-1', name: 'ياسين ر.', avatarInitials: 'ير', avatarColor: 'bg-blue-500', goal: 'speed', level: 'intermediate', matchScore: 94, isNew: true, location: 'الجزائر العاصمة' },
   { id: 'lead-2', name: 'عمر هـ.', avatarInitials: 'عه', avatarColor: 'bg-emerald-500', goal: 'fitness', level: 'beginner', matchScore: 88, isNew: true, location: 'وهران' },
-  { id: 'lead-3', name: 'سارة ب.', avatarInitials: 'سب', avatarColor: 'bg-rose-500', goal: 'rehab', level: 'intermediate', matchScore: 91, isNew: false, location: 'قسنطينة' },
+  { id: 'lead-3', name: 'مريم ب.', avatarInitials: 'مب', avatarColor: 'bg-rose-500', goal: 'rehab', level: 'intermediate', matchScore: 91, isNew: false, location: 'قسنطينة' },
   { id: 'lead-4', name: 'أمين د.', avatarInitials: 'أد', avatarColor: 'bg-indigo-500', goal: 'focus', level: 'advanced', matchScore: 85, isNew: false, location: 'سطيف' },
 ];
 

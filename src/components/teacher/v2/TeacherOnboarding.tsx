@@ -47,18 +47,13 @@ export function TeacherOnboarding() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    // Check if it's the first time
-    const hasSeenOnboarding = localStorage.getItem('haraka_teacher_onboarding_v2');
-    if (!hasSeenOnboarding) {
-      // Small delay for smooth entrance after login
-      const timer = setTimeout(() => setIsOpen(true), 1500);
-      return () => clearTimeout(timer);
-    }
+    // Show onboarding every time
+    const timer = setTimeout(() => setIsOpen(true), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
-    localStorage.setItem('haraka_teacher_onboarding_v2', 'true');
   };
 
   const slide = ONBOARDING_SLIDES[currentSlide];
