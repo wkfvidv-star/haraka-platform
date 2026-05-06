@@ -61,14 +61,19 @@ export default function CoachMarketplace() {
   const { user } = useAuth();
   const [stats, setStats] = useState<MarketStats | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [searchLeadsQuery, setSearchLeadsQuery] = useState('');
   const [activeSpecialty, setActiveSpecialty] = useState('speed');
   const [isAvailable, setIsAvailable] = useState(true);
   const [price, setPrice] = useState(120);
 
   useEffect(() => {
     setStats(marketplaceService.getMarketStats());
-    setLeads(marketplaceService.getPotentialLeads(activeSpecialty as any));
-  }, [activeSpecialty]);
+    if (searchLeadsQuery.trim()) {
+      setLeads(marketplaceService.searchLeads(searchLeadsQuery));
+    } else {
+      setLeads(marketplaceService.getPotentialLeads(activeSpecialty as any));
+    }
+  }, [activeSpecialty, searchLeadsQuery]);
 
   const handleUpdateProfile = () => {
     marketplaceService.updateCoachProfile('current', { sessionPrice: price });
@@ -110,22 +115,35 @@ export default function CoachMarketplace() {
         
         {/* ── Main Panel: Smart Leads ── */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">الفرص المتاحة (Leads) 🚀</h2>
-              <p className="text-slate-500 font-bold text-sm">متدربون يبحثون عن خبراتك في {activeSpecialty === 'speed' ? 'السرعة' : 'اللياقة'}</p>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">البحث عن مواهب لتدريبهم 🚀</h2>
+              <p className="text-slate-500 font-bold text-sm">اكتشف الشباب الذين يتوافقون مع خبراتك</p>
             </div>
             <div className="flex gap-2">
               <Badge 
-                onClick={() => setActiveSpecialty('speed')}
-                className={cn("cursor-pointer px-4 py-2 rounded-xl border-none font-bold transition-all", activeSpecialty === 'speed' ? "bg-slate-900 text-white" : "bg-white text-slate-400")}
+                onClick={() => { setActiveSpecialty('speed'); setSearchLeadsQuery(''); }}
+                className={cn("cursor-pointer px-4 py-2 rounded-xl border-none font-bold transition-all", activeSpecialty === 'speed' && !searchLeadsQuery ? "bg-slate-900 text-white" : "bg-white text-slate-400")}
               >السرعة</Badge>
               <Badge 
-                onClick={() => setActiveSpecialty('fitness')}
-                className={cn("cursor-pointer px-4 py-2 rounded-xl border-none font-bold transition-all", activeSpecialty === 'fitness' ? "bg-slate-900 text-white" : "bg-white text-slate-400")}
+                onClick={() => { setActiveSpecialty('fitness'); setSearchLeadsQuery(''); }}
+                className={cn("cursor-pointer px-4 py-2 rounded-xl border-none font-bold transition-all", activeSpecialty === 'fitness' && !searchLeadsQuery ? "bg-slate-900 text-white" : "bg-white text-slate-400")}
               >اللياقة</Badge>
             </div>
           </div>
+
+          {/* Lead Search Bar */}
+          <div className="relative group">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="ابحث عن اسم طالب، مدينة، أو هدف رياضي..."
+              value={searchLeadsQuery}
+              onChange={(e) => setSearchLeadsQuery(e.target.value)}
+              className="w-full h-14 bg-white border border-slate-100 rounded-[1.2rem] pr-12 pl-4 font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+            />
+          </div>
+
 
           <div className="grid grid-cols-1 gap-4">
             {leads.map(lead => (

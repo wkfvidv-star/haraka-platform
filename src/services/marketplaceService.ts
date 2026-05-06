@@ -284,5 +284,16 @@ export const marketplaceService = {
   sendOutreach(coachId: string, leadId: string, message: string): void {
     console.log(`[Marketplace] Coach ${coachId} sending invitation to ${leadId}: ${message}`);
     toast.success('تم إرسال الدعوة بنجاح!');
+  },
+
+  /** Search for potential students/youth to train */
+  searchLeads(query: string): Lead[] {
+    const q = query.toLowerCase().trim();
+    return MOCK_LEADS.filter(l => 
+      !q || 
+      l.name.toLowerCase().includes(q) || 
+      l.location.toLowerCase().includes(q) ||
+      l.goal.toLowerCase().includes(q)
+    );
   }
 };
