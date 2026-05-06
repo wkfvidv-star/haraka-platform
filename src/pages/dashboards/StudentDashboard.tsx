@@ -50,7 +50,7 @@ import {
   Settings, HelpCircle, LogOut, Bell, Search, Zap, Target,
   Shield, Brain, Trophy, Star, Play, ChevronRight, MessageSquare,
   Dumbbell, Clock, CheckCircle2, Activity, Sparkles, PlayCircle, RefreshCw, Video, Camera, Users, ArrowUpRight,
-  Navigation, MapPin, FileText, Utensils
+  Navigation, MapPin, FileText, Utensils, ClipboardList, School
 } from 'lucide-react';
 
 // ─── Tab definition ──────────────────────────────────────────────────
