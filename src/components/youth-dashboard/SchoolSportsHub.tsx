@@ -5,7 +5,7 @@ import {
   MapPin, Flag, ChevronRight, Award, 
   Search, Filter, Globe, School,
   Activity, Video, ClipboardList, Send,
-  Zap, Calendar
+  Zap, Calendar, Brain, Heart
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
