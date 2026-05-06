@@ -26,7 +26,7 @@ export default function TeacherMarketplace() {
   }, [query]);
 
   const handleDownload = (res: Resource) => {
-    toast.success(`تم استيراد "${res.title}" إلى مكتبتك بنجاح!`);
+    toast.success(`تم استيراد "${res.title}"! تم توفير حوالي 45 دقيقة من التحضير.`);
   };
 
   const filteredResources = activeType === 'all' 
@@ -36,130 +36,147 @@ export default function TeacherMarketplace() {
   return (
     <div className="space-y-8 pb-10" dir="rtl">
       
-      {/* ── Header Strategy ── */}
-      <div className="relative overflow-hidden bg-slate-950 rounded-[2.5rem] p-10 text-white shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] -mr-48 -mt-48" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-[80px] -ml-32 -mb-32" />
+      {/* ── Smart Header: Focus on Benefit ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl border border-white/5">
+        <div className="absolute top-0 right-0 w-full h-full bg-[url('/images/grid-pattern.png')] opacity-10 pointer-events-none" />
         
-        <div className="relative z-10 max-w-3xl">
-          <Badge className="bg-blue-500/20 text-blue-300 border-none mb-4 px-4 py-1 font-bold">مركز موارد الأساتذة 📚</Badge>
-          <h1 className="text-4xl font-black mb-4 tracking-tight leading-tight">اكتشف أفضل المناهج والتمارين الحركية لطلابك</h1>
-          <p className="text-slate-400 text-lg font-medium leading-relaxed">
-            استعرض آلاف الموارد التعليمية المعتمدة من وزارة التربية والزملاء الأساتذة لرفع كفاءة حصص التربية البدنية.
-          </p>
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+          <div className="flex-1 space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-black">
+              <Sparkles className="w-4 h-4" /> مساعدك الرقمي لتوفير الوقت
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.1]">
+              لا تحضر دروسك يدوياً بعد اليوم <span className="text-blue-400">Haraka سيفعل ذلك!</span>
+            </h1>
+            <p className="text-slate-400 text-lg font-medium max-w-xl">
+              سوق الموارد صُمم لخدمتك؛ حمّل مناهج جاهزة، تمارين مصممة بالذكاء الاصطناعي، ووفر أكثر من <span className="text-white font-bold">5 ساعات أسبوعياً</span> من العمل الإداري.
+            </p>
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-900/40">استيراد منهج الأسبوع القادم 📅</Button>
+              <Button variant="outline" className="h-14 px-8 border-white/10 bg-white/5 text-white hover:bg-white/10 font-black rounded-2xl">استشارة AI 🤖</Button>
+            </div>
+          </div>
+          <div className="hidden lg:block w-72 h-72 bg-blue-500/20 rounded-[3rem] border border-white/10 rotate-3 flex items-center justify-center relative shadow-inner">
+             <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                <Brain className="w-32 h-32 text-blue-400" />
+             </div>
+             <div className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl -mr-10">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                   <span className="text-[10px] font-black uppercase text-slate-400">توفير الوقت اليوم</span>
+                </div>
+                <div className="text-3xl font-black">+120د</div>
+                <p className="text-[10px] text-slate-500 mt-1 font-bold">عبر استخدام المناهج الجاهزة</p>
+             </div>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* ── Filter Sidebar ── */}
-        <div className="lg:col-span-3 space-y-6">
-          <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
-            <CardHeader className="p-6 border-b border-slate-50">
-              <CardTitle className="text-lg font-black flex items-center gap-2">
-                <Filter className="w-5 h-5 text-blue-600" /> تصفية المحتوى
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              {[
-                { id: 'all', label: 'الكل', icon: Globe },
-                { id: 'lesson', label: 'دروس نموذجية', icon: BookOpen },
-                { id: 'exercise', label: 'تمارين حركية', icon: Activity },
-                { id: 'curriculum', label: 'مناهج فصلية', icon: ClipboardCheck },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveType(t.id)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm",
-                    activeType === t.id 
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-900/10" 
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                  )}
-                >
-                  <t.icon className="w-4 h-4" />
-                  {t.label}
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 border-none rounded-3xl p-6 text-white shadow-xl shadow-blue-900/20">
-             <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                   <Sparkles className="w-5 h-5" />
-                </div>
-                <h4 className="font-black text-sm">مساعد الذكاء الاصطناعي</h4>
-             </div>
-             <p className="text-blue-50 text-xs font-medium leading-relaxed mb-6">
-                "بناءً على أداء قسمك الأخير، ننصحك بتحميل 'دليل التوازن الأساسي' لتقوية مهارات التلاميذ الحركية."
-             </p>
-             <Button variant="secondary" className="w-full font-black text-blue-900 bg-white hover:bg-blue-50 rounded-xl">إنشاء منهج مخصص</Button>
-          </Card>
-        </div>
-
         {/* ── Main Content Area ── */}
-        <div className="lg:col-span-9 space-y-6">
+        <div className="lg:col-span-8 space-y-8">
           
-          {/* Search Bar */}
-          <div className="relative group">
-            <Search className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="ابحث عن درس، تمرين، أو أستاذ..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full h-16 bg-white border border-slate-100 rounded-3xl pr-14 pl-6 font-bold text-slate-900 shadow-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-            />
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-slate-900">موارد جاهزة للاستخدام الفوري ⚡</h2>
+            <div className="flex gap-2">
+               <Badge className="bg-slate-100 text-slate-600 border-none font-bold">الأكثر كفاءة</Badge>
+               <Badge className="bg-blue-50 text-blue-600 border-none font-bold">توصية AI</Badge>
+            </div>
           </div>
 
           {/* Resources Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredResources.map((res) => (
                 <motion.div
                   layout
                   key={res.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:border-blue-100 transition-all group flex flex-col md:flex-row gap-8 items-center"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-3xl shadow-inner border border-slate-100 group-hover:scale-110 transition-transform">
-                      {res.thumbnail}
+                  <div className="w-24 h-24 rounded-3xl bg-slate-50 flex items-center justify-center text-5xl shrink-0 shadow-inner group-hover:bg-blue-50 transition-colors">
+                    {res.thumbnail}
+                  </div>
+                  
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Badge className="bg-blue-600/10 text-blue-600 border-none text-[10px] px-3 py-1 font-black">
+                        توفير {(res.id === 'res-1' ? 60 : res.id === 'res-2' ? 120 : 45)} دقيقة تحضير
+                      </Badge>
+                      <div className="flex items-center gap-1 text-amber-500 font-black text-sm">
+                        <Star className="w-4 h-4 fill-amber-500" /> {res.rating}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-3 py-1 rounded-full text-xs font-black">
-                      <Star className="w-3 h-3 fill-amber-600" /> {res.rating}
+                    
+                    <h3 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">{res.title}</h3>
+                    
+                    <div className="flex items-center gap-6 text-slate-500 font-bold text-xs">
+                      <div className="flex items-center gap-2">
+                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-900">{res.author.charAt(0)}</div>
+                         {res.author}
+                      </div>
+                      <div className="flex items-center gap-2">
+                         <Download className="w-4 h-4" /> {res.downloads.toLocaleString()} أستاذ استخدمه
+                      </div>
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-black text-slate-900 mb-2 leading-tight group-hover:text-blue-600 transition-colors">{res.title}</h3>
-                  <p className="text-slate-500 text-sm font-medium mb-6 flex items-center gap-2">
-                    بواسطة <span className="text-slate-900 font-bold">{res.author}</span>
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {res.tags.map(tag => (
-                      <Badge key={tag} variant="outline" className="bg-slate-50 text-slate-500 border-slate-100 font-bold text-[10px] px-3">#{tag}</Badge>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                    <div className="flex items-center gap-2 text-slate-400 font-bold text-xs">
-                      <Download className="w-4 h-4" /> {res.downloads.toLocaleString()} تحميل
-                    </div>
+                  <div className="shrink-0">
                     <Button 
                       onClick={() => handleDownload(res)}
-                      className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs gap-2 px-6 h-10 shadow-lg shadow-blue-900/10"
+                      className="rounded-2xl bg-slate-950 hover:bg-blue-600 text-white font-black text-sm px-8 h-14 shadow-xl transition-all"
                     >
-                      استيراد <Plus className="w-4 h-4" />
+                      تفعيل بنقرة واحدة <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
                     </Button>
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
+        </div>
+
+        {/* ── Side: Why Use This? ── */}
+        <div className="lg:col-span-4 space-y-6">
+           <Card className="border-none shadow-sm rounded-[2.5rem] bg-white overflow-hidden p-8">
+              <h4 className="text-xl font-black text-slate-900 mb-6">كيف تستفيد اليوم؟ 💎</h4>
+              <div className="space-y-6">
+                 {[
+                   { title: 'تحضير تلقائي', desc: 'استورد المناهج مباشرة إلى جدولك الدراسي.', icon: ClipboardCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                   { title: 'تقارير ذكية', desc: 'كل درس يأتي مع معايير تقييم جاهزة لبرنامج AI.', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+                   { title: 'تواصل مع الأولياء', desc: 'يتم إرسال ملخص النشاط للأولياء تلقائياً.', icon: Share2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                 ].map((item, i) => (
+                   <div key={i} className="flex gap-4">
+                      <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0", item.bg)}>
+                         <item.icon className={cn("w-6 h-6", item.color)} />
+                      </div>
+                      <div>
+                         <h5 className="font-black text-slate-900 text-sm mb-1">{item.title}</h5>
+                         <p className="text-slate-500 text-[11px] font-bold leading-relaxed">{item.desc}</p>
+                      </div>
+                   </div>
+                 ))}
+              </div>
+           </Card>
+
+           <Card className="bg-slate-900 border-none rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform" />
+              <div className="relative z-10">
+                 <h4 className="text-lg font-black mb-2">هل تبحث عن تمرين محدد؟</h4>
+                 <p className="text-slate-400 text-xs font-medium mb-6">دعنا ننشئ لك منهماً مخصصاً في ثوانٍ عبر محرك Haraka AI.</p>
+                 <Button className="w-full h-12 bg-white text-slate-900 hover:bg-blue-50 font-black rounded-xl">جرب محرك التوليد 🪄</Button>
+              </div>
+           </Card>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function FileText(props: any) { return <BookOpen {...props} />; }
+
 
           {filteredResources.length === 0 && (
              <div className="flex flex-col items-center justify-center py-20 text-slate-400">
