@@ -20,8 +20,8 @@ export interface TeacherVideo {
   status: 'pending' | 'reviewed';
 }
 
-const firstNames = ['أحمد', 'ياسين', 'فاطمة', 'عمر', 'سارة', 'مريم', 'يوسف', 'علي', 'خالد', 'أمير', 'ليلى', 'نور', 'طارق', 'زياد', 'سلمى', 'زكريا', 'رائد', 'وليد'];
-const lastNames = ['محمود', 'علي', 'المختار', 'خالد', 'وليد', 'حسن', 'إبراهيم', 'سليمان', 'عبدالله', 'منصور', 'صالح', 'فاروق', 'الحسيني', 'سعيد'];
+const firstNames = ['محمد', 'ياسين', 'مراد', 'حميد', 'رياض', 'منذر', 'رفيق', 'أمين', 'يوسف', 'عمر', 'سمير', 'عبد القادر', 'كمال', 'هشام'];
+const lastNames = ['بن علي', 'بوزيد', 'معروف', 'بلقاسم', 'حميدي', 'منصور', 'سعيد', 'بوضياف', 'قاصدي', 'مرباح', 'بن خدة'];
 
 export const AVAILABLE_CLASSES = [
   'الأول إبتدائي - أ', 'الأول إبتدائي - ب',
@@ -71,9 +71,9 @@ const generateStudents = (count: number): TeacherStudent[] => {
   }
   
   // Guarantee specific students
-  students[0] = { id: '1', name: 'ياسين محمود', level: 'إبتدائي', className: 'الأول إبتدائي - أ', progress: 85, points: 1250, lastActivity: 'الآن', status: 'نشط', weaknesses: ['توازن'], strengths: ['سرعة', 'استجابة'] };
-  students[1] = { id: '2', name: 'فاطمة علي', level: 'متوسط', className: 'الأول متوسط - أ', progress: 40, points: 420, lastActivity: 'قبل 3 أيام', status: 'متأخر', weaknesses: ['تأخر في التسليم'], strengths: ['دقة'] };
-  students[2] = { id: '3', name: 'أمير طارق', level: 'ثانوي', className: 'الأول ثانوي - علوم', progress: 98, points: 3100, lastActivity: 'الآن', status: 'نشط', weaknesses: [], strengths: ['مرونة', 'قوة'] };
+  students[0] = { id: '1', name: 'ياسين رفيق', level: 'إبتدائي', className: 'الأول إبتدائي - أ', progress: 85, points: 1250, lastActivity: 'الآن', status: 'نشط', weaknesses: ['توازن'], strengths: ['سرعة', 'استجابة'] };
+  students[1] = { id: '2', name: 'فاطمة بوزيد', level: 'متوسط', className: 'الأول متوسط - أ', progress: 40, points: 420, lastActivity: 'قبل 3 أيام', status: 'متأخر', weaknesses: ['تأخر في التسليم'], strengths: ['دقة'] };
+  students[2] = { id: '3', name: 'منذر رياض', level: 'ثانوي', className: 'الأول ثانوي - علوم', progress: 98, points: 3100, lastActivity: 'الآن', status: 'نشط', weaknesses: [], strengths: ['مرونة', 'قوة'] };
   
   return students;
 };
@@ -82,9 +82,9 @@ const generateStudents = (count: number): TeacherStudent[] => {
 export const allDistrictStudents: TeacherStudent[] = generateStudents(120);
 
 export const teacherVideos: TeacherVideo[] = [
-  { id: 'v1', studentId: '1', studentName: 'ياسين محمود', class: 'الأول إبتدائي - أ', date: 'اليوم، 10:30 ص', status: 'pending' },
-  { id: 'v2', studentId: '2', studentName: 'فاطمة علي', class: 'الأول متوسط - أ', date: 'أمس، 14:15 م', status: 'pending' },
-  { id: 'v3', studentId: '3', studentName: 'أمير طارق', class: 'الأول ثانوي - علوم', date: 'أمس، 09:00 ص', status: 'reviewed' },
+  { id: 'v1', studentId: '1', studentName: 'ياسين رفيق', class: 'الأول إبتدائي - أ', date: 'اليوم، 10:30 ص', status: 'pending' },
+  { id: 'v2', studentId: '2', studentName: 'فاطمة بوزيد', class: 'الأول متوسط - أ', date: 'أمس، 14:15 م', status: 'pending' },
+  { id: 'v3', studentId: '3', studentName: 'منذر رياض', class: 'الأول ثانوي - علوم', date: 'أمس، 09:00 ص', status: 'reviewed' },
 ];
 
 export const getTeacherStats = (students: TeacherStudent[]) => {

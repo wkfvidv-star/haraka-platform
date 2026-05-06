@@ -55,6 +55,7 @@ export default function TeacherDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLiveHub, setShowLiveHub] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const { user, logout } = useAuth();
   const isRTL = true;
   const { isLoaded, hasSetup, classes, activeClassId, setActiveClassId, createClass, seedData } = useTeacherClassData();
@@ -65,10 +66,10 @@ export default function TeacherDashboard() {
 
 
   const STUDENT_TARGETS = [
-    { id: 'st1', name: 'ياسين محمود', role: 'تلميذ - السنة 4' },
-    { id: 'st2', name: 'أمير طارق', role: 'تلميذ - السنة 4' },
+    { id: 'st1', name: 'ياسين رفيق', role: 'تلميذ - السنة 4' },
+    { id: 'st2', name: 'مراد بن علي', role: 'تلميذ - السنة 4' },
     { id: 'st3', name: 'سارة بوزيد', role: 'تلميذة - السنة 4' },
-    { id: 'st4', name: 'كريم معروف', role: 'تلميذ - السنة 4' },
+    { id: 'st4', name: 'حميد معروف', role: 'تلميذ - السنة 4' },
   ];
 
   const renderContent = () => {
@@ -170,10 +171,11 @@ export default function TeacherDashboard() {
             initial={false}
             animate={{ 
               width: isSidebarOpen ? 280 : 0, 
-              opacity: isSidebarOpen ? 1 : 0 
+              opacity: isSidebarOpen ? 1 : 0,
+              x: isSidebarOpen ? 0 : 280
             }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-20 shrink-0 overflow-hidden whitespace-nowrap shadow-2xl"
+            className="fixed inset-y-0 right-0 lg:relative h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-[100] lg:z-20 shrink-0 overflow-hidden whitespace-nowrap shadow-2xl"
           >
             {/* Header / Logo */}
             <div className="p-6 border-b border-slate-800/50 shrink-0">
@@ -226,10 +228,18 @@ export default function TeacherDashboard() {
         )}
       </AnimatePresence>
 
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* ══════════════════════════════════════════════════════
           MAIN CONTENT AREA
       ══════════════════════════════════════════════════════ */}
-      <div className="flex-1 flex flex-col min-w-0 bg-slate-50/50">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50/50 w-full">
         
         {/* TOP NAVBAR (BOLD) */}
         <header className="h-20 bg-white border-b border-slate-200 px-6 lg:px-10 flex items-center justify-between shrink-0 sticky top-0 z-10 shadow-sm">
@@ -377,6 +387,12 @@ export default function TeacherDashboard() {
             userName={user?.name || 'الأستاذ'} 
             onClose={() => setShowLiveHub(false)} 
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showOnboarding && (
+          <TeacherOnboarding onComplete={() => setShowOnboarding(false)} />
         )}
       </AnimatePresence>
     </div>

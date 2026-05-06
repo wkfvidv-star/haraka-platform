@@ -63,9 +63,9 @@ const CoachDashboardContent = () => {
   const navigate = useNavigate();
   
   const ATHLETE_TARGETS = [
-    { id: 'ath1', name: 'رحيم بوعلام', role: 'متدرب - مالتيديسك' },
-    { id: 'ath2', name: 'عبدالله سعيد', role: 'متدرب - تحمل أثقال' },
-    { id: 'ath3', name: 'غسان مراد', role: 'متدرب - كروسفيت' },
+    { id: 'ath1', name: 'رفيق بوعلام', role: 'متدرب - مالتيديسك' },
+    { id: 'ath2', name: 'مراد سعيد', role: 'متدرب - تحمل أثقال' },
+    { id: 'ath3', name: 'منذر رياض', role: 'متدرب - كروسفيت' },
   ];
 
   const renderContent = () => {
@@ -139,10 +139,10 @@ const CoachDashboardContent = () => {
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
           <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 280, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            className="h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-20 shrink-0 shadow-2xl relative"
+            initial={{ width: 0, opacity: 0, x: 280 }}
+            animate={{ width: 280, opacity: 1, x: 0 }}
+            exit={{ width: 0, opacity: 0, x: 280 }}
+            className="fixed inset-y-0 right-0 lg:relative h-full bg-slate-950 text-slate-50 border-l border-slate-900 flex flex-col z-[100] lg:z-20 shrink-0 shadow-2xl overflow-hidden"
           >
             <div className="p-6 border-b border-slate-800/50 shrink-0">
               <div className="flex items-center gap-3">
@@ -222,8 +222,16 @@ const CoachDashboardContent = () => {
         )}
       </AnimatePresence>
 
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 w-full">
         
         {/* TOPBAR */}
         <header className="h-20 bg-white border-b border-slate-200 px-6 lg:px-10 flex items-center justify-between shrink-0 sticky top-0 z-10 shadow-sm">

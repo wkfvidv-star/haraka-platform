@@ -9,7 +9,8 @@ import {
   TestTube, ShieldAlert, Sparkles, BookOpen, Clock, AlertTriangle,
   Coins, User, Home, Calendar, Camera, Wind, Sun, LogOut, Video,
   Navigation, Satellite, Menu, X, Gift, 
-  History, Utensils, MessageSquare, BellRing
+  History, Utensils, MessageSquare, BellRing,
+  School, ClipboardList
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -56,6 +57,7 @@ import { CoachScheduledSessions } from '@/components/youth-dashboard/CoachSchedu
 import { CoachNutritionPlan } from '@/components/youth-dashboard/CoachNutritionPlan';
 import { YouthAuditLogWidget } from '@/components/youth-dashboard/YouthAuditLogWidget';
 import { YouthMarketplace } from '@/components/youth-dashboard/YouthMarketplace';
+import { SchoolSportsHub } from '@/components/youth-dashboard/SchoolSportsHub';
 import { youthDataService } from '@/services/youthDataService';
 import { useToast } from '@/hooks/use-toast';
 import { eventBus, EVENTS } from '@/services/eventBus';
@@ -124,6 +126,7 @@ export default function YouthDashboard() {
     ],
     training: [
       { id: 'training', label: 'التدريب', icon: Dumbbell },
+      { id: 'school-sports', label: 'الرياضة المدرسية 🏫', icon: School },
       { id: 'sports', label: 'الرياضات', icon: Activity },
       { id: 'training-plan', label: 'الخطة', icon: Calendar },
       { id: 'ar-training', label: 'الواقع المعزز (AR)', icon: Camera },
@@ -158,6 +161,7 @@ export default function YouthDashboard() {
 
   const renderContent = () => {
     if (activeTab === 'profile') return <ProfileSettings />;
+    if (activeTab === 'school-sports') return <SchoolSportsHub />;
     if (activeTab === 'dashboard') {
       return (
         <div className="space-y-6 animate-in" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -191,6 +195,30 @@ export default function YouthDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+             </motion.div>
+
+             {/* Quick Actions for School/Teacher */}
+             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }} className="flex flex-col gap-5 w-full md:w-80">
+                <button 
+                  onClick={() => setActiveTab('school-sports')}
+                  className="flex-1 bg-white border border-slate-100 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center shadow-xl hover:shadow-2xl transition-all group"
+                >
+                   <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Video className="w-7 h-7 text-emerald-600" />
+                   </div>
+                   <h4 className="font-black text-slate-900 text-sm">رفع فيديو للأستاذ</h4>
+                   <p className="text-[10px] text-slate-400 font-bold mt-1">أرسل أداءك للتقييم</p>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('school-sports')}
+                  className="flex-1 bg-slate-900 border border-white/5 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center shadow-xl hover:shadow-2xl transition-all group"
+                >
+                   <div className="w-14 h-14 bg-blue-600/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <ClipboardList className="w-7 h-7 text-blue-400" />
+                   </div>
+                   <h4 className="font-black text-white text-sm">استبيان تلميذ</h4>
+                   <p className="text-[10px] text-slate-500 font-bold mt-1">تواصل تربوي مع الأستاذ</p>
+                </button>
              </motion.div>
           </div>
 
