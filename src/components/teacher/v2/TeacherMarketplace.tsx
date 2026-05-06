@@ -1,195 +1,221 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BookOpen, Search, Download, Star, Filter, 
-  ArrowRight, Award, Zap, Brain, Globe, 
-  ClipboardCheck, Share2, Plus, Sparkles
+  Users, Target, Zap, Brain, MessageSquare, 
+  ArrowRight, Award, Star, Search, 
+  MapPin, Eye, Activity, Send, GraduationCap,
+  Briefcase, TrendingUp, BookOpen
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { marketplaceService, Resource } from '@/services/marketplaceService';
+import { marketplaceService, MarketStats, Lead } from '@/services/marketplaceService';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+// ── Opportunity Card (Teacher's version of Lead) ──────────────────
+function OpportunityCard({ lead, onInvite }: { lead: Lead, onInvite: (l: Lead) => void }) {
+  return (
+    <motion.div 
+      layout
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+    >
+      <div className="flex flex-col md:flex-row md:items-center gap-6">
+        <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg", lead.avatarColor)}>
+          {lead.avatarInitials}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-black text-slate-900 text-xl">{lead.name}</h4>
+            <Badge className="bg-blue-100 text-blue-600 border-none text-[10px] px-2 py-0">طالب مستهدف</Badge>
+          </div>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-1 text-slate-400 text-xs font-bold">
+              <MapPin className="w-3 h-3" /> {lead.location}
+            </div>
+            <div className="flex items-center gap-1 text-blue-500 text-xs font-black">
+              <Brain className="w-3 h-3" /> {lead.matchScore}% توافق بيداغوجي
+            </div>
+          </div>
+          <p className="text-slate-500 text-xs mt-3 font-medium leading-relaxed">
+            هذا الطالب يظهر اهتماماً بـ {lead.goal === 'speed' ? 'تطوير السرعة' : 'اللياقة البدنية'} ويحتاج لتوجيه تربوي متخصص.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 shrink-0">
+          <Button 
+            onClick={() => onInvite(lead)}
+            className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm gap-2 px-6 h-12 shadow-lg shadow-blue-900/10"
+          >
+            دعوة للبرنامج <Send className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" className="text-slate-400 font-bold text-xs hover:bg-slate-50">عرض الملف التربوي</Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Main Teacher Marketplace ──────────────────────────────────────
 export default function TeacherMarketplace() {
-  const [query, setQuery] = useState('');
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [activeType, setActiveType] = useState<string | 'all'>('all');
+  const { user } = useAuth();
+  const [stats, setStats] = useState<MarketStats | null>(null);
+  const [opportunities, setOpportunities] = useState<Lead[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isAvailableForExtra, setIsAvailableForExtra] = useState(true);
 
   useEffect(() => {
-    if (query.trim()) {
-      setResources(marketplaceService.searchResources(query));
+    setStats(marketplaceService.getMarketStats());
+    if (searchQuery.trim()) {
+      setOpportunities(marketplaceService.searchLeads(searchQuery));
     } else {
-      setResources(marketplaceService.getResources());
+      setOpportunities(marketplaceService.getPotentialLeads('fitness')); // Default pedagogy
     }
-  }, [query]);
+  }, [searchQuery]);
 
-  const handleDownload = (res: Resource) => {
-    toast.success(`تم استيراد "${res.title}"! تم توفير حوالي 45 دقيقة من التحضير.`);
+  const handleInvite = (lead: Lead) => {
+    toast.success(`تم إرسال دعوة تربوية لـ ${lead.name} بنجاح!`);
   };
-
-  const filteredResources = activeType === 'all' 
-    ? resources 
-    : resources.filter(r => r.type === activeType);
 
   return (
     <div className="space-y-8 pb-10" dir="rtl">
       
-      {/* ── Smart Header: Focus on Benefit ── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl border border-white/5">
-        <div className="absolute top-0 right-0 w-full h-full bg-[url('/images/grid-pattern.png')] opacity-10 pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-          <div className="flex-1 space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-black">
-              <Sparkles className="w-4 h-4" /> مساعدك الرقمي لتوفير الوقت
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.1]">
-              لا تحضر دروسك يدوياً بعد اليوم <span className="text-blue-400">Haraka سيفعل ذلك!</span>
-            </h1>
-            <p className="text-slate-400 text-lg font-medium max-w-xl">
-              سوق الموارد صُمم لخدمتك؛ حمّل مناهج جاهزة، تمارين مصممة بالذكاء الاصطناعي، ووفر أكثر من <span className="text-white font-bold">5 ساعات أسبوعياً</span> من العمل الإداري.
-            </p>
-            <div className="flex flex-wrap gap-4 pt-2">
-              <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-900/40">استيراد منهج الأسبوع القادم 📅</Button>
-              <Button variant="outline" className="h-14 px-8 border-white/10 bg-white/5 text-white hover:bg-white/10 font-black rounded-2xl">استشارة AI 🤖</Button>
-            </div>
-          </div>
-          <div className="hidden lg:block w-72 h-72 bg-blue-500/20 rounded-[3rem] border border-white/10 rotate-3 flex items-center justify-center relative shadow-inner">
-             <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                <Brain className="w-32 h-32 text-blue-400" />
-             </div>
-             <div className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl -mr-10">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                   <span className="text-[10px] font-black uppercase text-slate-400">توفير الوقت اليوم</span>
+      {/* ── Teacher Market Stats ── */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { label: 'ظهور في شبكة المدارس', val: '1,240', icon: GraduationCap, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'زيارات الملف التربوي', val: '452', icon: Eye, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'طلبات الإشراف', val: '12', icon: Briefcase, color: 'text-orange-600', bg: 'bg-orange-50' },
+          { label: 'التقييم العام', val: '4.9/5', icon: Star, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        ].map((s, i) => (
+          <Card key={i} className="border-none shadow-sm bg-white overflow-hidden rounded-3xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", s.bg)}>
+                  <s.icon className={cn("w-6 h-6", s.color)} />
                 </div>
-                <div className="text-3xl font-black">+120د</div>
-                <p className="text-[10px] text-slate-500 mt-1 font-bold">عبر استخدام المناهج الجاهزة</p>
-             </div>
-          </div>
-        </div>
+                <Badge className="bg-slate-50 text-slate-400 border-none text-[10px] font-black">مباشر</Badge>
+              </div>
+              <h4 className="text-2xl font-black text-slate-900">{s.val}</h4>
+              <p className="text-slate-500 text-xs font-bold mt-1">{s.label}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* ── Main Content Area ── */}
-        <div className="lg:col-span-8 space-y-8">
-          
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-slate-900">موارد جاهزة للاستخدام الفوري ⚡</h2>
-            <div className="flex gap-2">
-               <Badge className="bg-slate-100 text-slate-600 border-none font-bold">الأكثر كفاءة</Badge>
-               <Badge className="bg-blue-50 text-blue-600 border-none font-bold">توصية AI</Badge>
+        {/* ── Main Panel: Student Opportunities ── */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">فرص الإشراف التربوي 🚀</h2>
+              <p className="text-slate-500 font-bold text-sm">طلاب يحتاجون لخبراتك البيداغوجية في المنصة</p>
             </div>
           </div>
 
-          {/* Resources Grid */}
-          <div className="grid grid-cols-1 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filteredResources.map((res) => (
-                <motion.div
-                  layout
-                  key={res.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:border-blue-100 transition-all group flex flex-col md:flex-row gap-8 items-center"
-                >
-                  <div className="w-24 h-24 rounded-3xl bg-slate-50 flex items-center justify-center text-5xl shrink-0 shadow-inner group-hover:bg-blue-50 transition-colors">
-                    {res.thumbnail}
-                  </div>
-                  
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-blue-600/10 text-blue-600 border-none text-[10px] px-3 py-1 font-black">
-                        توفير {(res.id === 'res-1' ? 60 : res.id === 'res-2' ? 120 : 45)} دقيقة تحضير
-                      </Badge>
-                      <div className="flex items-center gap-1 text-amber-500 font-black text-sm">
-                        <Star className="w-4 h-4 fill-amber-500" /> {res.rating}
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">{res.title}</h3>
-                    
-                    <div className="flex items-center gap-6 text-slate-500 font-bold text-xs">
-                      <div className="flex items-center gap-2">
-                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-900">{res.author.charAt(0)}</div>
-                         {res.author}
-                      </div>
-                      <div className="flex items-center gap-2">
-                         <Download className="w-4 h-4" /> {res.downloads.toLocaleString()} أستاذ استخدمه
-                      </div>
-                    </div>
-                  </div>
+          {/* Search Bar */}
+          <div className="relative group">
+            <Search className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="ابحث عن طلاب، فصول، أو احتياجات تربوية..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-16 bg-white border border-slate-100 rounded-3xl pr-14 pl-6 font-bold text-slate-900 shadow-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+            />
+          </div>
 
-                  <div className="shrink-0">
-                    <Button 
-                      onClick={() => handleDownload(res)}
-                      className="rounded-2xl bg-slate-950 hover:bg-blue-600 text-white font-black text-sm px-8 h-14 shadow-xl transition-all"
-                    >
-                      تفعيل بنقرة واحدة <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+          <div className="grid grid-cols-1 gap-4">
+            {opportunities.map(opp => (
+              <OpportunityCard key={opp.id} lead={opp} onInvite={handleInvite} />
+            ))}
           </div>
         </div>
 
-        {/* ── Side: Why Use This? ── */}
+        {/* ── Side Panel: Teacher Presence ── */}
         <div className="lg:col-span-4 space-y-6">
-           <Card className="border-none shadow-sm rounded-[2.5rem] bg-white overflow-hidden p-8">
-              <h4 className="text-xl font-black text-slate-900 mb-6">كيف تستفيد اليوم؟ 💎</h4>
-              <div className="space-y-6">
-                 {[
-                   { title: 'تحضير تلقائي', desc: 'استورد المناهج مباشرة إلى جدولك الدراسي.', icon: ClipboardCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                   { title: 'تقارير ذكية', desc: 'كل درس يأتي مع معايير تقييم جاهزة لبرنامج AI.', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-                   { title: 'تواصل مع الأولياء', desc: 'يتم إرسال ملخص النشاط للأولياء تلقائياً.', icon: Share2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                 ].map((item, i) => (
-                   <div key={i} className="flex gap-4">
-                      <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0", item.bg)}>
-                         <item.icon className={cn("w-6 h-6", item.color)} />
-                      </div>
-                      <div>
-                         <h5 className="font-black text-slate-900 text-sm mb-1">{item.title}</h5>
-                         <p className="text-slate-500 text-[11px] font-bold leading-relaxed">{item.desc}</p>
-                      </div>
+          <Card className="border-none shadow-sm rounded-[2.5rem] bg-white overflow-hidden">
+            <CardHeader className="p-8 border-b border-slate-50">
+              <CardTitle className="text-xl font-black flex items-center gap-2">
+                <BookOpen className="w-6 h-6 text-blue-600" /> هويتي كأستاذ خبير
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-8">
+              
+              {/* Extra-curricular Toggle */}
+              <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                <div>
+                  <h5 className="font-black text-slate-900 text-sm">نشاط خارج الدوام</h5>
+                  <p className="text-[10px] text-slate-500 font-bold">استقبال دعوات للإشراف الخاص</p>
+                </div>
+                <div 
+                  onClick={() => setIsAvailableForExtra(!isAvailableForExtra)}
+                  className={cn("w-14 h-7 rounded-full relative transition-all cursor-pointer", isAvailableForExtra ? "bg-blue-600" : "bg-slate-300")}
+                >
+                  <motion.div 
+                    animate={{ x: isAvailableForExtra ? 28 : 4 }}
+                    className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
+                  />
+                </div>
+              </div>
+
+              {/* Specializations */}
+              <div className="space-y-4">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">تخصصاتي البيداغوجية</label>
+                <div className="flex flex-wrap gap-2">
+                   <Badge className="bg-blue-50 text-blue-700 border-none font-bold px-4 py-2">تحليل حركي</Badge>
+                   <Badge className="bg-emerald-50 text-emerald-700 border-none font-bold px-4 py-2">علم النفس الرياضي</Badge>
+                   <Badge className="bg-purple-50 text-purple-700 border-none font-bold px-4 py-2">إعادة تأهيل مدرسية</Badge>
+                </div>
+              </div>
+
+              <Button className="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-lg shadow-xl shadow-blue-900/20">تحديث الملف المهني</Button>
+
+              <div className="pt-6 border-t border-slate-100">
+                <h5 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">نمو شبكتك المهنية</h5>
+                <div className="h-32 w-full bg-slate-50 rounded-2xl flex items-end justify-between p-4 gap-2">
+                   {[40, 70, 45, 90, 65, 80, 95].map((h, i) => (
+                     <motion.div 
+                       key={i}
+                       initial={{ height: 0 }}
+                       animate={{ height: `${h}%` }}
+                       className="w-full bg-blue-600/20 rounded-t-lg relative group"
+                     >
+                        <div className="absolute inset-0 bg-blue-600 rounded-t-lg scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom" />
+                     </motion.div>
+                   ))}
+                </div>
+                <div className="flex items-center justify-between mt-4 text-[10px] font-bold text-slate-400">
+                   <span>السبت</span>
+                   <span>الجمعة</span>
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
+
+          {/* AI Guidance for Teachers */}
+          <Card className="bg-gradient-to-br from-indigo-900 to-blue-900 border-none rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
+             <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-yellow-400" />
                    </div>
-                 ))}
-              </div>
-           </Card>
-
-           <Card className="bg-slate-900 border-none rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform" />
-              <div className="relative z-10">
-                 <h4 className="text-lg font-black mb-2">هل تبحث عن تمرين محدد؟</h4>
-                 <p className="text-slate-400 text-xs font-medium mb-6">دعنا ننشئ لك منهماً مخصصاً في ثوانٍ عبر محرك Haraka AI.</p>
-                 <Button className="w-full h-12 bg-white text-slate-900 hover:bg-blue-50 font-black rounded-xl">جرب محرك التوليد 🪄</Button>
-              </div>
-           </Card>
-        </div>
-
-      </div>
-    </div>
-  );
-}
-
-function FileText(props: any) { return <BookOpen {...props} />; }
-
-
-          {filteredResources.length === 0 && (
-             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                <Search className="w-16 h-16 mb-4 opacity-20" />
-                <h3 className="text-xl font-black">لم يتم العثور على نتائج</h3>
-                <p className="font-medium">جرب كلمات بحث مختلفة أو تصفية أخرى</p>
+                   <h4 className="font-black text-sm">نصيحة المنصة للأستاذ</h4>
+                </div>
+                <p className="text-blue-100/70 text-xs font-medium leading-relaxed mb-6">
+                   "هناك طلب متزايد من الأولياء على 'حصص التركيز الذهني' في الفترة المسائية. تفعيل هذا التخصص سيزيد من فرصك بنسبة 40%."
+                </p>
+                <Button className="w-full bg-white text-indigo-900 hover:bg-blue-50 font-black rounded-xl">تحسين استهداف الطلاب</Button>
              </div>
-          )}
+          </Card>
         </div>
 
       </div>
     </div>
   );
 }
-
-function Activity(props: any) { return <Zap {...props} />; }
