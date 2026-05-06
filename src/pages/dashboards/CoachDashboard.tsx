@@ -29,11 +29,13 @@ import { RatingSystem } from '@/components/shared/RatingSystem';
 import { ChatSystem } from '@/components/shared/ChatSystem';
 import CoachLibrary from '@/components/coach-dashboard/CoachLibrary';
 import CoachGPSHub from '@/components/coach-dashboard/gps/CoachGPSHub';
+import CoachMarketplace from '@/components/coach-dashboard/CoachMarketplace';
 
 const PRIMARY_TABS = [
   { id: 'clients',     label: 'المتدربين',        icon: Users },
   { id: 'programs',    label: 'البرامج',           icon: Target },
   { id: 'discover',    label: 'اكتشاف رياضي',     icon: Search },
+  { id: 'marketplace', label: 'سوق العمل 🏪',     icon: Zap },
   { id: 'requests',    label: 'طلبات التدريب',    icon: Bell },
 ];
 
@@ -92,6 +94,7 @@ const CoachDashboardContent = () => {
         }
         return <CoachClientsManager />;
       case 'discover': return <CoachDiscover />;
+      case 'marketplace': return <CoachMarketplace />;
       case 'requests': return <CoachRequests />;
       case 'video-review': return <CoachVideoReview />;
       case 'programs': return <CoachPrograms />;

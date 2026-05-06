@@ -6,6 +6,8 @@
 // API calls later without changing any consumer component.
 // ══════════════════════════════════════════════════════════════════
 
+import { toast } from "sonner";
+
 // ─── Types (matches future real API shape) ────────────────────────
 
 export type CoachSpecialty = 'fitness' | 'speed' | 'focus' | 'rehab' | 'nutrition';
@@ -35,7 +37,6 @@ export interface Invitation {
   message: string;
   date: string;         // ISO string
   status: 'pending' | 'accepted' | 'rejected';
-  // Future: linkedProgramId?: string;
 }
 
 export interface TrainingRequest {
@@ -47,9 +48,28 @@ export interface TrainingRequest {
   sentAt: string;       // ISO string
 }
 
+export interface Lead {
+  id: string;
+  name: string;
+  avatarInitials: string;
+  avatarColor: string;
+  goal: string;
+  level: string;
+  matchScore: number;
+  isNew: boolean;
+  location: string;
+}
+
+export interface MarketStats {
+  profileViews: number;
+  searchAppearances: number;
+  avgMatchScore: number;
+  conversionRate: number;
+  rankInSpecialty: number;
+  earningsThisMonth: number;
+}
+
 // ─── Mock Seed Data ───────────────────────────────────────────────
-// ⚠️ To connect to real API: replace MOCK_COACHES with an API call
-// and replace MOCK_INVITATIONS with a WebSocket/polling endpoint.
 
 const MOCK_COACHES: Coach[] = [
   {
@@ -113,9 +133,16 @@ const MOCK_INVITATIONS: Invitation[] = [
     coachAvatarInitials: 'أم',
     coachAvatarColor: 'bg-orange-500',
     message: 'مرحباً! رأيت مؤشرات أدائك وأعتقد أن لديك إمكانات كبيرة في السرعة. أدعوك للانضمام لبرنامجي المكثف لمدة 30 يوماً.',
-    date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     status: 'pending',
   },
+];
+
+const MOCK_LEADS: Lead[] = [
+  { id: 'lead-1', name: 'ياسين ب.', avatarInitials: 'يب', avatarColor: 'bg-blue-500', goal: 'speed', level: 'intermediate', matchScore: 94, isNew: true, location: 'الجزائر العاصمة' },
+  { id: 'lead-2', name: 'عمر م.', avatarInitials: 'عم', avatarColor: 'bg-emerald-500', goal: 'fitness', level: 'beginner', matchScore: 88, isNew: true, location: 'وهران' },
+  { id: 'lead-3', name: 'سارة ل.', avatarInitials: 'سل', avatarColor: 'bg-rose-500', goal: 'rehab', level: 'intermediate', matchScore: 91, isNew: false, location: 'قسنطينة' },
+  { id: 'lead-4', name: 'أمين ت.', avatarInitials: 'أت', avatarColor: 'bg-indigo-500', goal: 'focus', level: 'advanced', matchScore: 85, isNew: false, location: 'سطيف' },
 ];
 
 // ─── Storage Keys ─────────────────────────────────────────────────
@@ -132,8 +159,6 @@ function getUID(): string {
 }
 
 // ─── Match Algorithm ──────────────────────────────────────────────
-// Matches coach specialty to user's goal saved during onboarding.
-// Replace with server-side scoring when connecting real API.
 
 function computeMatch(coach: Coach, goal: string, level: string): number {
   const specialtyGoalMap: Record<string, CoachSpecialty[]> = {
@@ -145,7 +170,6 @@ function computeMatch(coach: Coach, goal: string, level: string): number {
   const matched = specialtyGoalMap[goal] ?? [];
   const base = matched.includes(coach.specialty) ? 85 : 65;
   const levelBonus = level === 'advanced' ? 5 : level === 'intermediate' ? 3 : 0;
-  // Small pseudo-random variation per coach id so results feel organic
   const variance = (parseInt(coach.id.slice(-1), 36) % 8);
   return Math.min(98, base + levelBonus + variance);
 }
@@ -156,7 +180,6 @@ function computeMatch(coach: Coach, goal: string, level: string): number {
 
 export const marketplaceService = {
 
-  /** Returns top 3 coaches ranked by match score for the current user */
   getSuggestedCoaches(): (Coach & { matchPct: number })[] {
     const uid = getUID();
     const goal  = localStorage.getItem(`haraka_student_goal_${uid}`)  || 'fitness';
@@ -168,7 +191,6 @@ export const marketplaceService = {
       .slice(0, 3);
   },
 
-  /** Returns all invitations (pending first) */
   getInvitations(): Invitation[] {
     const uid = getUID();
     const key = storageKey(uid, 'invitations');
@@ -176,12 +198,10 @@ export const marketplaceService = {
       const stored = JSON.parse(localStorage.getItem(key) || 'null');
       if (stored) return stored as Invitation[];
     } catch {}
-    // First visit: seed with mock data, persist it
     localStorage.setItem(key, JSON.stringify(MOCK_INVITATIONS));
     return MOCK_INVITATIONS;
   },
 
-  /** Accept an invitation */
   acceptInvitation(id: string): void {
     const uid = getUID();
     const key = storageKey(uid, 'invitations');
@@ -191,7 +211,6 @@ export const marketplaceService = {
     localStorage.setItem(key, JSON.stringify(invitations));
   },
 
-  /** Reject an invitation */
   rejectInvitation(id: string): void {
     const uid = getUID();
     const key = storageKey(uid, 'invitations');
@@ -201,17 +220,13 @@ export const marketplaceService = {
     localStorage.setItem(key, JSON.stringify(invitations));
   },
 
-  /** Send a training request to a coach */
   requestCoach(coachId: string, coachName: string): TrainingRequest {
     const uid = getUID();
     const key = storageKey(uid, 'requests');
     const existing: TrainingRequest[] = JSON.parse(localStorage.getItem(key) || '[]');
-
-    // Prevent duplicate pending requests
     if (existing.find(r => r.coachId === coachId && r.status === 'pending')) {
       return existing.find(r => r.coachId === coachId)!;
     }
-
     const newRequest: TrainingRequest = {
       id: `req-${Date.now()}`,
       coachId,
@@ -224,7 +239,6 @@ export const marketplaceService = {
     return newRequest;
   },
 
-  /** Check if a request to a coach already exists */
   hasRequestedCoach(coachId: string): boolean {
     const uid = getUID();
     const key = storageKey(uid, 'requests');
@@ -232,24 +246,43 @@ export const marketplaceService = {
     return existing.some(r => r.coachId === coachId && r.status === 'pending');
   },
 
-  /** Search coaches by name or specialty with optional filters */
   searchCoaches(query: string, filters: { goal?: string; level?: string }): (Coach & { matchPct: number })[] {
     const q = query.toLowerCase().trim();
     const targetGoal = filters.goal || 'fitness';
     const targetLevel = filters.level || 'beginner';
-
     return MOCK_COACHES
       .map(c => ({ ...c, matchPct: computeMatch(c, targetGoal, targetLevel) }))
-      .filter(c => {
-        const matchesQuery = !q || 
-          c.name.toLowerCase().includes(q) || 
-          c.specialtyLabel.toLowerCase().includes(q) ||
-          c.bio.toLowerCase().includes(q);
-        
-        const matchesGoal = !filters.goal || c.specialty === filters.goal; // Optional strict goal match
-        
-        return matchesQuery;
-      })
+      .filter(c => !q || c.name.toLowerCase().includes(q) || c.specialtyLabel.toLowerCase().includes(q) || c.bio.toLowerCase().includes(q))
       .sort((a, b) => b.matchPct - a.matchPct);
   },
+
+  getMarketStats(): MarketStats {
+    return {
+      profileViews: 452,
+      searchAppearances: 1240,
+      avgMatchScore: 88,
+      conversionRate: 12.5,
+      rankInSpecialty: 3,
+      earningsThisMonth: 45000,
+    };
+  },
+
+  getPotentialLeads(specialty: CoachSpecialty): Lead[] {
+    return MOCK_LEADS.filter(l => {
+      if (specialty === 'speed') return l.goal === 'speed' || l.goal === 'pro';
+      if (specialty === 'fitness') return l.goal === 'fitness' || l.goal === 'speed';
+      if (specialty === 'focus') return l.goal === 'focus' || l.goal === 'pro';
+      if (specialty === 'rehab') return l.goal === 'rehab' || l.goal === 'focus';
+      return true;
+    }).sort((a,b) => b.matchScore - a.matchScore);
+  },
+
+  updateCoachProfile(coachId: string, updates: Partial<Coach>): void {
+    console.log(`[Marketplace] Updating coach ${coachId}`, updates);
+  },
+
+  sendOutreach(coachId: string, leadId: string, message: string): void {
+    console.log(`[Marketplace] Coach ${coachId} sending invitation to ${leadId}: ${message}`);
+    toast.success('تم إرسال الدعوة بنجاح!');
+  }
 };
