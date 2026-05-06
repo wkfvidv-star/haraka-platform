@@ -41,6 +41,8 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 // ─── UI Primitives ───────────────────────────────────────────────────
 import { Button }    from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge }      from '@/components/ui/badge';
+import { Card }       from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast }   from '@/hooks/use-toast';
 import {
