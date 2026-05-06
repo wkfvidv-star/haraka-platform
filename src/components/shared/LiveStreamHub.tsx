@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Video, Users, MessageSquare, Heart, Star, 
   X, Mic, Camera, Share2, Award, Zap, 
-  Flame, ShieldCheck, Crown
+  Flame, ShieldCheck, Crown, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
