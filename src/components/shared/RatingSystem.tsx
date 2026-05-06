@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Star, ChevronDown, ChevronUp, Send, Award, TrendingUp } from 'lucide-react';
 import { unifiedDataService } from '@/services/unifiedDataService';
 import { auditService } from '@/services/auditService';
