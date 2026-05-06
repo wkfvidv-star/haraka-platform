@@ -30,6 +30,7 @@ import { ChatSystem } from '@/components/shared/ChatSystem';
 import CoachLibrary from '@/components/coach-dashboard/CoachLibrary';
 import CoachGPSHub from '@/components/coach-dashboard/gps/CoachGPSHub';
 import CoachMarketplace from '@/components/coach-dashboard/CoachMarketplace';
+import { LiveStreamHub } from '@/components/shared/LiveStreamHub';
 
 const PRIMARY_TABS = [
   { id: 'clients',     label: 'المتدربين',        icon: Users },
@@ -57,6 +58,7 @@ const ALL_TABS = [...PRIMARY_TABS, ...SECONDARY_TABS];
 const CoachDashboardContent = () => {
   const { activeTab, setActiveTab, notifications, markNotificationsAsRead, trainees } = useCoachDashboard();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showLiveHub, setShowLiveHub] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -238,6 +240,14 @@ const CoachDashboardContent = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <Button 
+              onClick={() => setShowLiveHub(true)}
+              className="bg-rose-600 hover:bg-rose-700 text-white font-black px-6 h-12 rounded-xl flex items-center gap-2 shadow-lg shadow-rose-900/20"
+            >
+               <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+               بث مباشر
+            </Button>
+            
             <Button variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50 font-bold h-12 px-6 rounded-xl hidden md:flex items-center gap-2">
               <Plus className="w-5 h-5" /> إضافة متدرب
             </Button>
@@ -307,6 +317,17 @@ const CoachDashboardContent = () => {
         </div>
 
       </div>
+
+      {/* Live Stream Overlay */}
+      <AnimatePresence>
+        {showLiveHub && (
+          <LiveStreamHub 
+            userRole="coach" 
+            userName={user?.name || 'المدرب'} 
+            onClose={() => setShowLiveHub(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

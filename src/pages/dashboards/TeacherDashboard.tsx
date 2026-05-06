@@ -35,6 +35,7 @@ import { TeacherSetupModal } from '@/components/teacher/v2/TeacherSetupModal';
 import { TeacherStudentRequests } from '@/components/teacher/v2/TeacherStudentRequests';
 import { TeacherGPSDashboard } from '@/components/teacher/gps/TeacherGPSDashboard';
 import TeacherMarketplace from '@/components/teacher/v2/TeacherMarketplace';
+import { LiveStreamHub } from '@/components/shared/LiveStreamHub';
 
 const navigationTabs = [
   { id: 'overview', label: 'اللوحة الرئيسية', icon: LayoutDashboard },
@@ -53,6 +54,7 @@ export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLiveHub, setShowLiveHub] = useState(false);
   const { user, logout } = useAuth();
   const isRTL = true;
   const { isLoaded, hasSetup, classes, activeClassId, setActiveClassId, createClass, seedData } = useTeacherClassData();
@@ -247,6 +249,14 @@ export default function TeacherDashboard() {
 
           <div className="flex items-center gap-6">
             
+            <Button 
+              onClick={() => setShowLiveHub(true)}
+              className="bg-rose-600 hover:bg-rose-700 text-white font-black px-6 h-12 rounded-xl flex items-center gap-2 shadow-lg shadow-rose-900/20"
+            >
+               <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+               بث مباشر
+            </Button>
+
             {classes.length > 0 && (
               <div className="hidden md:flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
                 <span className="text-sm font-bold text-slate-500 pr-2">القسم:</span>
@@ -359,6 +369,16 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
+      {/* Live Stream Overlay */}
+      <AnimatePresence>
+        {showLiveHub && (
+          <LiveStreamHub 
+            userRole="teacher" 
+            userName={user?.name || 'الأستاذ'} 
+            onClose={() => setShowLiveHub(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
     </>
   );
