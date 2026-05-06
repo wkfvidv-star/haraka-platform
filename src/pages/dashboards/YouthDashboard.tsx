@@ -55,6 +55,7 @@ import { ARTrainingSection } from '@/components/youth-dashboard/innovation/ARTra
 import { CoachScheduledSessions } from '@/components/youth-dashboard/CoachScheduledSessions';
 import { CoachNutritionPlan } from '@/components/youth-dashboard/CoachNutritionPlan';
 import { YouthAuditLogWidget } from '@/components/youth-dashboard/YouthAuditLogWidget';
+import { YouthMarketplace } from '@/components/youth-dashboard/YouthMarketplace';
 import { youthDataService } from '@/services/youthDataService';
 import { useToast } from '@/hooks/use-toast';
 import { eventBus, EVENTS } from '@/services/eventBus';
@@ -134,6 +135,7 @@ export default function YouthDashboard() {
       { id: 'metrics', label: 'المقاييس الحقيقية', icon: BarChart3 },
     ],
     community: [
+      { id: 'marketplace', label: 'سوق المدربين 🏪', icon: Users },
       { id: 'competitions', label: 'المسابقات المجتمعية', icon: Trophy },
       { id: 'rewards', label: 'نظام المكافآت', icon: Gift },
     ],
@@ -349,6 +351,7 @@ export default function YouthDashboard() {
     if (activeTab === 'ar-training') return <ARTrainingSection />;
     
     // --- Community & Rewards Integration ---
+    if (activeTab === 'marketplace') return <YouthMarketplace />;
     if (activeTab === 'competitions') return <SmartCompetitions />;
     if (activeTab === 'rewards') return <AchievementsPage />;
 
