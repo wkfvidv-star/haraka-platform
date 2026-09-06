@@ -1,53 +1,25 @@
 -- Haraka Platform - Database Migration & Sync
--- This script synchronizes the database with the application requirements
+-- Corrected order to avoid relation does not exist error
 
--- 1. Fix the Profiles table and its constraints
--- Ensure the role check constraint includes all new roles.
-DO $$ 
-BEGIN
-    -- Drop the check constraint if it exists (try common names)
-    ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
-    
-    -- Create table if it doesn't exist
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profiles') THEN
-        CREATE TABLE public.profiles (
-            id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-            role TEXT DEFAULT 'student',
-            name TEXT,
-            age INTEGER,
-            avatar_url TEXT,
-            parent_id UUID REFERENCES auth.users(id),
-            created_at TIMESTAMPTZ DEFAULT NOW(),
-            updated_at TIMESTAMPTZ DEFAULT NOW()
-        );
-    END IF;
+-- 1. Create profiles table first if not exists
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+    role TEXT DEFAULT 'student',
+    name TEXT,
+    age INTEGER,
+    avatar_url TEXT,
+    parent_id UUID REFERENCES auth.users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-    -- Ensure required columns exist (for cases where Prisma created the table differently)
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'role') THEN
-        ALTER TABLE public.profiles ADD COLUMN role TEXT DEFAULT 'student';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'name') THEN
-        ALTER TABLE public.profiles ADD COLUMN name TEXT;
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'avatar_url') THEN
-        ALTER TABLE public.profiles ADD COLUMN avatar_url TEXT;
-    END IF;
+-- Fix constraints & RLS on profiles
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check 
+CHECK (role IN ('student', 'youth', 'parent', 'teacher', 'coach', 'principal', 'directorate', 'ministry', 'competition', 'admin'));
 
-    -- Add the updated constraint
-    ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check 
-    CHECK (role IN ('student', 'youth', 'parent', 'teacher', 'coach', 'principal', 'directorate', 'ministry', 'competition', 'admin'));
-
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE NOTICE 'Error during profiles table upgrade: %', SQLERRM;
-END $$;
-
--- Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Profiles Policies
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" ON public.profiles
     FOR SELECT USING (auth.uid()::text = id::text);
@@ -107,7 +79,7 @@ CREATE TABLE IF NOT EXISTS public.sessions (
     user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
     exercise_id UUID REFERENCES public.exercises ON DELETE SET NULL,
     score INTEGER,
-    duration INTEGER, -- in seconds
+    duration INTEGER,
     calories INTEGER,
     feedback TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -123,9 +95,7 @@ DROP POLICY IF EXISTS "Users can insert their own sessions" ON public.sessions;
 CREATE POLICY "Users can insert their own sessions" ON public.sessions
     FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 
--- --- Functions and Triggers ---
-
--- Automatically create progress record on user signup
+-- 5. Trigger for automated user profiles creation on Signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -133,7 +103,6 @@ DECLARE
 BEGIN
     new_role := COALESCE(NEW.raw_user_meta_data->>'role', 'student');
 
-    -- Insert into profiles using the safest types
     INSERT INTO public.profiles (id, name, avatar_url, role)
     VALUES (
         NEW.id, 
@@ -144,18 +113,6 @@ BEGIN
         name = EXCLUDED.name,
         role = EXCLUDED.role;
 
-    -- Sync to public.users (Gamification/Prisma Table)
-    -- This ensures Prima can find the user even if they signed up via Supabase
-    INSERT INTO public.users (id, email, password, role, "xp", "level", "playCoins", "updatedAt", "createdAt")
-    VALUES (
-        NEW.id,
-        NEW.email,
-        '', -- Password handled by Supabase Auth
-        UPPER(new_role)::text, -- Match UserRole enum in Prisma (UPPERCASE)
-        0, 1, 0, NOW(), NOW()
-    ) ON CONFLICT (id) DO NOTHING;
-
-    -- Special handling for students
     IF new_role = 'student' THEN
         INSERT INTO public.students_progress (user_id)
         VALUES (NEW.id) ON CONFLICT (user_id) DO NOTHING;
@@ -164,7 +121,6 @@ BEGIN
     RETURN NEW;
 EXCEPTION 
     WHEN OTHERS THEN
-        -- Critical: Never block auth.users insertion
         RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
