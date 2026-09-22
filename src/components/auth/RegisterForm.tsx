@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/ThemeContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MailCheck, ArrowLeft } from 'lucide-react';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -21,6 +21,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     role: 'student' as UserRole
   });
   const [error, setError] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
   
   const { register, isLoading } = useAuth();
   const { t } = useTranslation();
@@ -39,15 +40,64 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
       return;
     }
     
-    const success = await register(formData);
-    if (!success) {
-      setError('حدث خطأ أثناء إنشاء الحساب');
+    const result = await register(formData);
+    if (!result.success) {
+      setError(result.error || 'حدث خطأ أثناء إنشاء الحساب');
+    } else if (result.success && !result.session) {
+      // Registration successful but email confirmation required
+      setEmailSent(true);
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // ── شاشة تأكيد الإيميل ──────────────────────────────────────────────
+  if (emailSent) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center shadow-lg">
+              <MailCheck className="h-10 w-10 text-white" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            تحقق من بريدك الإلكتروني
+          </CardTitle>
+          <CardDescription className="text-base mt-2">
+            تم إرسال رسالة تأكيد إلى:
+          </CardDescription>
+          <p className="font-semibold text-foreground mt-1 text-lg dir-ltr">{formData.email}</p>
+        </CardHeader>
+
+        <CardContent className="space-y-5">
+          <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-200 space-y-2 text-right">
+            <p className="font-semibold text-base">📧 الخطوات التالية:</p>
+            <ol className="list-decimal list-inside space-y-1 text-right">
+              <li>افتح بريدك الإلكتروني</li>
+              <li>ابحث عن رسالة من المنصة التعليمية</li>
+              <li>انقر على رابط «تأكيد الحساب» في الرسالة</li>
+              <li>بعد التأكيد، عد وسجّل الدخول</li>
+            </ol>
+          </div>
+
+          <div className="bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3 text-sm text-yellow-800 dark:text-yellow-200 text-right">
+            <p>💡 إذا لم تجد الرسالة، تحقق من مجلد <strong>البريد غير المرغوب فيه (Spam)</strong></p>
+          </div>
+
+          <Button
+            className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 gap-2"
+            onClick={onSwitchToLogin}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            العودة لتسجيل الدخول
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">

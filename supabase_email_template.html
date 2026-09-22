@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تأكيد إنشاء الحساب - منصة حركة</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0f172a;
+      margin: 0;
+      padding: 0;
+      direction: rtl;
+      text-align: right;
+      color: #334155;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrapper {
+      width: 100%;
+      background-color: #0f172a;
+      padding: 40px 15px;
+    }
+
+    .container {
+      max-width: 620px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 70%, #0284c7 100%);
+      padding: 48px 32px 36px 32px;
+      text-align: center;
+      color: #ffffff;
+      position: relative;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo-icon {
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .brand-tagline {
+      margin: 8px 0 0 0;
+      font-size: 15px;
+      color: #e0e7ff;
+      font-weight: 400;
+      opacity: 0.95;
+    }
+
+    .content {
+      padding: 40px 36px;
+      background-color: #ffffff;
+    }
+
+    .greeting {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 16px;
+    }
+
+    .message {
+      font-size: 16px;
+      line-height: 1.8;
+      color: #475569;
+      margin-bottom: 32px;
+    }
+
+    .feature-grid {
+      display: table;
+      width: 100%;
+      margin: 28px 0;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .feature-item {
+      display: table-cell;
+      width: 33.33%;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .feature-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .btn-container {
+      text-align: center;
+      margin: 36px 0 28px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #0284c7 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 18px 42px;
+      font-size: 17px;
+      font-weight: 700;
+      border-radius: 14px;
+      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+      letter-spacing: 0.2px;
+    }
+
+    .security-note {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      color: #166534;
+      margin-top: 28px;
+      line-height: 1.6;
+    }
+
+    .link-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 12px;
+      color: #64748b;
+      word-break: break-all;
+      margin-top: 24px;
+      direction: ltr;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .footer {
+      background-color: #0f172a;
+      padding: 32px 36px;
+      text-align: center;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .footer-brand {
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .footer-links {
+      margin: 14px 0;
+      font-size: 12px;
+    }
+
+    .footer-links a {
+      color: #818cf8;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+
+    .copyright {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-badge">
+          <span class="logo-icon">🏃⚡</span>
+        </div>
+        <h1 class="brand-title">منصة حركة | HARAKA</h1>
+        <p class="brand-tagline">المنصة الوطنية للتأهيل الرياضي والتعليم التفاعلي الذكي</p>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <div class="greeting">أهلاً بك معنا! 🏆</div>
+        
+        <p class="message">
+          يسعدنا انضمامك إلى <strong>منصة حركة</strong>! نحن هنا لنأخذ تجربتك الرياضية والتعليمية إلى مستوى جديد كلياً يعتمد على الذكاء الاصطناعي والتفاعل الممتع.
+          <br><br>
+          متبقي خطوة واحدة بسيطة لتنشيط حسابك والبدء فوراً:
+        </p>
+
+        <!-- Main Call To Action Button -->
+        <div class="btn-container">
+          <a href="{{ .ConfirmationURL }}" class="btn" target="_blank">
+            ✨ تأكيد البريد الإلكتروني وتفعيل الحساب
+          </a>
+        </div>
+
+        <!-- Features Showcase Grid -->
+        <div class="feature-grid">
+          <div class="feature-item">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-title">مدرب ذكي بالذكاء الاصطناعي</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">تحليلات وأداء فوري</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🏅</div>
+            <div class="feature-title">أوسمة ومكافآت تفاعلية</div>
+          </div>
+        </div>
+
+        <!-- Security Note -->
+        <div class="security-note">
+          🔒 <strong>أمان حسابك يهمنا:</strong> رابط التفعيل هذا صامد وآمن للاستخدام مرة واحدة. إذا لم تقم بإنشاء حساب في منصة حركة، يمكنك تجاهل هذه الرسالة بأمان.
+        </div>
+
+        <!-- Fallback Link -->
+        <div class="link-box">
+          <span style="direction: rtl; display: block; text-align: right; font-weight: bold; margin-bottom: 4px; color: #475569;">
+            إذا لم يعمل الزر أعلاه، انقر فوق الرابط المباشر التالي:
+          </span>
+          {{ .ConfirmationURL }}
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-brand">منصة حركة - Haraka Platform</div>
+        <div>تمكين الشباب والرياضيين بتقنيات المستقبل</div>
+        <div class="copyright">
+          جميع الحقوق محفوظة © 2026 منصة حركة.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

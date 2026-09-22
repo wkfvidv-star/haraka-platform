@@ -65,10 +65,12 @@ export async function supabaseSignUp(
   password: string,
   metadata?: Record<string, unknown>
 ): Promise<AuthResult> {
+  const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      emailRedirectTo: redirectUrl,
       data: metadata ?? {},
     },
   });

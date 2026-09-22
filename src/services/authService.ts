@@ -139,10 +139,12 @@ export const authService = {
     _supabaseRegister: async (userData: any) => {
         try {
             return await executeWithRetry(async () => {
+                const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
                 const { data, error } = await supabase.auth.signUp({
                     email: userData.email,
                     password: userData.password,
                     options: {
+                        emailRedirectTo: redirectUrl,
                         data: {
                             full_name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
                             first_name: userData.firstName || '',
