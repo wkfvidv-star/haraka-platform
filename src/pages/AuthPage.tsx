@@ -19,7 +19,8 @@ import {
   Loader2,
   Zap,
   Star,
-  Award
+  Award,
+  MailCheck
 } from 'lucide-react';
 
 export const AuthPage: React.FC = () => {
@@ -36,6 +37,8 @@ export const AuthPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [retryCooldown, setRetryCooldown] = useState(0);
   const [skipConfirmation, setSkipConfirmation] = useState(true);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   // مؤقت العد التنازلي عند تجاوز حد الطلبات
   useEffect(() => {
@@ -103,28 +106,14 @@ export const AuthPage: React.FC = () => {
       try {
         const result = await register({ email, password, firstName, lastName, role: selectedRole, environment });
         if (result.success) {
-          if (skipConfirmation) {
-            if ((result as any).isEmergencyEntry) {
-              setSuccessMsg('✅ تم تفعيل الدخول المباشر (نظام الطوارئ) لتجاوز ضغط الخادم. جاري التوجيه...');
-            } else {
-              setSuccessMsg('✅ تم إنشاء الحساب بنجاح! جاري التوجيه تلقائياً، وإذا تأخر ذلك يرجى تفعيل حسابك من البريد الإلكتروني للتمكن من الدخول.');
-            }
-            
-            // التوجيه التلقائي سيحدث عبر AuthContext، ولكن سنضيف تأكيداً
-            setTimeout(() => {
-              if (!isLoading) {
-                // Force redirect if context didn't trigger it
-                window.location.href = '/dashboard';
-              }
-            }, 2000);
-
+          // إذا كان هناك session، يعني تم الدخول تلقائياً بدون تأكيد إيميل
+          if ((result as any).session) {
+            // Auto-login happened, AuthContext will redirect
           } else {
-
-            setSuccessMsg('✅ تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
-            setEmail('');
-            setPassword('');
+            // يحتاج تأكيد إيميل — اعرض شاشة التأكيد الثابتة
+            setRegisteredEmail(email);
+            setEmailConfirmed(true);
           }
-          setIsRegistering(false);
         } else {
 
           // التعامل مع خطأ تجاوز حد الطلبات بشكل خاص - إظهار رسالة مطمئنة كما طلب المستخدم
@@ -236,7 +225,97 @@ export const AuthPage: React.FC = () => {
     );
   }
 
-  // Step 4: Auth form
+  // Step 4: شاشة تأكيد الإيميل الثابتة
+  if (emailConfirmed) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden" dir="rtl">
+        {/* Background */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/auth_bg_kids_sports.png"
+            alt="Background"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1526676037777-05a232554f77?q=80&w=2070&auto=format&fit=crop";
+            }}
+          />
+          <div className={`absolute inset-0 ${isSchool ? 'bg-gradient-to-br from-blue-950/90 via-indigo-950/85 to-purple-950/90' : 'bg-gradient-to-br from-orange-950/90 via-red-950/85 to-pink-950/90'}`}></div>
+        </div>
+
+        <div className="w-full max-w-[440px] px-2 sm:px-0 relative z-10" style={{ fontFamily: "'Cairo', sans-serif" }}>
+          <style>{`@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');`}</style>
+
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(40px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '28px',
+            overflow: 'hidden',
+            boxShadow: '0 32px 64px rgba(0,0,0,0.5)'
+          }}>
+            {/* Top bar */}
+            <div className={`h-1.5 w-full ${isSchool ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500' : 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500'}`}></div>
+
+            <div className="p-8 text-center space-y-5">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center ${isSchool ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'}`}
+                  style={{ boxShadow: '0 0 30px rgba(34,197,94,0.4)' }}>
+                  <MailCheck className="w-10 h-10 text-white" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <h1 className="text-2xl font-black text-white mb-2">تم إنشاء حسابك! ✅</h1>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  أُرسلت رسالة تأكيد إلى بريدك الإلكتروني
+                </p>
+              </div>
+
+              {/* Email display */}
+              <div style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '14px',
+                padding: '14px 20px'
+              }}>
+                <p className="text-white font-bold text-base dir-ltr">{registeredEmail}</p>
+              </div>
+
+              {/* Message */}
+              <div style={{
+                background: 'rgba(34,197,94,0.1)',
+                border: '1px solid rgba(34,197,94,0.25)',
+                borderRadius: '14px',
+                padding: '16px'
+              }}>
+                <p className="text-green-300 text-sm font-semibold leading-relaxed">
+                  يرجى فتح بريدك والنقر على رابط التأكيد لتفعيل حسابك ثم العودة لتسجيل الدخول
+                </p>
+              </div>
+
+              {/* Back button */}
+              <button
+                onClick={() => { setEmailConfirmed(false); setIsRegistering(false); }}
+                className={`w-full h-14 rounded-2xl text-white text-base font-black flex items-center justify-center gap-3 ${
+                  isSchool
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                    : 'bg-gradient-to-r from-orange-500 to-red-600'
+                }`}
+                style={{ transition: 'all 0.3s ease' }}
+              >
+                <ArrowRight size={18} />
+                العودة لتسجيل الدخول
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 5: Auth form
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden" dir="rtl">
       <style>{`
